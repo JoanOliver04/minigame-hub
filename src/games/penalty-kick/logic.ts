@@ -1,63 +1,148 @@
 import type {
-  PenaltyDifficulty,
+  KeeperPlan,
   PenaltyResult,
   Point,
+  ShotEstimate,
+  ShotStyle,
 } from "./types";
 
-const DIFFICULTY = {
-  easy: { readChance: 0.2, saveRadius: 15 },
-  medium: { readChance: 0.42, saveRadius: 18 },
-  hard: { readChance: 0.68, saveRadius: 21 },
-} satisfies Record<
-  PenaltyDifficulty,
-  { readChance: number; saveRadius: number }
->;
+interface StyleProfile {
+  idealPower: number;
+  baseSpread: number;
+  deviationCost: number;
+  baseSpeed: number;
+}
+
+const STYLE_PROFILES: Record<ShotStyle, StyleProfile> = {
+  placed: {
+    idealPower: 68,
+    baseSpread: 1.7,
+    deviationCost: 0.1,
+    baseSpeed: 62,
+  },
+  power: {
+    idealPower: 86,
+    baseSpread: 5.8,
+    deviationCost: 0.2,
+    baseSpeed: 78,
+  },
+  chip: {
+    idealPower: 56,
+    baseSpread: 2.3,
+    deviationCost: 0.13,
+    baseSpeed: 48,
+  },
+};
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-function randomPoint(): Point {
+function concentratedRandom(): number {
+  return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+}
+
+function edgeRisk(aim: Point): number {
+  const horizontal = Math.max(0, 14 - Math.min(aim.x, 100 - aim.x)) / 14;
+  const vertical = Math.max(0, 14 - aim.y) / 14;
+  return Math.max(horizontal, vertical) * 1.7;
+}
+
+export function estimateShot(
+  aim: Point,
+  power: number,
+  style: ShotStyle,
+): ShotEstimate {
+  const profile = STYLE_PROFILES[style];
+  const powerError = Math.abs(power - profile.idealPower);
+  const spread =
+    profile.baseSpread +
+    powerError * profile.deviationCost +
+    edgeRisk(aim);
+  const speed =
+    profile.baseSpeed +
+    power * (style === "power" ? 0.28 : style === "placed" ? 0.18 : 0.12);
+  const accuracy = clamp(Math.round(101 - spread * 7.2), 25, 99);
+
   return {
-    x: 15 + Math.random() * 70,
-    y: 18 + Math.random() * 64,
+    accuracy,
+    spread,
+    speed: Math.round(speed),
+    idealPower: profile.idealPower,
   };
 }
 
-/**
- * Resolve one kick. Power around 70% is most accurate; harder shots are
- * harder to save but increasingly likely to leave the goal.
- */
+function effectiveKeeperReach(
+  plan: KeeperPlan,
+  ball: Point,
+  style: ShotStyle,
+  power: number,
+): number {
+  if (
+    style === "chip" &&
+    Math.abs(plan.target.x - 50) > 22 &&
+    ball.x >= 34 &&
+    ball.x <= 66
+  ) {
+    return 4;
+  }
+
+  const powerReduction =
+    style === "power"
+      ? 3.4 + Math.max(0, power - 74) * 0.1
+      : style === "placed"
+        ? Math.max(0, power - 65) * 0.045
+        : -2.2;
+
+  return Math.max(3, plan.reach - powerReduction);
+}
+
+/** Resolve ball physics against a keeper plan chosen before the kick. */
 export function resolvePenalty(
   aim: Point,
   power: number,
-  difficulty: PenaltyDifficulty,
+  style: ShotStyle,
+  keeperPlan: KeeperPlan,
 ): PenaltyResult {
-  const settings = DIFFICULTY[difficulty];
-  const accuracyPenalty = Math.abs(power - 70) * 0.12;
-  const spread = 2.5 + accuracyPenalty + (power > 88 ? (power - 88) * 0.35 : 0);
+  const estimate = estimateShot(aim, power, style);
+  const verticalSpread = estimate.spread * (style === "chip" ? 1.18 : 0.9);
   const ball = {
-    x: aim.x + (Math.random() * 2 - 1) * spread,
-    y: aim.y + (Math.random() * 2 - 1) * spread,
+    x: aim.x + concentratedRandom() * estimate.spread,
+    y:
+      aim.y +
+      concentratedRandom() * verticalSpread -
+      (style === "chip" ? 1.5 : 0),
   };
+  const keeper = keeperPlan.target;
+  const saveDistance = Math.hypot(ball.x - keeper.x, ball.y - keeper.y);
+  const reach = effectiveKeeperReach(keeperPlan, ball, style, power);
 
-  const keeperReadsShot = Math.random() < settings.readChance;
-  const keeperBase = keeperReadsShot ? ball : randomPoint();
-  const keeper = {
-    x: clamp(keeperBase.x + (Math.random() * 2 - 1) * 9, 8, 92),
-    y: clamp(keeperBase.y + (Math.random() * 2 - 1) * 9, 10, 90),
-  };
-
-  const outside =
-    ball.x < 4 || ball.x > 96 || ball.y < 5 || ball.y > 95;
-  const distance = Math.hypot(ball.x - keeper.x, ball.y - keeper.y);
-  const powerSaveReduction = Math.max(0, power - 55) * 0.11;
-  const saved = distance <= settings.saveRadius - powerSaveReduction;
+  const farOutside =
+    ball.x < 0 || ball.x > 100 || ball.y < 0 || ball.y > 100;
+  const hitsFrame =
+    !farOutside &&
+    (ball.x < 4 || ball.x > 96 || ball.y < 5);
+  const saved = !farOutside && !hitsFrame && saveDistance <= reach;
 
   return {
     aim,
     ball,
     keeper,
-    kind: outside ? "miss" : saved ? "saved" : "goal",
+    kind: farOutside ? "miss" : hitsFrame ? "post" : saved ? "saved" : "goal",
+    style,
+    power,
+    quality: estimate.accuracy,
+    speed: estimate.speed,
+    saveDistance: Math.round(saveDistance * 10) / 10,
+    keeperStrategy: keeperPlan.strategy,
   };
 }
 
+export function aimSector(point: Point): {
+  horizontal: "left" | "center" | "right";
+  vertical: "high" | "middle" | "low";
+} {
+  return {
+    horizontal: point.x < 34 ? "left" : point.x > 66 ? "right" : "center",
+    vertical: point.y < 34 ? "high" : point.y > 66 ? "low" : "middle",
+  };
+}

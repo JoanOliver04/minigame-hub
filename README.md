@@ -61,7 +61,7 @@ Every game exposes three difficulty tiers. "Hard" is never a stat multiplier —
 | 🔤 Word Guess | `/games/word-guess` | Filters the live candidate-word pool against every hit/miss, then picks the letter that most evenly bisects it — an **information-gain** heuristic |
 | 🃏 Blackjack | `/games/blackjack` | Dealer plays a fixed casino rule; difficulty only gates a basic-strategy Hit/Stand hint shown to the player on Easy |
 | ⚡ Reaction Time | `/games/reaction-time` | Simulated human reflex window (150–700 ms) tuned per difficulty, with a false-start chance |
-| ⚽ Penalty Shootout | `/games/penalty-kick` | Keeper "read chance" + save radius scale with difficulty; shot accuracy degrades away from ~70% power |
+| ⚽ Penalty Shootout | `/games/penalty-kick` | Pre-commit keeper AI, pattern learning and three balanced shot techniques |
 | 🏀 Basket Challenge | `/games/basket-shot` | Release-timing meter for the player; difficulty-scaled make probability for the AI (42% / 58% / 74%, −11% on three-pointers) |
 
 Full breakdown of the six search/probability-driven opponents — the ones with a real algorithm behind them — in [§5](#5-inside-the-ai--six-strategies-in-depth).

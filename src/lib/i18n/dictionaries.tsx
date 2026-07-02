@@ -346,22 +346,43 @@ export interface Dictionary {
     rules: ReactNode;
     difficultyTipLabel: string;
     difficultyTip: ReactNode;
+    setupSummary: string;
     goals: string;
-    stops: string;
+    saves: string;
+    conversion: string;
+    bestQuality: string;
     goalsCount: (count: number) => string;
     stopsCount: (count: number) => string;
     kickCount: (current: number, total: number) => string;
-    aimPrompt: string;
+    pendingKick: (kick: number) => string;
+    onTargetCount: (count: number) => string;
+    missCount: (count: number) => string;
+    aimPrompt: (target: string) => string;
     shooting: string;
-    goal: string;
-    saved: string;
-    missed: string;
+    resultName: Record<"goal" | "saved" | "post" | "miss", string>;
+    shotStyle: string;
+    styles: Record<"placed" | "power" | "chip", string>;
+    styleDescriptions: Record<"placed" | "power" | "chip", string>;
+    quality: string;
+    speed: string;
+    keeperDecision: string;
+    keeperStrategies: Record<"guess" | "learn" | "read", string>;
     power: string;
+    powerHint: (power: number, ideal: number) => string;
+    target: string;
+    targetName: (
+      horizontal: "left" | "center" | "right",
+      vertical: "high" | "middle" | "low",
+    ) => string;
+    estimatedAccuracy: string;
+    estimatedSpeed: string;
     shoot: string;
-    goalLabel: string;
+    goalLabel: (target: string) => string;
+    keyboardHint: string;
     kickHistory: string;
     endWin: string;
     endLoss: string;
+    endRating: (goals: number) => string;
     finalScore: (goals: number, stops: number) => string;
   };
   basketShot: {
@@ -1001,40 +1022,104 @@ const en: Dictionary = {
     rules: (
       <>
         <p>
-          Take <strong>five penalties</strong>. Click or tap inside the goal
-          to choose where to aim, set the power and shoot.
+          Take <strong>five penalties</strong> and score at least three. Pick
+          any point in the goal, choose a technique and tune its power.
         </p>
         <p>
-          More power makes the ball harder to save, but extreme power reduces
-          accuracy and can send it wide.
+          <strong>Placed</strong> shots are precise, <strong>Power</strong>{" "}
+          shots beat the keeper&apos;s reach at the cost of control, and a{" "}
+          <strong>Chip</strong> punishes a keeper who commits away from the
+          centre.
         </p>
-        <p>Score at least three goals to win the shootout.</p>
+        <p>
+          The keeper commits before the final trajectory is calculated. Mix
+          your targets: stronger AI learns repeated placement but never sees
+          the final ball position.
+        </p>
       </>
     ),
-    difficultyTipLabel: "How the goalkeeper reacts",
+    difficultyTipLabel: "How the goalkeeper thinks",
     difficultyTip: (
       <>
-        On <strong>Easy</strong>, the goalkeeper usually guesses. On{" "}
-        <strong>Medium</strong>, they read some shots. On <strong>Hard</strong>,
-        they anticipate most kicks and cover more of the goal.
+        <strong>Easy</strong> mostly guesses and has limited reach.{" "}
+        <strong>Medium</strong> occasionally reads your body shape and starts
+        noticing repeated targets. <strong>Hard</strong> learns patterns more
+        aggressively, reads some strikes and covers more ground — but still
+        commits before the ball&apos;s random deviation is known.
       </>
     ),
+    setupSummary:
+      "Five kicks. Three goals win. Every technique has a real trade-off.",
     goals: "Goals",
-    stops: "Saves and misses",
+    saves: "Keeper saves",
+    conversion: "Conversion",
+    bestQuality: "Best execution",
     goalsCount: (count) => `${count} goals`,
-    stopsCount: (count) => `${count} stopped`,
+    stopsCount: (count) => `${count} denied`,
     kickCount: (current, total) => `Kick ${Math.min(current, total)} of ${total}`,
-    aimPrompt: "Pick a spot in the goal, then shoot",
+    pendingKick: (kick) => `Kick ${kick} pending`,
+    onTargetCount: (count) => `${count} on target`,
+    missCount: (count) => `${count} off target`,
+    aimPrompt: (target) => `Aiming ${target} — choose your technique`,
     shooting: "The ball is flying…",
-    goal: "GOAL!",
-    saved: "Saved by the goalkeeper!",
-    missed: "Wide! The shot missed the goal.",
+    resultName: {
+      goal: "GOAL! Clinical finish.",
+      saved: "Saved! The keeper got across.",
+      post: "Off the frame! So close.",
+      miss: "Wide! The shot missed the target.",
+    },
+    shotStyle: "Technique",
+    styles: {
+      placed: "Placed",
+      power: "Power",
+      chip: "Chip",
+    },
+    styleDescriptions: {
+      placed: "Accurate and controlled",
+      power: "Fast but less forgiving",
+      chip: "Beats an early dive",
+    },
+    quality: "Execution",
+    speed: "Ball speed",
+    keeperDecision: "Keeper",
+    keeperStrategies: {
+      guess: "Guessed",
+      learn: "Followed your pattern",
+      read: "Read the strike",
+    },
     power: "Power",
-    shoot: "Shoot",
-    goalLabel: "Goal: click or tap to choose your aim",
+    powerHint: (power, ideal) =>
+      Math.abs(power - ideal) <= 7
+        ? `Sweet spot · ideal ${ideal}%`
+        : power < ideal
+          ? `Underhit · ideal ${ideal}%`
+          : `Overhit · ideal ${ideal}%`,
+    target: "Target",
+    targetName: (horizontal, vertical) => {
+      const h = { left: "left", center: "centre", right: "right" }[horizontal];
+      const v = { high: "high", middle: "middle", low: "low" }[vertical];
+      return `${v} ${h}`;
+    },
+    estimatedAccuracy: "Control",
+    estimatedSpeed: "Speed",
+    shoot: "Strike",
+    goalLabel: (target) =>
+      `Goal. Current target: ${target}. Click or tap to aim; use arrow keys for fine control.`,
+    keyboardHint:
+      "Keyboard: arrows aim · Shift + arrows moves faster · Enter shoots",
     kickHistory: "Penalty history",
     endWin: "You win the shootout!",
     endLoss: "The goalkeeper wins the shootout.",
+    endRating: (goals) =>
+      goals === 5
+        ? "Flawless · World class"
+        : goals === 4
+          ? "Clinical finisher"
+          : goals === 3
+            ? "Ice-cold under pressure"
+            : goals === 2
+              ? "Promising, but denied"
+              : "The keeper owned the night",
     finalScore: (goals, stops) => `${goals} goals · ${stops} stopped`,
   },
   basketShot: {
@@ -1705,40 +1790,108 @@ const es: Dictionary = {
     rules: (
       <>
         <p>
-          Lanza <strong>cinco penaltis</strong>. Pulsa dentro de la portería
-          para elegir dónde apuntar, ajusta la potencia y dispara.
+          Lanza <strong>cinco penaltis</strong> y marca al menos tres. Elige
+          cualquier punto de la portería, una técnica y su potencia.
         </p>
         <p>
-          Una potencia alta dificulta la parada, pero pasarte reduce la
-          precisión y puede mandar el balón fuera.
+          El tiro <strong>Colocado</strong> es preciso, el{" "}
+          <strong>Potente</strong> supera el alcance del portero a cambio de
+          control y la <strong>Vaselina</strong> castiga una estirada lejos del
+          centro.
         </p>
-        <p>Marca al menos tres goles para ganar la tanda.</p>
+        <p>
+          El portero decide antes de calcularse la trayectoria final. Varía
+          tus objetivos: la IA avanzada aprende patrones, pero nunca conoce el
+          desvío final del balón.
+        </p>
       </>
     ),
-    difficultyTipLabel: "Cómo reacciona el portero",
+    difficultyTipLabel: "Cómo piensa el portero",
     difficultyTip: (
       <>
-        En <strong>Fácil</strong>, el portero casi siempre adivina. En{" "}
-        <strong>Media</strong>, lee algunos tiros. En <strong>Difícil</strong>,
-        anticipa la mayoría y cubre más espacio de la portería.
+        En <strong>Fácil</strong> casi siempre adivina y tiene poco alcance. En{" "}
+        <strong>Media</strong> a veces lee tu gesto y empieza a detectar
+        objetivos repetidos. En <strong>Difícil</strong> aprende patrones con
+        mayor intensidad, lee algunos golpeos y cubre más portería, pero
+        siempre decide antes de conocer el desvío aleatorio.
       </>
     ),
+    setupSummary:
+      "Cinco tiros. Tres goles para ganar. Cada técnica exige una decisión real.",
     goals: "Goles",
-    stops: "Paradas y fallos",
+    saves: "Paradas",
+    conversion: "Conversión",
+    bestQuality: "Mejor ejecución",
     goalsCount: (count) => `${count} goles`,
-    stopsCount: (count) => `${count} detenidos`,
+    stopsCount: (count) => `${count} sin gol`,
     kickCount: (current, total) => `Tiro ${Math.min(current, total)} de ${total}`,
-    aimPrompt: "Elige un punto de la portería y dispara",
+    pendingKick: (kick) => `Tiro ${kick} pendiente`,
+    onTargetCount: (count) => `${count} a puerta`,
+    missCount: (count) => `${count} fuera`,
+    aimPrompt: (target) => `Apuntando ${target} — elige la técnica`,
     shooting: "El balón está en el aire…",
-    goal: "¡GOL!",
-    saved: "¡Parada del portero!",
-    missed: "¡Fuera! El tiro no entró en la portería.",
+    resultName: {
+      goal: "¡GOL! Definición impecable.",
+      saved: "¡Parada! El portero llegó.",
+      post: "¡Al palo! Faltó muy poco.",
+      miss: "¡Fuera! El tiro no encontró portería.",
+    },
+    shotStyle: "Técnica",
+    styles: {
+      placed: "Colocado",
+      power: "Potente",
+      chip: "Vaselina",
+    },
+    styleDescriptions: {
+      placed: "Preciso y controlado",
+      power: "Rápido, pero exigente",
+      chip: "Supera una estirada",
+    },
+    quality: "Ejecución",
+    speed: "Velocidad",
+    keeperDecision: "Portero",
+    keeperStrategies: {
+      guess: "Adivinó",
+      learn: "Siguió tu patrón",
+      read: "Leyó el golpeo",
+    },
     power: "Potencia",
+    powerHint: (power, ideal) =>
+      Math.abs(power - ideal) <= 7
+        ? `Punto dulce · ideal ${ideal}%`
+        : power < ideal
+          ? `Falta fuerza · ideal ${ideal}%`
+          : `Demasiada fuerza · ideal ${ideal}%`,
+    target: "Objetivo",
+    targetName: (horizontal, vertical) => {
+      const h = { left: "izquierda", center: "centro", right: "derecha" }[
+        horizontal
+      ];
+      const v = { high: "arriba", middle: "media altura", low: "abajo" }[
+        vertical
+      ];
+      return `${v}, ${h}`;
+    },
+    estimatedAccuracy: "Control",
+    estimatedSpeed: "Velocidad",
     shoot: "Disparar",
-    goalLabel: "Portería: pulsa para elegir dónde apuntar",
+    goalLabel: (target) =>
+      `Portería. Objetivo actual: ${target}. Pulsa para apuntar; usa las flechas para ajustar.`,
+    keyboardHint:
+      "Teclado: flechas para apuntar · Mayús + flechas mueve más · Intro dispara",
     kickHistory: "Historial de penaltis",
     endWin: "¡Ganas la tanda de penaltis!",
     endLoss: "El portero gana la tanda.",
+    endRating: (goals) =>
+      goals === 5
+        ? "Perfecto · Clase mundial"
+        : goals === 4
+          ? "Definidor clínico"
+          : goals === 3
+            ? "Sangre fría bajo presión"
+            : goals === 2
+              ? "Prometedor, pero detenido"
+              : "El portero dominó la noche",
     finalScore: (goals, stops) => `${goals} goles · ${stops} detenidos`,
   },
   basketShot: {
