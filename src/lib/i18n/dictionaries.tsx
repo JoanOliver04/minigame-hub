@@ -413,6 +413,244 @@ export interface Dictionary {
     endTitle: (winner: "player" | "ai" | "tie") => string;
     finalScore: (you: number, ai: number) => string;
   };
+  shadowProtocol: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    turnLabel: (turn: number) => string;
+    coreCollected: string;
+    coreMissing: string;
+    alarmLabel: (remaining: number, total: number) => string;
+    boardLabel: string;
+    dpadLabel: string;
+    statusSneak: string;
+    statusSpotted: (remaining: number) => string;
+    statusCore: string;
+    statusHeard: string;
+    statusAimBeacon: string;
+    statusSprintArmed: string;
+    actionWait: string;
+    actionHack: string;
+    actionSprint: string;
+    actionBeacon: string;
+    legend: string;
+    endWin: string;
+    endLoss: string;
+    lossHint: string;
+    scoreTotal: string;
+    scoreStealth: string;
+    scoreAlarm: string;
+    scoreTurns: string;
+    cellLabel: (
+      x: number,
+      y: number,
+      tile: string,
+      player: boolean,
+      guard: boolean,
+      camera: boolean,
+      seen: boolean,
+    ) => string;
+  };
+  fleetCommand: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    placementTitle: string;
+    placeShipHint: (length: number) => string;
+    fleetReady: string;
+    rotateToVertical: string;
+    rotateToHorizontal: string;
+    randomPlacement: string;
+    clearPlacement: string;
+    placementCellLabel: (x: number, y: number, ship: boolean) => string;
+    yourTurn: string;
+    aiThinking: string;
+    sonarButton: string;
+    sonarSpent: string;
+    sonarPrompt: string;
+    enemyWaters: string;
+    yourFleet: string;
+    enemyBoardLabel: string;
+    yourBoardLabel: string;
+    enemyCellLabel: (x: number, y: number, mark: string) => string;
+    ownCellLabel: (x: number, y: number, ship: boolean, mark: string) => string;
+    enemyFleetStatus: (remaining: number, total: number) => string;
+    yourShots: string;
+    aiShots: string;
+    endWin: string;
+    endLoss: string;
+  };
+  windlineArchery: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    endLabel: (current: number, total: number) => string;
+    tallyYou: (score: number) => string;
+    tallyAi: (score: number) => string;
+    windLabel: string;
+    windDetail: (horizontal: number, vertical: number) => string;
+    targetLabel: string;
+    aimPrompt: string;
+    releasePrompt: string;
+    yourResult: (score: number) => string;
+    bothResult: (you: number, ai: number) => string;
+    angleLabel: (deg: number) => string;
+    windageLabel: (deg: number) => string;
+    powerLabel: (power: number) => string;
+    drawButton: string;
+    releaseButton: string;
+    meterLabel: string;
+    yourCenters: string;
+    aiCenters: string;
+    yourPrecision: string;
+    aiPrecision: string;
+    endTitle: (winner: "player" | "ai" | "tie") => string;
+  };
+  beatReactor: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    bpmLabel: string;
+    lengthLabel: string;
+    barsShort: string;
+    barsMedium: string;
+    barsLong: string;
+    densityLabel: string;
+    densityLight: string;
+    densityNormal: string;
+    densityDense: string;
+    silentMode: string;
+    calibrationLabel: (ms: number) => string;
+    tallyYou: (score: number) => string;
+    tallyAi: (score: number) => string;
+    lanesLabel: string;
+    laneButtonLabel: (n: number) => string;
+    judgementLabel: Record<"perfect" | "great" | "good" | "miss", string>;
+    comboYou: (combo: number) => string;
+    comboAi: (combo: number) => string;
+    yourBestCombo: string;
+    aiBestCombo: string;
+    accuracy: string;
+    endTitle: (winner: "player" | "ai" | "tie") => string;
+  };
+  circuitBreaker: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    tallyYou: (score: number) => string;
+    tallyGoal: (target: number) => string;
+    tallyAi: (score: number) => string;
+    steer: string;
+    winRound: string;
+    loseRound: string;
+    tieRound: string;
+    arenaLabel: string;
+    turnLeft: string;
+    straight: string;
+    turnRight: string;
+    yourWins: string;
+    aiWins: string;
+    ties: string;
+  };
+  diceforgeArena: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    youLabel: string;
+    aiLabel: string;
+    roundLabel: (round: number, total: number) => string;
+    yourRoll: string;
+    aiRoll: string;
+    lockPrompt: string;
+    lockDie: (die: number) => string;
+    resultLine: (you: number, ai: number) => string;
+    shopPrompt: string;
+    costLabel: (cost: number) => string;
+    replaceLabel: (die: number, face: number) => string;
+    skipShop: string;
+    healthResult: (you: number, ai: number) => string;
+    endTitle: (winner: "player" | "ai" | "tie") => string;
+  };
+  hexDominion: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    yourTurn: string;
+    aiThinking: string;
+    yourGoal: string;
+    aiGoal: string;
+    boardLabel: string;
+    emptyCell: (row: number, col: number) => string;
+    ownedCell: (row: number, col: number, owner: "player" | "ai") => string;
+    youLegend: string;
+    aiLegend: string;
+    movesLabel: (moves: number) => string;
+    endTitle: (winner: "player" | "ai") => string;
+  };
+  neonDrift: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    trackLabel: string;
+    trackNames: Record<string, string>;
+    lapLabel: (lap: number, total: number) => string;
+    leading: string;
+    chasing: string;
+    trackAria: string;
+    boostLabel: string;
+    steerLeft: string;
+    steerRight: string;
+    brake: string;
+    brakeShort: string;
+    boost: string;
+    boostShort: string;
+    endTitle: (outcome: "player" | "ai" | "tie") => string;
+    finishTimes: (you: string, ai: string) => string;
+    bestLap: string;
+    offTrack: string;
+    boostEff: string;
+    personalBest: string;
+  };
+  signalBreaker: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    allowRepeats: string;
+    yourAttack: string;
+    aiAttack: string;
+    guessCount: (used: number, max: number) => string;
+    slotLabel: (n: number) => string;
+    submit: string;
+    clear: string;
+    waitingForAi: string;
+    legend: string;
+    endTitle: (outcome: "player" | "ai" | "tie") => string;
+    yourGuesses: string;
+    aiGuesses: string;
+    codeWas: string;
+  };
+  spellstorm: {
+    rules: ReactNode;
+    difficultyTipLabel: string;
+    difficultyTip: ReactNode;
+    you: string;
+    ai: string;
+    timeLabel: (seconds: number) => string;
+    elementLabels: Record<"fire" | "ice" | "shield", string>;
+    spellLabels: Record<"fire" | "ice" | "shield", string>;
+    spellEffects: Record<"fire" | "ice" | "shield", string>;
+    typeLabel: string;
+    typePrompt: string;
+    frozen: string;
+    aiTyping: string;
+    aiCorrecting: string;
+    energyHint: (cost: number) => string;
+    castFeedback: (actor: "player" | "ai", spell: "fire" | "ice" | "shield") => string;
+    endTitle: (outcome: "player" | "ai" | "tie") => string;
+    healthResult: (you: number, ai: number) => string;
+    yourWords: string;
+    aiWords: string;
+  };
 }
 
 const en: Dictionary = {
@@ -480,6 +718,46 @@ const en: Dictionary = {
     "basket-shot": {
       name: "Basket Challenge",
       description: "Time your release, sink 2- and 3-pointers and outscore the AI.",
+    },
+    "shadow-protocol": {
+      name: "Shadow Protocol",
+      description: "Steal the data core and slip past patrols, cameras and sound.",
+    },
+    "fleet-command": {
+      name: "Fleet Command",
+      description: "Hide your fleet, read the sonar and out-target a Bayesian AI.",
+    },
+    "windline-archery": {
+      name: "Windline Archery",
+      description: "Read the crosswind, steady your release and out-shoot the AI.",
+    },
+    "beat-reactor": {
+      name: "Beat Reactor",
+      description: "Hit generated beats on the audio clock and out-score the AI.",
+    },
+    "circuit-breaker": {
+      name: "Circuit Breaker",
+      description: "Trap the AI's light-cycle in a simultaneous-turn duel.",
+    },
+    "diceforge-arena": {
+      name: "Diceforge Arena",
+      description: "Build custom dice, forge stronger faces and outfight an expectimax rival.",
+    },
+    "hex-dominion": {
+      name: "Hex Dominion",
+      description: "Connect opposite edges before a bridge-building tactical AI.",
+    },
+    "neon-drift": {
+      name: "Neon Drift",
+      description: "Race a rival AI through neon circuits with clean lines and boost.",
+    },
+    "signal-breaker": {
+      name: "Signal Breaker",
+      description: "Crack the AI's secret code before it cracks yours.",
+    },
+    spellstorm: {
+      name: "Spellstorm",
+      description: "Type elemental words, manage energy and out-cast a timeline-driven AI.",
     },
   },
   common: {
@@ -1176,6 +1454,457 @@ const en: Dictionary = {
           : "The challenge ends tied!",
     finalScore: (you, ai) => `Final score ${you} – ${ai}`,
   },
+  shadowProtocol: {
+    rules: (
+      <>
+        <p>
+          Move one tile per turn through the facility, grab the data core 💾 and
+          reach the exit 🚪. Guards patrol and cameras rotate after every one of
+          your actions — the tinted tiles show exactly what security can see.
+        </p>
+        <p>
+          Sprinting covers two tiles but makes noise, the one-use beacon lures
+          guards toward its sound, and hacking toggles an adjacent door or
+          camera for three turns. Being seen starts a three-turn alarm: break
+          line of sight before it runs out or the mission fails.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the security AI changes",
+    difficultyTip: (
+      <>
+        <p>Easy guards step greedily toward evidence and forget it after one turn.</p>
+        <p>Medium guards use A* pathfinding, remember for three turns and one chaser cuts off the exit.</p>
+        <p>
+          Hard guards intercept: they compute every tile you could have reached
+          since last seen and cover the route to your objective. They never read
+          your real hidden position.
+        </p>
+      </>
+    ),
+    turnLabel: (turn) => `Turn ${turn}`,
+    coreCollected: "💾 Core secured",
+    coreMissing: "💾 Core not taken",
+    alarmLabel: (remaining, total) => `🚨 Alarm ${remaining}/${total}`,
+    boardLabel: "Facility map",
+    dpadLabel: "Movement controls",
+    statusSneak: "Plan your move — security acts after you.",
+    statusSpotted: (remaining) =>
+      `Spotted! Break line of sight — ${remaining} alarm turn${remaining === 1 ? "" : "s"} left.`,
+    statusCore: "Core secured — now reach the exit!",
+    statusHeard: "A guard heard something and is investigating…",
+    statusAimBeacon: "Tap a highlighted tile to throw the noise beacon.",
+    statusSprintArmed: "Sprint armed — your next move covers two tiles but makes noise.",
+    actionWait: "⏳ Wait",
+    actionHack: "🔧 Hack",
+    actionSprint: "💨 Sprint",
+    actionBeacon: "📡 Beacon",
+    legend:
+      "🥷 you · 💂 guard · 📷 camera · 💾 core · 🚪 exit · tinted tiles are watched · rings are noise",
+    endWin: "Extraction complete!",
+    endLoss: "You were caught by facility security.",
+    lossHint: "Watch the cones: guards see 5 tiles ahead in a 90° arc, cameras 7.",
+    scoreTotal: "Score",
+    scoreStealth: "No detection",
+    scoreAlarm: "Alarm unused",
+    scoreTurns: "Turns vs par",
+    cellLabel: (x, y, tile, player, guard, camera, seen) => {
+      const parts = [`Tile ${x + 1}, ${y + 1}: ${tile.replace("-", " ")}`];
+      if (player) parts.push("you are here");
+      if (guard) parts.push("guard");
+      if (camera) parts.push("camera");
+      if (seen) parts.push("watched by security");
+      return parts.join(", ");
+    },
+  },
+  fleetCommand: {
+    rules: (
+      <>
+        <p>
+          Place four ships (4, 3, 2, 2 cells) on your 8×8 grid — they cannot
+          overlap or touch, not even diagonally. You and the AI then alternate
+          single shots; sink the whole enemy fleet first to win.
+        </p>
+        <p>
+          Once per match you can fire a sonar pulse instead of guessing blind:
+          it reveals how many occupied cells exist in a 3×3 region, but not
+          where. The AI has one sonar pulse too.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the targeting AI changes",
+    difficultyTip: (
+      <>
+        <p>Easy fires at random and pokes around its hits.</p>
+        <p>Medium hunts on a checkerboard and extends hit lines by orientation.</p>
+        <p>
+          Hard enumerates every legal placement of every surviving ship that
+          matches its misses, hits and sonar count, then fires at the most
+          probable cell. It never reads your real board.
+        </p>
+      </>
+    ),
+    placementTitle: "Deploy your fleet",
+    placeShipHint: (length) => `Tap a cell to place your ${length}-cell ship (tap a ship to remove it).`,
+    fleetReady: "Fleet deployed — ready to start. Tap a ship to reposition it.",
+    rotateToVertical: "↕ Vertical",
+    rotateToHorizontal: "↔ Horizontal",
+    randomPlacement: "🎲 Random",
+    clearPlacement: "Clear",
+    placementCellLabel: (x, y, ship) => `Cell ${x}, ${y}${ship ? ": your ship" : ""}`,
+    yourTurn: "Your turn — fire at the enemy grid.",
+    aiThinking: "Enemy is aiming",
+    sonarButton: "📡 Sonar pulse",
+    sonarSpent: "📡 Sonar used",
+    sonarPrompt: "Tap an enemy cell: sonar counts ships in that 3×3 region.",
+    enemyWaters: "Enemy waters",
+    yourFleet: "Your fleet",
+    enemyBoardLabel: "Enemy grid — tap to fire",
+    yourBoardLabel: "Your grid",
+    enemyCellLabel: (x, y, mark) =>
+      `Enemy cell ${x}, ${y}: ${mark === "none" ? "not fired" : mark}`,
+    ownCellLabel: (x, y, ship, mark) =>
+      `Your cell ${x}, ${y}: ${ship ? "ship" : "water"}${mark !== "none" ? `, ${mark}` : ""}`,
+    enemyFleetStatus: (remaining, total) => `Enemy ships afloat: ${remaining}/${total}`,
+    yourShots: "Your shots",
+    aiShots: "AI shots",
+    endWin: "Enemy fleet destroyed — you win!",
+    endLoss: "Your fleet was sunk.",
+  },
+  windlineArchery: {
+    rules: (
+      <>
+        <p>
+          Five ends, one arrow each per end. Set your elevation, windage and
+          draw power, then stop the swinging stability meter as close to centre
+          as you can — the further off, the more your release drifts.
+        </p>
+        <p>
+          The crosswind changes before every end and pushes your arrow while it
+          flies. Rings score 10/8/6/4/2. Ties break on exact centres, then on
+          total precision.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the AI archer changes",
+    difficultyTip: (
+      <>
+        <p>Easy misreads the wind by up to ±35% and has a shaky release.</p>
+        <p>Medium misreads by up to ±15% with a steadier hand.</p>
+        <p>
+          Hard reads the wind exactly but still has a small human release
+          variance. Every tier obeys the same physics you do, and the AI arrow
+          is locked in before you shoot.
+        </p>
+      </>
+    ),
+    endLabel: (current, total) => `End ${current}/${total}`,
+    tallyYou: (score) => `You ${score}`,
+    tallyAi: (score) => `AI ${score}`,
+    windLabel: "Wind",
+    windDetail: (horizontal, vertical) =>
+      `${Math.abs(horizontal).toFixed(1)} ${horizontal >= 0 ? "→" : "←"} · ${Math.abs(vertical).toFixed(1)} ${vertical >= 0 ? "↑" : "↓"}`,
+    targetLabel: "Archery target with arrow impacts",
+    aimPrompt: "Set angle and power, then draw.",
+    releasePrompt: "Tap release when the needle crosses the centre!",
+    yourResult: (score) => `Your arrow scores ${score}. AI is shooting…`,
+    bothResult: (you, ai) => `You scored ${you} — the AI scored ${ai}.`,
+    angleLabel: (deg) => `Elevation: ${deg.toFixed(1)}°`,
+    windageLabel: (deg) =>
+      `Windage: ${deg === 0 ? "centred" : `${Math.abs(deg).toFixed(1)}° ${deg > 0 ? "right" : "left"}`}`,
+    powerLabel: (power) => `Draw power: ${power}`,
+    drawButton: "🏹 Draw",
+    releaseButton: "Release!",
+    meterLabel: "Release stability meter",
+    yourCenters: "Your 10s",
+    aiCenters: "AI 10s",
+    yourPrecision: "Your drift",
+    aiPrecision: "AI drift",
+    endTitle: (winner) =>
+      winner === "player"
+        ? "You win the shoot-off!"
+        : winner === "ai"
+          ? "The AI wins the shoot-off."
+          : "A perfect tie — even after tie-breaks!",
+  },
+  beatReactor: {
+    rules: (
+      <>
+        <p>
+          Four lanes feed generated notes toward the judgement line. Hit D, F,
+          J, K (or tap the pads) exactly when a note crosses it — everything is
+          timed against the audio clock, not the animation.
+        </p>
+        <p>
+          Perfect ≤35 ms, Great ≤75 ms, Good ≤120 ms, otherwise a miss. Combo
+          multiplies your base score: ×1.1 at 10, ×1.2 at 25, ×1.3 at 50.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the AI rival changes",
+    difficultyTip: (
+      <>
+        <p>Every AI hit error is generated for the whole song before it starts and never changes.</p>
+        <p>Easy averages 48 ms off with a 12% miss chance.</p>
+        <p>Medium averages 20 ms off with a 5% miss chance.</p>
+        <p>Hard averages 4 ms off with a 1.5% miss chance — still not perfect.</p>
+      </>
+    ),
+    bpmLabel: "Tempo",
+    lengthLabel: "Song length",
+    barsShort: "Short",
+    barsMedium: "Medium",
+    barsLong: "Long",
+    densityLabel: "Note density",
+    densityLight: "Light",
+    densityNormal: "Normal",
+    densityDense: "Dense",
+    silentMode: "Silent mode (visual only)",
+    calibrationLabel: (ms) => `Audio calibration: ${ms > 0 ? "+" : ""}${ms} ms`,
+    tallyYou: (score) => `You ${score}`,
+    tallyAi: (score) => `AI ${score}`,
+    lanesLabel: "Four note lanes",
+    laneButtonLabel: (n) => `Lane ${n}`,
+    judgementLabel: { perfect: "PERFECT", great: "GREAT", good: "GOOD", miss: "MISS" },
+    comboYou: (combo) => `Your combo: ${combo}`,
+    comboAi: (combo) => `AI combo: ${combo}`,
+    yourBestCombo: "Your best combo",
+    aiBestCombo: "AI best combo",
+    accuracy: "Accuracy",
+    endTitle: (winner) =>
+      winner === "player"
+        ? "Reactor stabilized — you win!"
+        : winner === "ai"
+          ? "The AI out-scored you."
+          : "Dead even!",
+  },
+  circuitBreaker: {
+    rules: (
+      <>
+        <p>
+          Both light-cycles move every tick at the same time. Turn left,
+          right, or go straight — you leave a permanent wall behind you.
+          Crash into a wall, the border, or the other cycle and you&apos;re out.
+        </p>
+        <p>
+          Both moves are collected before either applies, so there is no
+          first-move advantage. First to 3 round wins takes the match; a
+          head-on collision ties the round.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the rival cycle changes",
+    difficultyTip: (
+      <>
+        <p>Easy picks a random turn, only avoiding an immediate crash.</p>
+        <p>Medium floods the arena from each option and picks the one leaving it the most open space.</p>
+        <p>
+          Hard runs a simultaneous-move search several rounds ahead (time-boxed
+          to stay under budget), weighing reachable space and containment
+          pressure. It never reads your pending move before deciding its own.
+        </p>
+      </>
+    ),
+    tallyYou: (score) => `You ${score}`,
+    tallyGoal: (target) => `First to ${target}`,
+    tallyAi: (score) => `AI ${score}`,
+    steer: "Steer left, right, or hold straight.",
+    winRound: "You trapped the AI!",
+    loseRound: "You crashed.",
+    tieRound: "Head-on collision — round tied.",
+    arenaLabel: "Light-cycle arena",
+    turnLeft: "Left",
+    straight: "Straight",
+    turnRight: "Right",
+    yourWins: "Your round wins",
+    aiWins: "AI round wins",
+    ties: "Ties",
+  },
+  diceforgeArena: {
+    rules: (
+      <>
+        <p>Both fighters roll three custom dice. Lock one die, reroll the other two, then resolve damage, shields and energy simultaneously.</p>
+        <p>Three damage faces gain 50% damage; three shields gain a persistent bonus. Damage + shield + energy earns a forge discount. Wild copies the strongest non-wild face. After combat, replace at most one die face from the seeded shop.</p>
+      </>
+    ),
+    difficultyTipLabel: "How the forge rival changes",
+    difficultyTip: (
+      <>
+        <p>Easy locks and buys randomly from legal options.</p>
+        <p>Medium enumerates every reroll outcome and values the next upgrade.</p>
+        <p>Hard uses the same exact roll search with shop-aware build synergy. It receives no hidden information and uses the same dice and economy.</p>
+      </>
+    ),
+    youLabel: "YOU", aiLabel: "AI", roundLabel: (round, total) => `Round ${round}/${total}`,
+    yourRoll: "Your dice", aiRoll: "AI dice", lockPrompt: "Lock one die. The other two reroll once.",
+    lockDie: die => `Lock die ${die}`, resultLine: (you, ai) => `Damage: you ${you} · AI ${ai}.`,
+    shopPrompt: "Forge one face, or save your coins.", costLabel: cost => `${cost} coins`,
+    replaceLabel: (die, face) => `Replace face ${face} on die ${die}`, skipShop: "Save coins",
+    healthResult: (you, ai) => `Health: you ${you} · AI ${ai}`,
+    endTitle: winner => winner === "player" ? "You rule the forge!" : winner === "ai" ? "The rival claims the arena." : "The forge ends dead even.",
+  },
+  hexDominion: {
+    rules: (
+      <>
+        <p>Place one stone per turn on the 7×7 hex board. Your blue stones must connect west to east; the AI&apos;s pink stones connect north to south.</p>
+        <p>Connections use all six neighbouring hexes. Paths may twist and form bridges. There are no captures or hidden rules: the first complete path wins.</p>
+      </>
+    ),
+    difficultyTipLabel: "How the territory AI changes",
+    difficultyTip: (
+      <>
+        <p>Easy chooses legal cells with a mild edge preference.</p>
+        <p>Medium blocks immediate wins and scores centre, edge and bridge patterns.</p>
+        <p>Hard first checks forced wins and blocks, then runs 350 deterministic UCT playouts with centre- and bridge-biased rollouts.</p>
+      </>
+    ),
+    yourTurn: "Your turn — connect blue from left to right.", aiThinking: "AI is mapping a route…",
+    yourGoal: "Your path", aiGoal: "AI path", boardLabel: "Seven by seven Hex Dominion board",
+    emptyCell: (row, col) => `Empty cell, row ${row}, column ${col}`,
+    ownedCell: (row, col, owner) => `${owner === "player" ? "Your" : "AI"} cell, row ${row}, column ${col}`,
+    youLegend: "You: west → east", aiLegend: "AI: north → south",
+    movesLabel: moves => `${moves} stones placed`,
+    endTitle: winner => winner === "player" ? "Your path spans the dominion!" : "The AI completed its path.",
+  },
+  neonDrift: {
+    rules: (
+      <>
+        <p>
+          Three laps against an AI rival. Your throttle is held automatically —
+          you steer, brake into corners, and spend a limited boost meter on the
+          straights. Leaving the track cuts your grip and acceleration, so keep
+          a clean racing line.
+        </p>
+        <p>
+          Steer with ◀ ▶ (or arrow keys / A-D), brake with the brake pad (or
+          Down/S), and boost with the boost pad (or Space). Cross all six
+          checkpoints each lap in order. Fastest total time wins.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the rival driver changes",
+    difficultyTip: (
+      <>
+        <p>The rival obeys the exact same grip, acceleration, boost and off-track rules you do — no rubber-banding.</p>
+        <p>Easy uses a short look-ahead, drives at 82% of the racing-line speed and botches one brake per lap.</p>
+        <p>Medium looks further ahead and carries 94% of the line speed.</p>
+        <p>Hard uses curvature-aware look-ahead, full line speed and no scripted mistakes.</p>
+      </>
+    ),
+    trackLabel: "Circuit",
+    trackNames: { circuit: "Circuit", serpent: "Serpent", speedway: "Speedway" },
+    lapLabel: (lap, total) => `Lap ${lap}/${total}`,
+    leading: "Leading",
+    chasing: "Chasing",
+    trackAria: "Race track, top-down view",
+    boostLabel: "Boost meter",
+    steerLeft: "Steer left",
+    steerRight: "Steer right",
+    brake: "Brake",
+    brakeShort: "BRAKE",
+    boost: "Boost",
+    boostShort: "BOOST",
+    endTitle: (outcome) =>
+      outcome === "player"
+        ? "You take the checkered flag!"
+        : outcome === "ai"
+          ? "The AI crosses the line first."
+          : "A photo finish — dead heat!",
+    finishTimes: (you, ai) => `You ${you} · AI ${ai}`,
+    bestLap: "Best lap",
+    offTrack: "Off-track",
+    boostEff: "Clean racing",
+    personalBest: "Track record",
+  },
+  signalBreaker: {
+    rules: (
+      <>
+        <p>
+          You and the AI each hide a secret 4-symbol code and race to crack the
+          other&apos;s in at most 8 guesses. Tap a slot to cycle symbols (or pick
+          from the palette), then submit.
+        </p>
+        <p>
+          After each guess: a filled dot means a symbol is right and in the
+          right place; a hollow dot means a symbol is right but in the wrong
+          place. Fewest guesses wins; equal counts are decided by solve time.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the AI cracks codes",
+    difficultyTip: (
+      <>
+        <p>The AI only ever sees the feedback from its own guesses, never your code.</p>
+        <p>Easy guesses a random code still consistent with its clues.</p>
+        <p>Medium runs minimax elimination over a sampled candidate set.</p>
+        <p>
+          Hard uses exact worst-case minimax over every remaining candidate, and
+          its code-setter picks a secret that resists your usual opening guesses.
+        </p>
+      </>
+    ),
+    allowRepeats: "Allow repeated symbols",
+    yourAttack: "Your attack",
+    aiAttack: "AI attack",
+    guessCount: (used, max) => `Guess ${used}/${max}`,
+    slotLabel: (n) => `Code slot ${n} — tap to change`,
+    submit: "Submit guess",
+    clear: "Clear",
+    waitingForAi: "Code cracked — waiting for the AI to finish…",
+    legend: "● filled = right symbol, right spot · ○ hollow = right symbol, wrong spot",
+    endTitle: (outcome) =>
+      outcome === "player"
+        ? "You cracked it first!"
+        : outcome === "ai"
+          ? "The AI cracked your code first."
+          : "A dead heat — same guesses, same time!",
+    yourGuesses: "Your guesses",
+    aiGuesses: "AI guesses",
+    codeWas: "The AI's code was",
+  },
+  spellstorm: {
+    rules: (
+      <>
+        <p>
+          Type each displayed word correctly to gain energy equal to its length.
+          A typo stays visible and resets your combo; correct it with Backspace.
+          The duel lasts 75 seconds, or ends immediately when a mage reaches zero health.
+        </p>
+        <p>
+          At 20 energy cast Fire for 18 damage, Ice to delay the rival&apos;s next
+          word, or Shield to absorb 15 damage. Damage hits shields before health.
+          Highest health wins when time expires.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "How the rival typist changes",
+    difficultyTip: (
+      <>
+        <p>Easy types at 120–180 WPM with an 8% corrected-typo chance and picks spells randomly.</p>
+        <p>Medium types at 180–240 WPM with 3% corrected typos and shields when badly hurt.</p>
+        <p>Hard types at 260–330 WPM with 0.8% corrected typos and maximizes one-step spell utility. Every completion time is fixed before its word begins.</p>
+      </>
+    ),
+    you: "YOU",
+    ai: "AI",
+    timeLabel: (seconds) => `${seconds} seconds remaining`,
+    elementLabels: { fire: "Fire word", ice: "Ice word", shield: "Shield word" },
+    spellLabels: { fire: "Fire", ice: "Ice", shield: "Shield" },
+    spellEffects: { fire: "18 damage", ice: "Slow next word", shield: "Absorb 15" },
+    typeLabel: "Type the current spell word",
+    typePrompt: "Type the word exactly",
+    frozen: "Frozen — next word delayed",
+    aiTyping: "AI is typing",
+    aiCorrecting: "AI corrected a typo",
+    energyHint: (cost) => `Correct words charge energy. Cast a spell at ${cost}.`,
+    castFeedback: (actor, spell) =>
+      `${actor === "player" ? "You cast" : "AI casts"} ${spell === "fire" ? "Fire" : spell === "ice" ? "Ice" : "Shield"}!`,
+    endTitle: (outcome) =>
+      outcome === "player" ? "You command the storm!" : outcome === "ai" ? "The rival mage wins." : "The storm ends in a draw.",
+    healthResult: (you, ai) => `Health: you ${you} · AI ${ai}`,
+    yourWords: "Your words",
+    aiWords: "AI words",
+  },
 };
 
 const es: Dictionary = {
@@ -1243,6 +1972,46 @@ const es: Dictionary = {
     "basket-shot": {
       name: "Desafío de Canasta",
       description: "Calcula el momento del tiro, encesta de 2 y 3 y supera a la IA.",
+    },
+    "shadow-protocol": {
+      name: "Protocolo Sombra",
+      description: "Roba el núcleo de datos y esquiva patrullas, cámaras y sonido.",
+    },
+    "fleet-command": {
+      name: "Flota al Mando",
+      description: "Oculta tu flota, usa el sónar y supera a una IA bayesiana.",
+    },
+    "windline-archery": {
+      name: "Tiro con Viento",
+      description: "Lee el viento cruzado, controla la suelta y gana a la IA.",
+    },
+    "beat-reactor": {
+      name: "Reactor de Ritmo",
+      description: "Acierta los ritmos generados con el reloj de audio y supera a la IA.",
+    },
+    "circuit-breaker": {
+      name: "Ruptor de Circuito",
+      description: "Atrapa la moto de luz de la IA en un duelo de turnos simultáneos.",
+    },
+    "diceforge-arena": {
+      name: "Arena Diceforge",
+      description: "Crea dados personalizados, forja caras y vence a una IA expectimax.",
+    },
+    "hex-dominion": {
+      name: "Dominio Hex",
+      description: "Conecta los bordes opuestos antes que una IA táctica.",
+    },
+    "neon-drift": {
+      name: "Derrape Neón",
+      description: "Corre contra la IA por circuitos de neón con trazadas limpias y turbo.",
+    },
+    "signal-breaker": {
+      name: "Rompeseñales",
+      description: "Descifra el código secreto de la IA antes de que descifre el tuyo.",
+    },
+    spellstorm: {
+      name: "Tormenta de Hechizos",
+      description: "Escribe palabras elementales, gestiona energía y supera a una IA temporal.",
     },
   },
   common: {
@@ -1948,6 +2717,478 @@ const es: Dictionary = {
           ? "La IA gana el desafío."
           : "¡El desafío termina en empate!",
     finalScore: (you, ai) => `Marcador final ${you} – ${ai}`,
+  },
+  shadowProtocol: {
+    rules: (
+      <>
+        <p>
+          Muévete una casilla por turno, roba el núcleo de datos 💾 y llega a la
+          salida 🚪. Los guardias patrullan y las cámaras rotan tras cada acción
+          tuya: las casillas teñidas muestran exactamente lo que ve la
+          seguridad.
+        </p>
+        <p>
+          Esprintar avanza dos casillas pero hace ruido, la baliza de un solo
+          uso atrae a los guardias hacia su sonido, y hackear alterna una puerta
+          o cámara adyacente durante tres turnos. Si te ven, empieza una alarma
+          de tres turnos: rompe la línea de visión antes de que acabe o la
+          misión fracasa.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia la IA de seguridad",
+    difficultyTip: (
+      <>
+        <p>En Fácil, los guardias avanzan con avidez hacia la evidencia y la olvidan tras un turno.</p>
+        <p>En Medio usan búsqueda A*, recuerdan tres turnos y un perseguidor corta la salida.</p>
+        <p>
+          En Difícil interceptan: calculan cada casilla que podrías haber
+          alcanzado desde que te vieron y cubren la ruta hacia tu objetivo.
+          Nunca leen tu posición oculta real.
+        </p>
+      </>
+    ),
+    turnLabel: (turn) => `Turno ${turn}`,
+    coreCollected: "💾 Núcleo asegurado",
+    coreMissing: "💾 Núcleo pendiente",
+    alarmLabel: (remaining, total) => `🚨 Alarma ${remaining}/${total}`,
+    boardLabel: "Mapa de la instalación",
+    dpadLabel: "Controles de movimiento",
+    statusSneak: "Planifica tu movimiento: la seguridad actúa después de ti.",
+    statusSpotted: (remaining) =>
+      `¡Te han visto! Rompe la línea de visión — queda${remaining === 1 ? "" : "n"} ${remaining} turno${remaining === 1 ? "" : "s"} de alarma.`,
+    statusCore: "Núcleo asegurado — ¡ahora llega a la salida!",
+    statusHeard: "Un guardia ha oído algo y está investigando…",
+    statusAimBeacon: "Toca una casilla resaltada para lanzar la baliza de ruido.",
+    statusSprintArmed: "Esprint preparado: tu próximo movimiento avanza dos casillas pero hace ruido.",
+    actionWait: "⏳ Esperar",
+    actionHack: "🔧 Hackear",
+    actionSprint: "💨 Esprintar",
+    actionBeacon: "📡 Baliza",
+    legend:
+      "🥷 tú · 💂 guardia · 📷 cámara · 💾 núcleo · 🚪 salida · las casillas teñidas están vigiladas · los anillos son ruido",
+    endWin: "¡Extracción completada!",
+    endLoss: "La seguridad de la instalación te ha atrapado.",
+    lossHint: "Observa los conos: los guardias ven 5 casillas en un arco de 90°, las cámaras 7.",
+    scoreTotal: "Puntuación",
+    scoreStealth: "Sin detección",
+    scoreAlarm: "Alarma sin usar",
+    scoreTurns: "Turnos vs par",
+    cellLabel: (x, y, tile, player, guard, camera, seen) => {
+      const tileNames: Record<string, string> = {
+        floor: "suelo",
+        wall: "muro",
+        cover: "cobertura",
+        "door-open": "puerta abierta",
+        "door-closed": "puerta cerrada",
+        terminal: "terminal",
+        core: "núcleo",
+        exit: "salida",
+      };
+      const parts = [`Casilla ${x + 1}, ${y + 1}: ${tileNames[tile] ?? tile}`];
+      if (player) parts.push("estás aquí");
+      if (guard) parts.push("guardia");
+      if (camera) parts.push("cámara");
+      if (seen) parts.push("vigilada por seguridad");
+      return parts.join(", ");
+    },
+  },
+  fleetCommand: {
+    rules: (
+      <>
+        <p>
+          Coloca cuatro barcos (4, 3, 2 y 2 casillas) en tu tablero de 8×8: no
+          pueden superponerse ni tocarse, ni siquiera en diagonal. Después tú y
+          la IA alternáis disparos; hunde toda la flota enemiga para ganar.
+        </p>
+        <p>
+          Una vez por partida puedes lanzar un pulso de sónar en lugar de
+          disparar a ciegas: revela cuántas casillas ocupadas hay en una región
+          de 3×3, pero no dónde. La IA también tiene un pulso de sónar.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia la IA de tiro",
+    difficultyTip: (
+      <>
+        <p>Fácil dispara al azar y tantea alrededor de sus impactos.</p>
+        <p>Medio caza en damero y extiende las líneas de impactos según su orientación.</p>
+        <p>
+          Difícil enumera cada colocación legal de cada barco superviviente
+          compatible con sus fallos, impactos y sónar, y dispara a la casilla
+          más probable. Nunca lee tu tablero real.
+        </p>
+      </>
+    ),
+    placementTitle: "Despliega tu flota",
+    placeShipHint: (length) =>
+      `Toca una casilla para colocar tu barco de ${length} casillas (toca un barco para quitarlo).`,
+    fleetReady: "Flota desplegada — lista para empezar. Toca un barco para recolocarlo.",
+    rotateToVertical: "↕ Vertical",
+    rotateToHorizontal: "↔ Horizontal",
+    randomPlacement: "🎲 Aleatorio",
+    clearPlacement: "Borrar",
+    placementCellLabel: (x, y, ship) => `Casilla ${x}, ${y}${ship ? ": tu barco" : ""}`,
+    yourTurn: "Tu turno: dispara al tablero enemigo.",
+    aiThinking: "El enemigo está apuntando",
+    sonarButton: "📡 Pulso de sónar",
+    sonarSpent: "📡 Sónar usado",
+    sonarPrompt: "Toca una casilla enemiga: el sónar cuenta barcos en esa región de 3×3.",
+    enemyWaters: "Aguas enemigas",
+    yourFleet: "Tu flota",
+    enemyBoardLabel: "Tablero enemigo — toca para disparar",
+    yourBoardLabel: "Tu tablero",
+    enemyCellLabel: (x, y, mark) =>
+      `Casilla enemiga ${x}, ${y}: ${
+        mark === "none" ? "sin disparar" : mark === "miss" ? "agua" : mark === "hit" ? "tocado" : "hundido"
+      }`,
+    ownCellLabel: (x, y, ship, mark) =>
+      `Tu casilla ${x}, ${y}: ${ship ? "barco" : "agua"}${
+        mark === "none" ? "" : mark === "miss" ? ", fallo" : mark === "hit" ? ", tocado" : ", hundido"
+      }`,
+    enemyFleetStatus: (remaining, total) => `Barcos enemigos a flote: ${remaining}/${total}`,
+    yourShots: "Tus disparos",
+    aiShots: "Disparos de la IA",
+    endWin: "Flota enemiga destruida — ¡has ganado!",
+    endLoss: "Tu flota ha sido hundida.",
+  },
+  windlineArchery: {
+    rules: (
+      <>
+        <p>
+          Cinco tandas, una flecha por tanda cada uno. Ajusta la elevación, la
+          deriva y la potencia y detén el medidor de estabilidad lo más cerca
+          posible del centro: cuanto más lejos, más se desvía tu suelta.
+        </p>
+        <p>
+          El viento cruzado cambia antes de cada tanda y empuja tu flecha en
+          vuelo. Los anillos puntúan 10/8/6/4/2. Los empates se resuelven por
+          dieces exactos y después por precisión total.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia la IA arquera",
+    difficultyTip: (
+      <>
+        <p>Fácil malinterpreta el viento hasta ±35% y tiene una suelta temblorosa.</p>
+        <p>Medio lo malinterpreta hasta ±15% con pulso más firme.</p>
+        <p>
+          Difícil lee el viento exacto pero mantiene una pequeña variación
+          humana en la suelta. Todos los niveles obedecen tu misma física, y la
+          flecha de la IA queda fijada antes de que dispares.
+        </p>
+      </>
+    ),
+    endLabel: (current, total) => `Tanda ${current}/${total}`,
+    tallyYou: (score) => `Tú ${score}`,
+    tallyAi: (score) => `IA ${score}`,
+    windLabel: "Viento",
+    windDetail: (horizontal, vertical) =>
+      `${Math.abs(horizontal).toFixed(1)} ${horizontal >= 0 ? "→" : "←"} · ${Math.abs(vertical).toFixed(1)} ${vertical >= 0 ? "↑" : "↓"}`,
+    targetLabel: "Diana de tiro con impactos de flechas",
+    aimPrompt: "Ajusta ángulo y potencia, luego tensa el arco.",
+    releasePrompt: "¡Suelta cuando la aguja cruce el centro!",
+    yourResult: (score) => `Tu flecha puntúa ${score}. La IA está disparando…`,
+    bothResult: (you, ai) => `Has puntuado ${you} — la IA ha puntuado ${ai}.`,
+    angleLabel: (deg) => `Elevación: ${deg.toFixed(1)}°`,
+    windageLabel: (deg) =>
+      `Deriva: ${deg === 0 ? "centrada" : `${Math.abs(deg).toFixed(1)}° ${deg > 0 ? "derecha" : "izquierda"}`}`,
+    powerLabel: (power) => `Potencia: ${power}`,
+    drawButton: "🏹 Tensar",
+    releaseButton: "¡Soltar!",
+    meterLabel: "Medidor de estabilidad de la suelta",
+    yourCenters: "Tus dieces",
+    aiCenters: "Dieces de la IA",
+    yourPrecision: "Tu desviación",
+    aiPrecision: "Desviación de la IA",
+    endTitle: (winner) =>
+      winner === "player"
+        ? "¡Ganas el duelo de tiro!"
+        : winner === "ai"
+          ? "La IA gana el duelo de tiro."
+          : "Empate perfecto, ¡incluso tras los desempates!",
+  },
+  beatReactor: {
+    rules: (
+      <>
+        <p>
+          Cuatro carriles envían notas generadas hacia la línea de juicio. Pulsa
+          D, F, J, K (o toca los pads) justo cuando una nota la cruce: todo se
+          mide contra el reloj de audio, no contra la animación.
+        </p>
+        <p>
+          Perfecto ≤35 ms, Genial ≤75 ms, Bien ≤120 ms; si no, fallo. La
+          combinación multiplica tu puntuación base: ×1.1 en 10, ×1.2 en 25,
+          ×1.3 en 50.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia la IA rival",
+    difficultyTip: (
+      <>
+        <p>Cada error de la IA se genera para toda la canción antes de empezar y nunca cambia.</p>
+        <p>Fácil se desvía 48 ms de media con 12% de fallo.</p>
+        <p>Medio se desvía 20 ms de media con 5% de fallo.</p>
+        <p>Difícil se desvía 4 ms de media con 1.5% de fallo — sigue sin ser perfecta.</p>
+      </>
+    ),
+    bpmLabel: "Tempo",
+    lengthLabel: "Duración de la canción",
+    barsShort: "Corta",
+    barsMedium: "Media",
+    barsLong: "Larga",
+    densityLabel: "Densidad de notas",
+    densityLight: "Ligera",
+    densityNormal: "Normal",
+    densityDense: "Densa",
+    silentMode: "Modo silencioso (solo visual)",
+    calibrationLabel: (ms) => `Calibración de audio: ${ms > 0 ? "+" : ""}${ms} ms`,
+    tallyYou: (score) => `Tú ${score}`,
+    tallyAi: (score) => `IA ${score}`,
+    lanesLabel: "Cuatro carriles de notas",
+    laneButtonLabel: (n) => `Carril ${n}`,
+    judgementLabel: { perfect: "PERFECTO", great: "GENIAL", good: "BIEN", miss: "FALLO" },
+    comboYou: (combo) => `Tu combo: ${combo}`,
+    comboAi: (combo) => `Combo IA: ${combo}`,
+    yourBestCombo: "Tu mejor combo",
+    aiBestCombo: "Mejor combo IA",
+    accuracy: "Precisión",
+    endTitle: (winner) =>
+      winner === "player"
+        ? "¡Reactor estabilizado — ganas!"
+        : winner === "ai"
+          ? "La IA te ha superado en puntos."
+          : "¡Empate total!",
+  },
+  circuitBreaker: {
+    rules: (
+      <>
+        <p>
+          Ambas motos de luz se mueven a la vez en cada instante. Gira a la
+          izquierda, a la derecha o sigue recto: dejas un muro permanente
+          detrás de ti. Chocar contra un muro, el borde o la otra moto te
+          elimina.
+        </p>
+        <p>
+          Ambos movimientos se recogen antes de aplicarse, así que nadie tiene
+          ventaja de salida. El primero en ganar 3 rondas se lleva la partida;
+          una colisión frontal empata la ronda.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia la moto rival",
+    difficultyTip: (
+      <>
+        <p>Fácil elige un giro al azar, solo evitando un choque inmediato.</p>
+        <p>Medio inunda el espacio desde cada opción y elige la que deja más sitio libre.</p>
+        <p>
+          Difícil ejecuta una búsqueda de movimiento simultáneo varias rondas
+          por delante (acotada en tiempo para no exceder el presupuesto),
+          valorando espacio alcanzable y presión de contención. Nunca lee tu
+          movimiento pendiente antes de decidir el suyo.
+        </p>
+      </>
+    ),
+    tallyYou: (score) => `Tú ${score}`,
+    tallyGoal: (target) => `Primero a ${target}`,
+    tallyAi: (score) => `IA ${score}`,
+    steer: "Gira a la izquierda, a la derecha o sigue recto.",
+    winRound: "¡Has atrapado a la IA!",
+    loseRound: "Has chocado.",
+    tieRound: "Colisión frontal — ronda empatada.",
+    arenaLabel: "Arena de motos de luz",
+    turnLeft: "Izquierda",
+    straight: "Recto",
+    turnRight: "Derecha",
+    yourWins: "Tus rondas ganadas",
+    aiWins: "Rondas ganadas por la IA",
+    ties: "Empates",
+  },
+  diceforgeArena: {
+    rules: (
+      <>
+        <p>Ambos luchadores tiran tres dados personalizados. Bloquea uno, vuelve a tirar los otros dos y resuelve a la vez daño, escudo y energía.</p>
+        <p>Tres caras de daño suman un 50%; tres escudos obtienen una bonificación persistente. Daño + escudo + energía concede descuento. El comodín copia la mejor cara no comodín. Tras combatir puedes reemplazar una cara en la tienda sembrada.</p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia el rival de la forja",
+    difficultyTip: (
+      <>
+        <p>Fácil bloquea y compra al azar entre opciones legales.</p>
+        <p>Medio enumera todos los resultados de la segunda tirada y valora la próxima mejora.</p>
+        <p>Difícil usa la misma búsqueda exacta con sinergia de construcción y tienda. No recibe información oculta.</p>
+      </>
+    ),
+    youLabel: "TÚ", aiLabel: "IA", roundLabel: (round, total) => `Ronda ${round}/${total}`,
+    yourRoll: "Tus dados", aiRoll: "Dados IA", lockPrompt: "Bloquea un dado. Los otros dos se vuelven a tirar.",
+    lockDie: die => `Bloquear dado ${die}`, resultLine: (you, ai) => `Daño: tú ${you} · IA ${ai}.`,
+    shopPrompt: "Forja una cara o ahorra tus monedas.", costLabel: cost => `${cost} monedas`,
+    replaceLabel: (die, face) => `Reemplazar cara ${face} del dado ${die}`, skipShop: "Ahorrar monedas",
+    healthResult: (you, ai) => `Salud: tú ${you} · IA ${ai}`,
+    endTitle: winner => winner === "player" ? "¡Dominas la forja!" : winner === "ai" ? "El rival conquista la arena." : "La forja termina en empate.",
+  },
+  hexDominion: {
+    rules: (
+      <>
+        <p>Coloca una piedra por turno en el tablero hexagonal de 7×7. Tus piedras azules deben conectar oeste y este; las rosas de la IA conectan norte y sur.</p>
+        <p>Las conexiones usan los seis hexágonos vecinos. Los caminos pueden girar y formar puentes. No hay capturas ni reglas ocultas: gana el primer camino completo.</p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia la IA territorial",
+    difficultyTip: (
+      <>
+        <p>Fácil elige casillas legales con ligera preferencia por los bordes.</p>
+        <p>Medio bloquea victorias inmediatas y puntúa centro, bordes y puentes.</p>
+        <p>Difícil comprueba jugadas forzadas y ejecuta 350 simulaciones UCT deterministas con sesgo al centro y los puentes.</p>
+      </>
+    ),
+    yourTurn: "Tu turno: conecta el azul de izquierda a derecha.", aiThinking: "La IA está trazando una ruta…",
+    yourGoal: "Tu camino", aiGoal: "Camino IA", boardLabel: "Tablero de Dominio Hex de siete por siete",
+    emptyCell: (row, col) => `Casilla vacía, fila ${row}, columna ${col}`,
+    ownedCell: (row, col, owner) => `Casilla de ${owner === "player" ? "jugador" : "IA"}, fila ${row}, columna ${col}`,
+    youLegend: "Tú: oeste → este", aiLegend: "IA: norte → sur",
+    movesLabel: moves => `${moves} piedras colocadas`,
+    endTitle: winner => winner === "player" ? "¡Tu camino cruza el dominio!" : "La IA ha completado su camino.",
+  },
+  neonDrift: {
+    rules: (
+      <>
+        <p>
+          Tres vueltas contra una IA rival. El acelerador se mantiene solo: tú
+          giras, frenas en las curvas y gastas un turbo limitado en las rectas.
+          Salirte de la pista reduce agarre y aceleración, así que mantén una
+          trazada limpia.
+        </p>
+        <p>
+          Gira con ◀ ▶ (o flechas / A-D), frena con el pad de freno (o Abajo/S)
+          y activa el turbo con su pad (o Espacio). Cruza los seis puntos de
+          control de cada vuelta en orden. Gana el mejor tiempo total.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia el piloto rival",
+    difficultyTip: (
+      <>
+        <p>El rival obedece tu mismo agarre, aceleración, turbo y reglas fuera de pista — sin trampas de goma.</p>
+        <p>Fácil usa poca anticipación, va al 82% de la velocidad de trazada y falla un frenado por vuelta.</p>
+        <p>Medio anticipa más y lleva el 94% de la velocidad de trazada.</p>
+        <p>Difícil anticipa según la curvatura, va a velocidad completa y no comete errores guionizados.</p>
+      </>
+    ),
+    trackLabel: "Circuito",
+    trackNames: { circuit: "Circuito", serpent: "Serpiente", speedway: "Óvalo" },
+    lapLabel: (lap, total) => `Vuelta ${lap}/${total}`,
+    leading: "En cabeza",
+    chasing: "Persiguiendo",
+    trackAria: "Circuito de carreras, vista cenital",
+    boostLabel: "Medidor de turbo",
+    steerLeft: "Girar a la izquierda",
+    steerRight: "Girar a la derecha",
+    brake: "Frenar",
+    brakeShort: "FRENO",
+    boost: "Turbo",
+    boostShort: "TURBO",
+    endTitle: (outcome) =>
+      outcome === "player"
+        ? "¡Te llevas la bandera a cuadros!"
+        : outcome === "ai"
+          ? "La IA cruza la meta primero."
+          : "¡Final de foto — empate técnico!",
+    finishTimes: (you, ai) => `Tú ${you} · IA ${ai}`,
+    bestLap: "Mejor vuelta",
+    offTrack: "Fuera de pista",
+    boostEff: "Conducción limpia",
+    personalBest: "Récord del circuito",
+  },
+  signalBreaker: {
+    rules: (
+      <>
+        <p>
+          Tú y la IA ocultáis un código secreto de 4 símbolos y competís por
+          descifrar el del otro en 8 intentos como máximo. Toca una casilla para
+          cambiar el símbolo (o elige de la paleta) y confirma.
+        </p>
+        <p>
+          Tras cada intento: un punto relleno significa símbolo correcto en la
+          posición correcta; un punto hueco, símbolo correcto en posición
+          equivocada. Gana quien use menos intentos; a igualdad, decide el tiempo.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo descifra la IA",
+    difficultyTip: (
+      <>
+        <p>La IA solo ve la respuesta a sus propios intentos, nunca tu código.</p>
+        <p>Fácil prueba un código al azar todavía compatible con sus pistas.</p>
+        <p>Medio aplica eliminación minimax sobre una muestra de candidatos.</p>
+        <p>
+          Difícil usa minimax exacto de peor caso sobre todos los candidatos
+          restantes, y su generador elige un secreto que resiste tus aperturas
+          habituales.
+        </p>
+      </>
+    ),
+    allowRepeats: "Permitir símbolos repetidos",
+    yourAttack: "Tu ataque",
+    aiAttack: "Ataque de la IA",
+    guessCount: (used, max) => `Intento ${used}/${max}`,
+    slotLabel: (n) => `Casilla ${n} — toca para cambiar`,
+    submit: "Confirmar intento",
+    clear: "Borrar",
+    waitingForAi: "Código descifrado — esperando a que la IA termine…",
+    legend: "● relleno = símbolo y posición correctos · ○ hueco = símbolo correcto, posición incorrecta",
+    endTitle: (outcome) =>
+      outcome === "player"
+        ? "¡Lo has descifrado primero!"
+        : outcome === "ai"
+          ? "La IA ha descifrado tu código primero."
+          : "¡Empate técnico — mismos intentos y mismo tiempo!",
+    yourGuesses: "Tus intentos",
+    aiGuesses: "Intentos de la IA",
+    codeWas: "El código de la IA era",
+  },
+  spellstorm: {
+    rules: (
+      <>
+        <p>
+          Escribe correctamente cada palabra para ganar tanta energía como letras
+          tenga. Un error queda visible y reinicia el combo; corrígelo con
+          Retroceso. El duelo dura 75 segundos o termina cuando un mago llega a cero.
+        </p>
+        <p>
+          Con 20 de energía lanza Fuego para causar 18 de daño, Hielo para
+          retrasar la siguiente palabra rival o Escudo para absorber 15 de daño.
+          El daño consume escudo antes que salud. Al acabar el tiempo gana quien tenga más salud.
+        </p>
+      </>
+    ),
+    difficultyTipLabel: "Cómo cambia el rival mecanógrafo",
+    difficultyTip: (
+      <>
+        <p>Fácil escribe a 120–180 PPM, corrige un 8% de errores y elige hechizos al azar.</p>
+        <p>Medio escribe a 180–240 PPM, corrige un 3% de errores y se protege con poca salud.</p>
+        <p>Difícil escribe a 260–330 PPM, corrige un 0,8% de errores y maximiza la utilidad de cada hechizo. Cada tiempo queda fijado antes de empezar la palabra.</p>
+      </>
+    ),
+    you: "TÚ",
+    ai: "IA",
+    timeLabel: (seconds) => `Quedan ${seconds} segundos`,
+    elementLabels: { fire: "Palabra de fuego", ice: "Palabra de hielo", shield: "Palabra de escudo" },
+    spellLabels: { fire: "Fuego", ice: "Hielo", shield: "Escudo" },
+    spellEffects: { fire: "18 de daño", ice: "Ralentiza una palabra", shield: "Absorbe 15" },
+    typeLabel: "Escribe la palabra mágica actual",
+    typePrompt: "Escribe la palabra exacta",
+    frozen: "Congelado: la siguiente palabra se retrasa",
+    aiTyping: "La IA está escribiendo",
+    aiCorrecting: "La IA ha corregido un error",
+    energyHint: (cost) => `Las palabras correctas cargan energía. Lanza un hechizo con ${cost}.`,
+    castFeedback: (actor, spell) =>
+      `${actor === "player" ? "Lanzas" : "La IA lanza"} ${spell === "fire" ? "Fuego" : spell === "ice" ? "Hielo" : "Escudo"}!`,
+    endTitle: (outcome) =>
+      outcome === "player" ? "¡Dominas la tormenta!" : outcome === "ai" ? "El mago rival vence." : "La tormenta termina en empate.",
+    healthResult: (you, ai) => `Salud: tú ${you} · IA ${ai}`,
+    yourWords: "Tus palabras",
+    aiWords: "Palabras de la IA",
   },
 };
 

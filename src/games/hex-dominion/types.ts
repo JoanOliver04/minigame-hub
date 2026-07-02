@@ -1,0 +1,1 @@
+export type HexDifficulty="easy"|"medium"|"hard";export type HexOwner="player"|"ai";export type HexCell=HexOwner|null;export interface HexState{board:HexCell[];turn:HexOwner;winner:HexOwner|null;moves:number}export const HEX_SIZE=7;

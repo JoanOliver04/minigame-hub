@@ -2,7 +2,7 @@
 
 # 🎮 Mini-Game Hub — You vs AI
 
-### **Twelve browser mini-games sharing one hub, one scoreboard and one bilingual UI — each played against an AI opponent built on a genuinely different algorithm, from XOR nim-sum game theory to alpha-beta search to information-gain letter picking.**
+### **Twenty-two browser mini-games sharing one hub, one scoreboard and one bilingual UI — each played against an AI opponent built on a genuinely different algorithm, from XOR nim-sum game theory to Monte Carlo tree search.**
 
 [![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React_19-149ECA?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
@@ -10,7 +10,7 @@
 [![ESLint](https://img.shields.io/badge/ESLint_9-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)](https://eslint.org/)
 
 ![Status](https://img.shields.io/badge/status-active-2ea44f?style=flat-square)
-![Games](https://img.shields.io/badge/mini--games-12-1d3a5f?style=flat-square)
+![Games](https://img.shields.io/badge/mini--games-22-1d3a5f?style=flat-square)
 ![Dependencies](https://img.shields.io/badge/runtime_dependencies-0_beyond_Next%2FReact-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey?style=flat-square)
 
@@ -24,7 +24,7 @@
 
 ---
 
-Mini-Game Hub is a client-side Next.js application with **zero runtime dependencies beyond Next.js and React** — no UI kit, no state-management library, no audio-asset pipeline. Every pixel, sound and AI decision is hand-written. The project exists to demonstrate the same thing twelve different ways: given a small, well-defined game, design an opponent whose difficulty tiers are the result of an actual algorithm — minimax with alpha-beta pruning, combinatorial game theory, Bayesian-ish letter selection, exact card counting — not a random-number fudge factor.
+Mini-Game Hub is a client-side Next.js application with **zero runtime dependencies beyond Next.js and React** — no UI kit, no state-management library, no audio-asset pipeline. Every pixel, sound and AI decision is hand-written. The project exists to demonstrate the same thing twenty-two different ways: given a small, well-defined game, design an opponent whose difficulty tiers are the result of an actual algorithm — minimax with alpha-beta pruning, combinatorial game theory, A* pathfinding, Monte Carlo tree search, expectimax, Bayesian-ish placement inference, exact card counting — not a random-number fudge factor.
 
 **Author:** Joan V. Oliver Rosell
 **License:** Proprietary — source is public for portfolio/evaluation purposes only, see [LICENSE](LICENSE)
@@ -65,8 +65,18 @@ Every game exposes three difficulty tiers. "Hard" is never a stat multiplier —
 | ⚡ Reaction Time | `/games/reaction-time` | Simulated human reflex window (150–700 ms) tuned per difficulty, with a false-start chance |
 | ⚽ Penalty Shootout | `/games/penalty-kick` | Pre-commit keeper AI, pattern learning and three balanced shot techniques |
 | 🏀 Basket Challenge | `/games/basket-shot` | Release-timing meter for the player; difficulty-scaled make probability for the AI (42% / 58% / 74%, −11% on three-pointers) |
+| 🕵️ Shadow Protocol | `/games/shadow-protocol` | A* pathfinding over evidence with a reachability "heatmap" tracking every tile the intruder could occupy since last seen — never the real hidden position |
+| 🚢 Fleet Command | `/games/fleet-command` | Posterior placement heatmap: enumerates every legal remaining-ship placement consistent with shot history, fires the modal cell |
+| 🏹 Windline Archery | `/games/windline-archery` | Aims against a noisy wind reading (±35% / ±15% / exact) rather than the true wind, with a difficulty-scaled release-hand variance |
+| 🎵 Beat Reactor | `/games/beat-reactor` | Every judgement error is precomputed for the whole chart before the song starts and never reacts to the player mid-song |
+| ⚡ Circuit Breaker | `/games/circuit-breaker` | Flood-fill reachable-space evaluation on Medium; simultaneous-move minimax over the joint-action matrix on Hard |
+| 🏎️ Neon Drift | `/games/neon-drift` | Steers a precomputed racing line via look-ahead + curvature braking, bound by the same physics as the player — no rubber-banding |
+| 🔐 Signal Breaker | `/games/signal-breaker` | Knuth-style worst-case minimax over every candidate code still consistent with its own guess history |
+| 🎲 Diceforge Arena | `/games/diceforge-arena` | Exact reroll-outcome evaluation, seeded shops and build-aware face upgrades |
+| ⬡ Hex Dominion | `/games/hex-dominion` | Immediate tactical win/block checks, bridge heuristics and fixed-budget UCT Monte Carlo tree search |
+| ⚡ Spellstorm | `/games/spellstorm` | Seeded WPM timelines, corrected-typo delays and health-aware spell utility |
 
-Full breakdown of the six search/probability-driven opponents — the ones with a real algorithm behind them — in [§5](#5-inside-the-ai--six-strategies-in-depth).
+Full breakdown of six of the search/probability-driven opponents — a sample of the ones with a real algorithm behind them — in [§5](#5-inside-the-ai--six-strategies-in-depth).
 
 ---
 
@@ -95,7 +105,7 @@ flowchart TB
         SC -.-> Game
     end
 
-    subgraph PerGame["Each src/games/<id>/ (12x)"]
+    subgraph PerGame["Each src/games/<id>/ (22x)"]
         direction TB
         Logic["logic.ts — pure rules,<br/>no React, no DOM"]
         AI["ai.ts — pure opponent<br/>strategy over that state"]
@@ -185,11 +195,24 @@ src/
 │   ├── blackjack/               hints.ts instead of ai.ts — the dealer's play is a fixed rule
 │   ├── reaction-time/          + types.ts
 │   ├── penalty-kick/           + types.ts
-│   └── basket-shot/            + types.ts
+│   ├── basket-shot/            + types.ts
+│   ├── shadow-protocol/        + types.ts, generation.ts, visibility.ts, sound.ts
+│   ├── fleet-command/          + types.ts
+│   ├── windline-archery/       + types.ts, physics.ts
+│   ├── beat-reactor/           + types.ts, chart generation + Web Audio clock
+│   ├── circuit-breaker/        + types.ts
+│   ├── neon-drift/             + types.ts, tracks.ts, fixed-step physics
+│   ├── signal-breaker/         + types.ts
+│   ├── diceforge-arena/        + types.ts
+│   ├── hex-dominion/           + types.ts
+│   └── spellstorm/             + types.ts, words.ts
 └── lib/
     ├── i18n/dictionaries.tsx   All copy, EN + ES, typed via `satisfies Dictionary`
     ├── cards.ts                Deck primitives shared by higher-or-lower & blackjack
     ├── random.ts               randomInt(lo, hi)
+    ├── rng.ts                  Seeded Rng (next/int/pick/shuffle) — production uses Math.random, tests seed it
+    ├── prefs.ts                Versioned GamePreferenceEnvelope<T> for per-game calibration/control-scheme storage
+    ├── motion.ts               Reduced-motion preference, respects `prefers-reduced-motion`
     ├── sound.ts                WebAudio synth — win/lose/error/blip
     └── settings.ts             Session-only settings (AI "thinking" delay toggle)
 ```
