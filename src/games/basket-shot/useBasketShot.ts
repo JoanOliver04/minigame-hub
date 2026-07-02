@@ -124,8 +124,8 @@ export function useBasketShot() {
 
       schedule(() => {
         const nextPlayerScore =
-          playerScore + (playerShot.made ? points : 0);
-        const nextAiScore = aiScore + (aiShot.made ? points : 0);
+          playerScore + playerShot.scoredPoints;
+        const nextAiScore = aiScore + aiShot.scoredPoints;
         setPlayerScore(nextPlayerScore);
         setAiScore(nextAiScore);
         setHistory((previous) => [
@@ -187,4 +187,3 @@ export function useBasketShot() {
     toSetup,
   };
 }
-

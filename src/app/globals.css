@@ -1798,6 +1798,10 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   font-size: 0.78rem;
 }
 .basket-history b.made { background: var(--player-soft); color: var(--player); }
+.basket-history b.made.one {
+  background: rgba(215, 200, 61, 0.2);
+  color: #e6d74b;
+}
 .basket-history b.made.ai { background: var(--ai-soft); color: var(--ai); }
 .basket-history b.miss { background: rgba(255, 255, 255, 0.04); color: var(--text-dim); }
 

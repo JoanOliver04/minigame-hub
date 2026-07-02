@@ -12,26 +12,38 @@ const METER_SPEED: Record<BasketDifficulty, number> = {
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
+export function releaseZone(marker: number): "green" | "yellow" | "miss" {
+  if (marker >= 43 && marker <= 57) return "green";
+  if ((marker >= 35 && marker < 43) || (marker > 57 && marker <= 65)) {
+    return "yellow";
+  }
+  return "miss";
+}
+
 export function meterSpeed(difficulty: BasketDifficulty): number {
   return METER_SPEED[difficulty];
 }
 
-/** Resolve a player shot from the timing marker (50 is a perfect release). */
+/**
+ * Resolve a player shot directly from the visible meter zones:
+ * green scores the full shot value, yellow scores one, all other zones miss.
+ */
 export function resolvePlayerShot(
   marker: number,
   round: number,
   points: 2 | 3,
 ): BasketShot {
   const accuracy = clamp(100 - Math.abs(marker - 50) * 2, 0, 100);
-  const distancePenalty = points === 3 ? 0.12 : 0;
-  const makeChance = clamp(0.08 + accuracy * 0.0092 - distancePenalty, 0.05, 0.98);
+  const zone = releaseZone(marker);
+  const scoredPoints = zone === "green" ? points : zone === "yellow" ? 1 : 0;
 
   return {
     actor: "player",
     round,
     points,
-    made: Math.random() < makeChance,
+    made: scoredPoints > 0,
+    scoredPoints,
     accuracy: Math.round(accuracy),
+    releaseZone: zone,
   };
 }
-

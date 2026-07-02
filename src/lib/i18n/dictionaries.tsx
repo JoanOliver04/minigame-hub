@@ -377,6 +377,7 @@ export interface Dictionary {
     releasePrompt: string;
     yourShot: string;
     madeShot: (points: number) => string;
+    yellowShot: string;
     missedShot: string;
     aiShot: string;
     aiMade: (points: number) => string;
@@ -1045,8 +1046,8 @@ const en: Dictionary = {
         </p>
         <p>
           The timing marker sweeps across the shot meter. Press{" "}
-          <strong>Shoot</strong> as close to the green centre as possible:
-          a perfect release has the best chance to score.
+          <strong>Shoot</strong> in the green zone for the full shot value.
+          The yellow zone scores one point; every other colour misses.
         </p>
         <p>The player with the most points after five rounds wins.</p>
       </>
@@ -1055,8 +1056,9 @@ const en: Dictionary = {
     difficultyTip: (
       <>
         Higher difficulty makes the meter move faster and increases the
-        AI&apos;s shooting percentage. Three-pointers are harder for both
-        players on every level.
+        AI&apos;s shooting percentage. Your result is deterministic: green
+        scores the full value, yellow scores one point and all other colours
+        miss.
       </>
     ),
     yourPoints: "Your points",
@@ -1065,11 +1067,12 @@ const en: Dictionary = {
     tallyAi: (score) => `${score} AI`,
     roundLabel: (round, total, points) =>
       `Round ${round}/${total} · ${points}PT`,
-    pointValue: (points) => `${points} points`,
-    releasePrompt: "Stop the marker in the green zone",
+    pointValue: (points) => `Up to ${points} points`,
+    releasePrompt: "Green: full points · Yellow: 1 point",
     yourShot: "Your shot is in the air…",
     madeShot: (points) => `Swish! You score ${points}.`,
-    missedShot: "Off the rim! No points.",
+    yellowShot: "Basket! The yellow zone scores 1 point.",
+    missedShot: "Wide! That colour does not score.",
     aiShot: "The AI takes its shot…",
     aiMade: (points) => `The AI scores ${points}.`,
     aiMissed: "The AI misses!",
@@ -1747,8 +1750,9 @@ const es: Dictionary = {
         </p>
         <p>
           El marcador recorre el medidor de tiro. Pulsa{" "}
-          <strong>Disparar</strong> lo más cerca posible del centro verde:
-          una suelta perfecta ofrece la máxima probabilidad de encestar.
+          <strong>Disparar</strong> en la zona verde para sumar el valor
+          completo del tiro. La zona amarilla suma un punto y cualquier otro
+          color es fallo.
         </p>
         <p>Quien tenga más puntos tras cinco rondas gana.</p>
       </>
@@ -1757,8 +1761,9 @@ const es: Dictionary = {
     difficultyTip: (
       <>
         Al subir la dificultad, el medidor se mueve más rápido y aumenta el
-        porcentaje de acierto de la IA. Los triples son más difíciles para
-        ambos jugadores en todos los niveles.
+        porcentaje de acierto de la IA. Tu resultado es determinista: verde
+        suma el valor completo, amarillo suma un punto y los demás colores
+        fallan.
       </>
     ),
     yourPoints: "Tus puntos",
@@ -1767,11 +1772,12 @@ const es: Dictionary = {
     tallyAi: (score) => `${score} IA`,
     roundLabel: (round, total, points) =>
       `Ronda ${round}/${total} · ${points}PT`,
-    pointValue: (points) => `${points} puntos`,
-    releasePrompt: "Detén el marcador en la zona verde",
+    pointValue: (points) => `Hasta ${points} puntos`,
+    releasePrompt: "Verde: puntos completos · Amarillo: 1 punto",
     yourShot: "Tu tiro está en el aire…",
     madeShot: (points) => `¡Dentro! Sumas ${points} puntos.`,
-    missedShot: "¡Al aro! No sumas puntos.",
+    yellowShot: "¡Canasta! La zona amarilla suma 1 punto.",
+    missedShot: "¡Fuera! Ese color no suma puntos.",
     aiShot: "La IA lanza a canasta…",
     aiMade: (points) => `La IA suma ${points} puntos.`,
     aiMissed: "¡La IA falla!",

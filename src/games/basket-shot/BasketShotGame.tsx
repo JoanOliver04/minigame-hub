@@ -109,11 +109,19 @@ export function BasketShotGame() {
           {history.map((entry) => (
             <span key={entry.round}>
               <small>{entry.points}PT</small>
-              <b className={entry.player.made ? "made" : "miss"}>
-                {entry.player.made ? "✓" : "×"}
+              <b
+                className={
+                  entry.player.releaseZone === "yellow"
+                    ? "made one"
+                    : entry.player.made
+                      ? "made"
+                      : "miss"
+                }
+              >
+                {entry.player.made ? entry.player.scoredPoints : "×"}
               </b>
               <b className={entry.ai.made ? "made ai" : "miss"}>
-                {entry.ai.made ? "✓" : "×"}
+                {entry.ai.made ? entry.ai.scoredPoints : "×"}
               </b>
             </span>
           ))}
@@ -145,9 +153,12 @@ export function BasketShotGame() {
   if (stage === "player-flight") {
     feedback = t.basketShot.yourShot;
   } else if (stage === "player-result" && lastShot) {
-    feedback = lastShot.made
-      ? t.basketShot.madeShot(lastShot.points)
-      : t.basketShot.missedShot;
+    feedback =
+      lastShot.releaseZone === "yellow"
+        ? t.basketShot.yellowShot
+        : lastShot.made
+          ? t.basketShot.madeShot(lastShot.scoredPoints)
+          : t.basketShot.missedShot;
     feedbackClass = lastShot.made ? " win pop" : " lose pop";
   } else if (stage === "ai-flight") {
     feedback = t.basketShot.aiShot;
@@ -229,4 +240,3 @@ export function BasketShotGame() {
     </section>
   );
 }
-

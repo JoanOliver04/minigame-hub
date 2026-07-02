@@ -19,9 +19,10 @@ export function resolveAiShot(
     round,
     points,
     made,
+    scoredPoints: made ? points : 0,
     accuracy: made
       ? Math.round(68 + Math.random() * 30)
       : Math.round(18 + Math.random() * 55),
+    releaseZone: made ? "green" : "miss",
   };
 }
-
