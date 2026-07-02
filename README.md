@@ -14,6 +14,8 @@
 ![Dependencies](https://img.shields.io/badge/runtime_dependencies-0_beyond_Next%2FReact-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey?style=flat-square)
 
+**[▶ Live demo](https://minigame-hub-orcin.vercel.app/)**
+
 <br/>
 
 <!-- Screenshots pending — will be added here once available. -->
@@ -218,6 +220,8 @@ That's it. The hub card, the `/games/<id>` route and the scoreboard row are all 
 ---
 
 ## 8. Getting started
+
+**Live:** [minigame-hub-orcin.vercel.app](https://minigame-hub-orcin.vercel.app/) — deployed on Vercel, redeploys automatically on every push to `main`.
 
 **Prerequisites:** Node.js ≥ 20, npm.
 
