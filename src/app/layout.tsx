@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { AppHeader } from "@/components/hub/AppHeader";
 import { LocaleProvider } from "@/context/LocaleContext";
@@ -28,6 +29,7 @@ export default function RootLayout({
             <ScoresProvider>{children}</ScoresProvider>
           </LocaleProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );
