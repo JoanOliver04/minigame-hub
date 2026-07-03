@@ -6,5 +6,6 @@ export const basketShotGame: GameDefinition = {
   icon: "🏀",
   hasTies: true,
   Component: BasketShotGame,
+  supportsMultiplayer: true,
 };
 

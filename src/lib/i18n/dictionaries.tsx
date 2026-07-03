@@ -689,6 +689,41 @@ export interface Dictionary {
     turnYours: string;
     turnOpponent: (name: string) => string;
   };
+  penaltyRoom: {
+    youShoot: string;
+    youKeep: string;
+    shootPrompt: string;
+    keepPrompt: string;
+    zones: Record<"HL" | "HC" | "HR" | "LL" | "LC" | "LR", string>;
+    resultYouScored: string;
+    resultConceded: string;
+    resultYouMissed: string;
+    resultYouSaved: string;
+    tallyYou: (score: number) => string;
+    tallyGoal: (target: number) => string;
+    historyLabel: string;
+    youWord: string;
+    goalWord: string;
+    saveWord: string;
+  };
+  basketRoom: {
+    youShoot: string;
+    youDefend: string;
+    shootPrompt: string;
+    defendPrompt: string;
+    spots: Record<"layup" | "mid" | "three", string>;
+    pts: (points: number) => string;
+    resultYouScored: (points: number) => string;
+    resultConceded: (points: number) => string;
+    resultYouBlocked: string;
+    resultYouStopped: string;
+    tallyYou: (score: number) => string;
+    tallyGoal: (target: number) => string;
+    historyLabel: string;
+    youWord: string;
+    plusPts: (points: number) => string;
+    blockedWord: string;
+  };
 }
 
 const en: Dictionary = {
@@ -1979,6 +2014,52 @@ const en: Dictionary = {
     rematchWaiting: "Waiting for your opponent to accept the rematch…",
     turnYours: "Your turn",
     turnOpponent: (name) => `${name}'s turn`,
+  },
+  penaltyRoom: {
+    youShoot: "⚽ You shoot",
+    youKeep: "🧤 You're in goal",
+    shootPrompt: "Pick a corner to aim for — blind.",
+    keepPrompt: "Pick where to dive — blind.",
+    zones: {
+      HL: "Top left",
+      HC: "Top centre",
+      HR: "Top right",
+      LL: "Bottom left",
+      LC: "Bottom centre",
+      LR: "Bottom right",
+    },
+    resultYouScored: "⚽ GOAL! You scored.",
+    resultConceded: "😖 Goal conceded.",
+    resultYouMissed: "🧤 Saved! Keeper guessed right.",
+    resultYouSaved: "🧤 Great save!",
+    tallyYou: (score) => `You: ${score}`,
+    tallyGoal: (target) => `First to ${target} goals`,
+    historyLabel: "Kick history",
+    youWord: "You",
+    goalWord: "Goal",
+    saveWord: "Save",
+  },
+  basketRoom: {
+    youShoot: "🏀 You shoot",
+    youDefend: "🛡️ You defend",
+    shootPrompt: "Pick your shot — blind. Bigger shots score more.",
+    defendPrompt: "Pick the spot to contest — blind.",
+    spots: {
+      layup: "Layup",
+      mid: "Mid-range",
+      three: "Three",
+    },
+    pts: (points) => `${points} pt${points === 1 ? "" : "s"}`,
+    resultYouScored: (points) => `🏀 Bucket! +${points}.`,
+    resultConceded: (points) => `😖 Bucket conceded (+${points}).`,
+    resultYouBlocked: "🛡️ Blocked! No points.",
+    resultYouStopped: "🛡️ Great stop!",
+    tallyYou: (score) => `You: ${score}`,
+    tallyGoal: (target) => `First to ${target} points`,
+    historyLabel: "Shot history",
+    youWord: "You",
+    plusPts: (points) => `+${points}`,
+    blockedWord: "Blocked",
   },
 };
 
@@ -3301,6 +3382,52 @@ const es: Dictionary = {
     rematchWaiting: "Esperando a que tu rival acepte la revancha…",
     turnYours: "Tu turno",
     turnOpponent: (name) => `Turno de ${name}`,
+  },
+  penaltyRoom: {
+    youShoot: "⚽ Tú lanzas",
+    youKeep: "🧤 Estás en la portería",
+    shootPrompt: "Elige una escuadra — a ciegas.",
+    keepPrompt: "Elige hacia dónde te lanzas — a ciegas.",
+    zones: {
+      HL: "Arriba izquierda",
+      HC: "Arriba centro",
+      HR: "Arriba derecha",
+      LL: "Abajo izquierda",
+      LC: "Abajo centro",
+      LR: "Abajo derecha",
+    },
+    resultYouScored: "⚽ ¡GOL! Has marcado.",
+    resultConceded: "😖 Gol encajado.",
+    resultYouMissed: "🧤 ¡Parada! El portero acertó.",
+    resultYouSaved: "🧤 ¡Paradón!",
+    tallyYou: (score) => `Tú: ${score}`,
+    tallyGoal: (target) => `Primero a ${target} goles`,
+    historyLabel: "Historial de lanzamientos",
+    youWord: "Tú",
+    goalWord: "Gol",
+    saveWord: "Parada",
+  },
+  basketRoom: {
+    youShoot: "🏀 Tú tiras",
+    youDefend: "🛡️ Tú defiendes",
+    shootPrompt: "Elige tu tiro — a ciegas. Los tiros lejanos valen más.",
+    defendPrompt: "Elige la zona a defender — a ciegas.",
+    spots: {
+      layup: "Bandeja",
+      mid: "Media distancia",
+      three: "Triple",
+    },
+    pts: (points) => `${points} pt${points === 1 ? "" : "s"}`,
+    resultYouScored: (points) => `🏀 ¡Canasta! +${points}.`,
+    resultConceded: (points) => `😖 Canasta encajada (+${points}).`,
+    resultYouBlocked: "🛡️ ¡Tapón! Sin puntos.",
+    resultYouStopped: "🛡️ ¡Gran defensa!",
+    tallyYou: (score) => `Tú: ${score}`,
+    tallyGoal: (target) => `Primero a ${target} puntos`,
+    historyLabel: "Historial de tiros",
+    youWord: "Tú",
+    plusPts: (points) => `+${points}`,
+    blockedWord: "Tapón",
   },
 };
 

@@ -1,3 +1,7 @@
+import { BasketRoomGame } from "./basket-shot/BasketRoomGame";
+import { createInitialBasketRoomGame, seedBasketRoomGame } from "./basket-shot/room";
+import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
+import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
 import { createInitialRpsRoomGame, seedRpsRoomGame } from "./rps/room";
 import { TttRoomGame } from "./ttt/TttRoomGame";
@@ -20,6 +24,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialTttRoomGame,
     seedGame: seedTttRoomGame,
     RoomComponent: TttRoomGame,
+  },
+  "penalty-kick": {
+    createInitialGame: createInitialPenaltyRoomGame,
+    seedGame: seedPenaltyRoomGame,
+    RoomComponent: PenaltyRoomGame,
+  },
+  "basket-shot": {
+    createInitialGame: createInitialBasketRoomGame,
+    seedGame: seedBasketRoomGame,
+    RoomComponent: BasketRoomGame,
   },
 };
 

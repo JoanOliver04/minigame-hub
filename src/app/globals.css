@@ -724,7 +724,47 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .rps-choice:active:not(:disabled) { transform: scale(0.96); }
+.rps-choice.picked { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .rps-choice:disabled { opacity: 0.45; cursor: not-allowed; }
+.rps-choice.picked:disabled { opacity: 1; }
+
+/* Penalty-kick room: 6-zone goal grid (high/low × left/center/right) */
+.pk-goal {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 auto 8px;
+  padding: 12px;
+  border: 3px solid var(--border);
+  border-bottom-width: 6px;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(90deg, var(--surface-2) 0 22px, var(--surface) 22px 24px);
+}
+.pk-zone {
+  aspect-ratio: 3 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pk-zone:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.pk-zone:active:not(:disabled) { transform: scale(0.96); }
+.pk-zone.picked { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.pk-zone:disabled { cursor: not-allowed; }
+.pk-goal.locked .pk-zone:not(.picked) { opacity: 0.4; }
 
 /* ============================================================
    6. TIC-TAC-TOE

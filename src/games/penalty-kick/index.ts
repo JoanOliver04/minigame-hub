@@ -6,5 +6,6 @@ export const penaltyKickGame: GameDefinition = {
   icon: "⚽",
   hasTies: false,
   Component: PenaltyKickGame,
+  supportsMultiplayer: true,
 };
 
