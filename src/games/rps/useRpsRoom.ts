@@ -90,33 +90,41 @@ export function useRpsRoom(code: string): UseRpsRoomResult {
 
   // Either connected client resolves the round once both moves are in —
   // idempotent-safe no-op if the other client's transaction already did.
+  // Losing a race here is expected (Firestore rejects the stale commit with
+  // `failed-precondition`) and harmless: the winner's write already applied
+  // the result, and it will arrive on this client via the next snapshot —
+  // logged, not surfaced, so it doesn't read as a real failure.
   useEffect(() => {
     if (!room || room.status !== "playing") return;
     const uids = Object.keys(room.game.pendingMoves);
     if (uids.length !== 2) return;
     if (uids.every((id) => room.game.pendingMoves[id]) && !resolvingRef.current) {
       resolvingRef.current = true;
-      resolveRpsRoundIfReady(code).finally(() => {
-        resolvingRef.current = false;
-      });
+      resolveRpsRoundIfReady(code)
+        .catch((error) => console.warn("resolveRpsRoundIfReady", error))
+        .finally(() => {
+          resolvingRef.current = false;
+        });
     }
   }, [room, code]);
 
   const playMove = useCallback(
     (move: Move) => {
       if (!uid || !room || room.game.pendingMoves[uid] || isRoomExpired(room)) return;
-      void submitRpsMove(code, uid, move);
+      submitRpsMove(code, uid, move).catch((error) => console.warn("submitRpsMove", error));
     },
     [uid, room, code],
   );
 
   const playAgain = useCallback(() => {
     if (!uid || !room || isRoomExpired(room)) return;
-    void voteRematch(code, uid).then(() => resetRpsRoomForRematch(code));
+    voteRematch(code, uid)
+      .then(() => resetRpsRoomForRematch(code))
+      .catch((error) => console.warn("rps playAgain", error));
   }, [uid, room, code]);
 
   const leave = useCallback(() => {
-    void leaveRoom(code);
+    leaveRoom(code).catch((error) => console.warn("leaveRoom", error));
   }, [code]);
 
   const hasSubmitted = Boolean(uid && room?.game.pendingMoves[uid]);

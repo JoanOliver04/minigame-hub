@@ -109,23 +109,27 @@ export function useTttRoom(code: string): UseTttRoomResult {
         if (g.board[cell] !== null || selectedCell === null) return;
         const move: TttMove = { from: selectedCell, to: cell };
         setSelectedCell(null);
-        void submitTttMove(code, uid, move);
+        submitTttMove(code, uid, move).catch((error) => console.warn("submitTttMove", error));
         return;
       }
 
       if (g.board[cell] !== null) return;
-      void submitTttMove(code, uid, { from: null, to: cell });
+      submitTttMove(code, uid, { from: null, to: cell }).catch((error) =>
+        console.warn("submitTttMove", error),
+      );
     },
     [uid, room, code, selectedCell],
   );
 
   const playAgain = useCallback(() => {
     if (!uid || !room || isRoomExpired(room)) return;
-    void voteRematch(code, uid).then(() => resetTttRoomForRematch(code));
+    voteRematch(code, uid)
+      .then(() => resetTttRoomForRematch(code))
+      .catch((error) => console.warn("ttt playAgain", error));
   }, [uid, room, code]);
 
   const leave = useCallback(() => {
-    void leaveRoom(code);
+    leaveRoom(code).catch((error) => console.warn("leaveRoom", error));
   }, [code]);
 
   return { uid, room, stage, selectedCell, handleCell, playAgain, leave };
