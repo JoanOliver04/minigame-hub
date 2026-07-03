@@ -1,1 +1,1 @@
-import type{GameDefinition}from"../types";import{DiceforgeArenaGame}from"./DiceforgeArenaGame";export const diceforgeArenaGame:GameDefinition={id:"diceforge-arena",icon:"🎲",hasTies:true,Component:DiceforgeArenaGame};
+import type{GameDefinition}from"../types";import{DiceforgeArenaGame}from"./DiceforgeArenaGame";export const diceforgeArenaGame:GameDefinition={id:"diceforge-arena",icon:"🎲",hasTies:true,Component:DiceforgeArenaGame,supportsMultiplayer:true};

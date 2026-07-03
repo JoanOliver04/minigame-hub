@@ -12,6 +12,10 @@ import { ArcheryRoomGame } from "./windline-archery/ArcheryRoomGame";
 import { createInitialArcheryRoomGame, seedArcheryRoomGame } from "./windline-archery/room";
 import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
 import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
+import { DiceforgeRoomGame } from "./diceforge-arena/DiceforgeRoomGame";
+import { createInitialForgeRoomGame, seedForgeRoomGame } from "./diceforge-arena/room";
+import { SignalRoomGame } from "./signal-breaker/SignalRoomGame";
+import { createInitialSignalRoomGame, seedSignalRoomGame } from "./signal-breaker/room";
 import { FleetRoomGame } from "./fleet-command/FleetRoomGame";
 import { createInitialFleetRoomGame, seedFleetRoomGame } from "./fleet-command/room";
 import { GuessRoomGame } from "./guess/GuessRoomGame";
@@ -132,6 +136,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialDriftRoomGame,
     seedGame: seedDriftRoomGame,
     RoomComponent: NeonDriftRoomGame,
+  },
+  "signal-breaker": {
+    createInitialGame: createInitialSignalRoomGame,
+    seedGame: seedSignalRoomGame,
+    RoomComponent: SignalRoomGame,
+  },
+  "diceforge-arena": {
+    createInitialGame: createInitialForgeRoomGame,
+    seedGame: seedForgeRoomGame,
+    RoomComponent: DiceforgeRoomGame,
   },
 };
 

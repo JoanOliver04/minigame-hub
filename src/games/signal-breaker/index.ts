@@ -6,4 +6,5 @@ export const signalBreakerGame: GameDefinition = {
   icon: "🔓",
   hasTies: true,
   Component: SignalBreakerGame,
+  supportsMultiplayer: true,
 };
