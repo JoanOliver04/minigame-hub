@@ -6,4 +6,5 @@ export const wordGuessGame: GameDefinition = {
   icon: "🔤",
   hasTies: true,
   Component: WordGuessGame,
+  supportsMultiplayer: true,
 };

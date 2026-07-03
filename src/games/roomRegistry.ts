@@ -8,12 +8,16 @@ import { HolRoomGame } from "./higher-or-lower/HolRoomGame";
 import { createInitialHolRoomGame, seedHolRoomGame } from "./higher-or-lower/room";
 import { MemoryRoomGame } from "./memory-match/MemoryRoomGame";
 import { createInitialMemoryRoomGame, seedMemoryRoomGame } from "./memory-match/room";
+import { NimRoomGame } from "./nim/NimRoomGame";
+import { createInitialNimRoomGame, seedNimRoomGame } from "./nim/room";
 import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
 import { createInitialRpsRoomGame, seedRpsRoomGame } from "./rps/room";
 import { TttRoomGame } from "./ttt/TttRoomGame";
 import { createInitialTttRoomGame, seedTttRoomGame } from "./ttt/room";
+import { WordRoomGame } from "./word-guess/WordRoomGame";
+import { createInitialWordRoomGame, seedWordRoomGame } from "./word-guess/room";
 import type { RoomGameModule } from "./roomTypes";
 
 /**
@@ -62,6 +66,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialMemoryRoomGame,
     seedGame: seedMemoryRoomGame,
     RoomComponent: MemoryRoomGame,
+  },
+  nim: {
+    createInitialGame: createInitialNimRoomGame,
+    seedGame: seedNimRoomGame,
+    RoomComponent: NimRoomGame,
+  },
+  "word-guess": {
+    createInitialGame: createInitialWordRoomGame,
+    seedGame: seedWordRoomGame,
+    RoomComponent: WordRoomGame,
   },
 };
 

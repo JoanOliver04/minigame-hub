@@ -6,4 +6,5 @@ export const nimGame: GameDefinition = {
   icon: "🪵",
   hasTies: false,
   Component: NimGame,
+  supportsMultiplayer: true,
 };
