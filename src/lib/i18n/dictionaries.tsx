@@ -752,6 +752,16 @@ export interface Dictionary {
     logTitle: string;
     youWord: string;
   };
+  memoryRoom: {
+    yourTurn: string;
+    opponentTurn: (name: string) => string;
+    matchBy: (name: string) => string;
+    missBy: (name: string) => string;
+    tallyYou: (score: number) => string;
+    pairsLeft: (count: number) => string;
+    tieTitle: string;
+    youWord: string;
+  };
 }
 
 const en: Dictionary = {
@@ -2116,6 +2126,16 @@ const en: Dictionary = {
     missWord: "Missed",
     tieTitle: "It's a tie! 🤝",
     logTitle: "Call history",
+    youWord: "You",
+  },
+  memoryRoom: {
+    yourTurn: "Your turn — flip two tiles",
+    opponentTurn: (name) => `${name} is flipping…`,
+    matchBy: (name) => `${name} found a pair! 🎉`,
+    missBy: (name) => `${name} missed.`,
+    tallyYou: (score) => `You: ${score}`,
+    pairsLeft: (count) => `${count} pair${count === 1 ? "" : "s"} left`,
+    tieTitle: "It's a tie! 🤝",
     youWord: "You",
   },
 };
@@ -3513,6 +3533,16 @@ const es: Dictionary = {
     missWord: "Fallo",
     tieTitle: "¡Empate! 🤝",
     logTitle: "Historial de tiradas",
+    youWord: "Tú",
+  },
+  memoryRoom: {
+    yourTurn: "Tu turno — voltea dos fichas",
+    opponentTurn: (name) => `${name} está volteando…`,
+    matchBy: (name) => `¡${name} encontró una pareja! 🎉`,
+    missBy: (name) => `${name} falló.`,
+    tallyYou: (score) => `Tú: ${score}`,
+    pairsLeft: (count) => `${count} pareja${count === 1 ? "" : "s"} restante${count === 1 ? "" : "s"}`,
+    tieTitle: "¡Empate! 🤝",
     youWord: "Tú",
   },
 };

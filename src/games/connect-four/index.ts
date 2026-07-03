@@ -6,5 +6,6 @@ export const connectFourGame: GameDefinition = {
   icon: "🔴",
   hasTies: true,
   Component: ConnectFourGame,
+  supportsMultiplayer: true,
 };
 

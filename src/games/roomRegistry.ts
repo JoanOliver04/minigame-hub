@@ -1,9 +1,13 @@
 import { BasketRoomGame } from "./basket-shot/BasketRoomGame";
 import { createInitialBasketRoomGame, seedBasketRoomGame } from "./basket-shot/room";
+import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
+import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
 import { GuessRoomGame } from "./guess/GuessRoomGame";
 import { createInitialGuessRoomGame, seedGuessRoomGame } from "./guess/room";
 import { HolRoomGame } from "./higher-or-lower/HolRoomGame";
 import { createInitialHolRoomGame, seedHolRoomGame } from "./higher-or-lower/room";
+import { MemoryRoomGame } from "./memory-match/MemoryRoomGame";
+import { createInitialMemoryRoomGame, seedMemoryRoomGame } from "./memory-match/room";
 import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
@@ -48,6 +52,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialHolRoomGame,
     seedGame: seedHolRoomGame,
     RoomComponent: HolRoomGame,
+  },
+  "connect-four": {
+    createInitialGame: createInitialConnectRoomGame,
+    seedGame: seedConnectRoomGame,
+    RoomComponent: ConnectRoomGame,
+  },
+  "memory-match": {
+    createInitialGame: createInitialMemoryRoomGame,
+    seedGame: seedMemoryRoomGame,
+    RoomComponent: MemoryRoomGame,
   },
 };
 

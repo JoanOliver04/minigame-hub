@@ -6,5 +6,6 @@ export const memoryMatchGame: GameDefinition = {
   icon: "🧠",
   hasTies: true,
   Component: MemoryMatchGame,
+  supportsMultiplayer: true,
 };
 
