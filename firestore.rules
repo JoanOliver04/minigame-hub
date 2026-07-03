@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Multiplayer rooms for the Mini-Game Hub (RPS + Tic-Tac-Toe MVP).
+// Multiplayer rooms for the Mini-Game Hub (all 22 games).
 //
 // Model: rooms/{code}, code IS the document id (never enumerable — `list`
 // is disabled below, so a room is only reachable by already knowing its
