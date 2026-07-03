@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/screenshots/logo.png" alt="Mini-Game Hub logo" width="180" />
+
 # 🎮 Mini-Game Hub — You vs AI
 
 ### **Twenty-two browser mini-games sharing one hub, one scoreboard and one bilingual UI — each played against an AI opponent built on a genuinely different algorithm, from XOR nim-sum game theory to Monte Carlo tree search. Every one of them can also be played live against a friend over a room code.**
@@ -20,7 +22,7 @@
 
 <br/>
 
-<!-- Screenshots pending — will be added here once available. -->
+<img src="docs/screenshots/home-hub.png" alt="Mini-Game Hub — main menu" width="720" />
 
 </div>
 
@@ -134,9 +136,53 @@ The room layer (`src/lib/rooms/`, `src/games/roomTypes.ts`, `src/games/roomRegis
 
 ## 3. Screenshots
 
-> Screenshots are being captured and will be added to this section, formatted as a gallery consistent with the other portfolio projects.
+### The hub
 
-> A short GIF/clip of a live multiplayer match (two browser windows, same room code) will be added here once captured.
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/home-hub.png" alt="Hub — main menu with the game grid" /><br/><sub><b>Hub</b> — the registry-driven game grid</sub></td>
+    <td width="50%"><img src="docs/screenshots/session-scoreboard.png" alt="Session scoreboard of wins, losses and ties per game" /><br/><sub><b>Session scoreboard</b> — per-game W/L/T from <code>ScoresContext</code></sub></td>
+  </tr>
+</table>
+
+### Playing solo vs the AI
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/number-duel-setup.png" alt="Number Duel setup screen" /><br/><sub><b>Number Duel</b> — setup</sub></td>
+    <td width="33%"><img src="docs/screenshots/number-duel-play.png" alt="Number Duel in progress" /><br/><sub><b>Number Duel</b> — binary-search race</sub></td>
+    <td width="33%"><img src="docs/screenshots/number-duel-win.png" alt="Number Duel victory screen" /><br/><sub><b>Number Duel</b> — win</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/rps-play.png" alt="Rock Paper Scissors in progress" /><br/><sub><b>Rock · Paper · Scissors</b> — blended predictor</sub></td>
+    <td><img src="docs/screenshots/tic-tac-toe-setup.png" alt="Tic-Tac-Toe setup screen" /><br/><sub><b>Tic-Tac-Toe</b> — minimax + αβ</sub></td>
+    <td><img src="docs/screenshots/connect-four-play.png" alt="Connect Four in progress" /><br/><sub><b>Connect Four</b> — 6-ply search</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/higher-or-lower-play.png" alt="Higher or Lower in progress" /><br/><sub><b>Higher or Lower</b> — card counting</sub></td>
+    <td><img src="docs/screenshots/memory-match-play.png" alt="Memory Match in progress" /><br/><sub><b>Memory Match</b> — fallible AI memory</sub></td>
+    <td><img src="docs/screenshots/word-guess-play.png" alt="Word Guess in progress" /><br/><sub><b>Word Guess</b> — information-gain letters</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/blackjack-play.png" alt="Blackjack in progress" /><br/><sub><b>Blackjack</b> — fixed dealer rule</sub></td>
+    <td><img src="docs/screenshots/penalty-shootout-play.png" alt="Penalty Shootout in progress" /><br/><sub><b>Penalty Shootout</b> — pre-commit keeper</sub></td>
+    <td><img src="docs/screenshots/basket-challenge-play.png" alt="Basket Challenge in progress" /><br/><sub><b>Basket Challenge</b> — release-timing meter</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/windline-archery-play.png" alt="Windline Archery in progress" /><br/><sub><b>Windline Archery</b> — aim against the wind</sub></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+### Multiplayer rooms
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/create-room.png" alt="Create a multiplayer room and share the code" /><br/><sub><b>Create a room</b> — pick a game, share the 6-char code</sub></td>
+    <td width="50%"><img src="docs/screenshots/join-room.png" alt="Join a multiplayer room by code" /><br/><sub><b>Join a room</b> — a name and a code is the whole flow</sub></td>
+  </tr>
+</table>
 
 ---
 

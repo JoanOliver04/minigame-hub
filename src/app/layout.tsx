@@ -6,8 +6,21 @@ import { LocaleProvider } from "@/context/LocaleContext";
 import { ScoresProvider } from "@/context/ScoresContext";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://minigame-hub-orcin.vercel.app"),
   title: "Mini-Game Hub — You vs AI",
   description: "A hub of mini-games where you battle a scheming AI opponent.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "Mini-Game Hub — You vs AI",
+    description: "A hub of mini-games where you battle a scheming AI opponent.",
+    url: "/",
+    siteName: "Mini-Game Hub",
+    images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Mini-Game Hub logo" }],
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
