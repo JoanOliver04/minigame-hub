@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import type { Locale } from "@/lib/i18n/dictionaries";
@@ -26,6 +27,11 @@ export function AppHeader() {
         {t.app.title} <span className="vs">·</span> {t.app.vsLine}
       </h1>
       <p className="tagline">{t.app.tagline}</p>
+      <div className="btn-row" style={{ justifyContent: "center", marginTop: 4 }}>
+        <Link href="/rooms" className="btn">
+          {t.rooms.navLink}
+        </Link>
+      </div>
     </header>
   );
 }

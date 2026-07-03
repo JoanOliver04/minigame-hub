@@ -6,4 +6,5 @@ export const tttGame: GameDefinition = {
   icon: "⭕",
   hasTies: true,
   Component: TttGame,
+  supportsMultiplayer: true,
 };

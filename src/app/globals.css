@@ -178,6 +178,24 @@ input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
+/* Generic single-line text input (player name, room code, etc). */
+.text-input {
+  width: 100%;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
 .error-msg {
   color: var(--hot);
   font-size: 0.88rem;

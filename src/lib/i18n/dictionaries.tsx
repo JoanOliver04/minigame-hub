@@ -651,6 +651,44 @@ export interface Dictionary {
     yourWords: string;
     aiWords: string;
   };
+  /** Multiplayer rooms (create/join by code) — RPS and Tic-Tac-Toe for now. */
+  rooms: {
+    navLink: string;
+    title: string;
+    tagline: string;
+    yourNameLabel: string;
+    namePlaceholder: string;
+    createTab: string;
+    joinTab: string;
+    chooseGameLabel: string;
+    createButton: string;
+    roomCodeLabel: string;
+    codePlaceholder: string;
+    joinButton: string;
+    nameRequired: string;
+    codeRequired: string;
+    connecting: string;
+    waitingTitle: string;
+    shareCode: (code: string) => string;
+    waitingHint: string;
+    leaveButton: string;
+    backToRooms: string;
+    roomNotFound: string;
+    roomGone: string;
+    roomExpired: string;
+    errorGeneric: string;
+    opponentJoined: (name: string) => string;
+    submittedWaiting: string;
+    roundResultWin: string;
+    roundResultLose: string;
+    roundResultTie: string;
+    matchWinYou: string;
+    matchWinOpponent: (name: string) => string;
+    rematchButton: string;
+    rematchWaiting: string;
+    turnYours: string;
+    turnOpponent: (name: string) => string;
+  };
 }
 
 const en: Dictionary = {
@@ -1904,6 +1942,43 @@ const en: Dictionary = {
     healthResult: (you, ai) => `Health: you ${you} · AI ${ai}`,
     yourWords: "Your words",
     aiWords: "AI words",
+  },
+  rooms: {
+    navLink: "Play with Friends",
+    title: "Play with Friends",
+    tagline: "Create a room, share the code, play live against a friend instead of the AI.",
+    yourNameLabel: "Your name",
+    namePlaceholder: "e.g. Joan",
+    createTab: "Create a room",
+    joinTab: "Join a room",
+    chooseGameLabel: "Game",
+    createButton: "Create room",
+    roomCodeLabel: "Room code",
+    codePlaceholder: "e.g. K7RXPQ",
+    joinButton: "Join room",
+    nameRequired: "Enter your name first.",
+    codeRequired: "Enter the room code.",
+    connecting: "Connecting…",
+    waitingTitle: "Waiting for your friend",
+    shareCode: (code) => `Share this code: ${code}`,
+    waitingHint: "The match starts as soon as they join with this code.",
+    leaveButton: "Leave room",
+    backToRooms: "Back to rooms",
+    roomNotFound: "That room doesn't exist. Check the code and try again.",
+    roomGone: "This room has ended.",
+    roomExpired: "This room has expired (rooms last 24 hours). Create a new one.",
+    errorGeneric: "Something went wrong. Please try again.",
+    opponentJoined: (name) => `${name} joined!`,
+    submittedWaiting: "Waiting for your opponent…",
+    roundResultWin: "You win the round!",
+    roundResultLose: "You lose the round.",
+    roundResultTie: "Tie round.",
+    matchWinYou: "You win the match! 🏆",
+    matchWinOpponent: (name) => `${name} wins the match.`,
+    rematchButton: "Play again",
+    rematchWaiting: "Waiting for your opponent to accept the rematch…",
+    turnYours: "Your turn",
+    turnOpponent: (name) => `${name}'s turn`,
   },
 };
 
@@ -3189,6 +3264,43 @@ const es: Dictionary = {
     healthResult: (you, ai) => `Salud: tú ${you} · IA ${ai}`,
     yourWords: "Tus palabras",
     aiWords: "Palabras de la IA",
+  },
+  rooms: {
+    navLink: "Jugar con amigos",
+    title: "Jugar con amigos",
+    tagline: "Crea una sala, comparte el código y juega en directo contra un amigo en vez de la IA.",
+    yourNameLabel: "Tu nombre",
+    namePlaceholder: "p. ej. Joan",
+    createTab: "Crear sala",
+    joinTab: "Unirse a una sala",
+    chooseGameLabel: "Juego",
+    createButton: "Crear sala",
+    roomCodeLabel: "Código de sala",
+    codePlaceholder: "p. ej. K7RXPQ",
+    joinButton: "Unirse",
+    nameRequired: "Escribe tu nombre primero.",
+    codeRequired: "Escribe el código de la sala.",
+    connecting: "Conectando…",
+    waitingTitle: "Esperando a tu amigo",
+    shareCode: (code) => `Comparte este código: ${code}`,
+    waitingHint: "La partida empieza en cuanto se una con este código.",
+    leaveButton: "Salir de la sala",
+    backToRooms: "Volver a salas",
+    roomNotFound: "Esa sala no existe. Revisa el código e inténtalo de nuevo.",
+    roomGone: "Esta sala ha terminado.",
+    roomExpired: "Esta sala ha caducado (las salas duran 24 horas). Crea una nueva.",
+    errorGeneric: "Algo ha ido mal. Inténtalo de nuevo.",
+    opponentJoined: (name) => `¡${name} se ha unido!`,
+    submittedWaiting: "Esperando a tu rival…",
+    roundResultWin: "¡Ganas la ronda!",
+    roundResultLose: "Pierdes la ronda.",
+    roundResultTie: "Ronda empatada.",
+    matchWinYou: "¡Ganas la partida! 🏆",
+    matchWinOpponent: (name) => `${name} gana la partida.`,
+    rematchButton: "Jugar otra vez",
+    rematchWaiting: "Esperando a que tu rival acepte la revancha…",
+    turnYours: "Tu turno",
+    turnOpponent: (name) => `Turno de ${name}`,
   },
 };
 

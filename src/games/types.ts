@@ -20,4 +20,9 @@ export interface GameDefinition {
   hasTies: boolean;
   /** The client component implementing the whole game (setup/play/end). */
   Component: ComponentType;
+  /** Whether this game has a room-based PvP mode (see src/games/roomRegistry.ts).
+   *  Optional so existing GameDefinition literals keep compiling untouched;
+   *  absent/`undefined` means "no multiplayer mode" same as `false`. Games
+   *  gaining a room mode set this explicitly to `true`. */
+  supportsMultiplayer?: boolean;
 }

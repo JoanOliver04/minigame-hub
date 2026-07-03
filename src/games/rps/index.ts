@@ -6,4 +6,5 @@ export const rpsGame: GameDefinition = {
   icon: "✊",
   hasTies: true,
   Component: RpsGame,
+  supportsMultiplayer: true,
 };
