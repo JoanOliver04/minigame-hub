@@ -1,1 +1,1 @@
-import type{GameDefinition}from"../types";import{HexDominionGame}from"./HexDominionGame";export const hexDominionGame:GameDefinition={id:"hex-dominion",icon:"⬡",hasTies:false,Component:HexDominionGame};
+import type{GameDefinition}from"../types";import{HexDominionGame}from"./HexDominionGame";export const hexDominionGame:GameDefinition={id:"hex-dominion",icon:"⬡",hasTies:false,Component:HexDominionGame,supportsMultiplayer:true};

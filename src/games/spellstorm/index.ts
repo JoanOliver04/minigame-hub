@@ -6,4 +6,5 @@ export const spellstormGame: GameDefinition = {
   icon: "⚡",
   hasTies: true,
   Component: SpellstormGame,
+  supportsMultiplayer: true,
 };

@@ -14,6 +14,10 @@ import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
 import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
 import { DiceforgeRoomGame } from "./diceforge-arena/DiceforgeRoomGame";
 import { createInitialForgeRoomGame, seedForgeRoomGame } from "./diceforge-arena/room";
+import { HexRoomGame } from "./hex-dominion/HexRoomGame";
+import { createInitialHexRoomGame, seedHexRoomGame } from "./hex-dominion/room";
+import { SpellstormRoomGame } from "./spellstorm/SpellstormRoomGame";
+import { createInitialStormRoomGame, seedStormRoomGame } from "./spellstorm/room";
 import { SignalRoomGame } from "./signal-breaker/SignalRoomGame";
 import { createInitialSignalRoomGame, seedSignalRoomGame } from "./signal-breaker/room";
 import { FleetRoomGame } from "./fleet-command/FleetRoomGame";
@@ -146,6 +150,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialForgeRoomGame,
     seedGame: seedForgeRoomGame,
     RoomComponent: DiceforgeRoomGame,
+  },
+  "hex-dominion": {
+    createInitialGame: createInitialHexRoomGame,
+    seedGame: seedHexRoomGame,
+    RoomComponent: HexRoomGame,
+  },
+  spellstorm: {
+    createInitialGame: createInitialStormRoomGame,
+    seedGame: seedStormRoomGame,
+    RoomComponent: SpellstormRoomGame,
   },
 };
 
