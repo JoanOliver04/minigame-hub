@@ -724,6 +724,34 @@ export interface Dictionary {
     plusPts: (points: number) => string;
     blockedWord: string;
   };
+  guessRoom: {
+    yourTurn: string;
+    opponentTurn: (name: string) => string;
+    rangePrompt: (low: number, high: number) => string;
+    guessButton: string;
+    inputPlaceholder: string;
+    tallyYou: (score: number) => string;
+    tallyGoal: (target: number) => string;
+    verdicts: Record<"high" | "low", string>;
+    correctWord: string;
+    logTitle: string;
+    youWord: string;
+  };
+  holRoom: {
+    yourTurn: string;
+    opponentTurn: (name: string) => string;
+    callPrompt: string;
+    calls: Record<"higher" | "lower", string>;
+    currentLabel: string;
+    tallyYou: (score: number) => string;
+    tallyGoal: (target: number) => string;
+    lastCall: (name: string, call: string, correct: boolean) => string;
+    correctWord: string;
+    missWord: string;
+    tieTitle: string;
+    logTitle: string;
+    youWord: string;
+  };
 }
 
 const en: Dictionary = {
@@ -2060,6 +2088,35 @@ const en: Dictionary = {
     youWord: "You",
     plusPts: (points) => `+${points}`,
     blockedWord: "Blocked",
+  },
+  guessRoom: {
+    yourTurn: "Your turn — take a guess",
+    opponentTurn: (name) => `${name} is guessing…`,
+    rangePrompt: (low, high) => `The number is between ${low} and ${high}.`,
+    guessButton: "Guess",
+    inputPlaceholder: "Number",
+    tallyYou: (score) => `You: ${score}`,
+    tallyGoal: (target) => `First to ${target} rounds`,
+    verdicts: { high: "Too high", low: "Too low" },
+    correctWord: "Got it! 🎯",
+    logTitle: "This round",
+    youWord: "You",
+  },
+  holRoom: {
+    yourTurn: "Your turn — higher or lower?",
+    opponentTurn: (name) => `${name} is calling…`,
+    callPrompt: "Will the next card be higher or lower?",
+    calls: { higher: "Higher", lower: "Lower" },
+    currentLabel: "Current card",
+    tallyYou: (score) => `You: ${score}`,
+    tallyGoal: (target) => `First to ${target} points`,
+    lastCall: (name, call, correct) =>
+      `${name} called ${call} — ${correct ? "correct! ✓" : "missed ✗"}`,
+    correctWord: "Correct",
+    missWord: "Missed",
+    tieTitle: "It's a tie! 🤝",
+    logTitle: "Call history",
+    youWord: "You",
   },
 };
 
@@ -3428,6 +3485,35 @@ const es: Dictionary = {
     youWord: "Tú",
     plusPts: (points) => `+${points}`,
     blockedWord: "Tapón",
+  },
+  guessRoom: {
+    yourTurn: "Tu turno — adivina",
+    opponentTurn: (name) => `${name} está adivinando…`,
+    rangePrompt: (low, high) => `El número está entre ${low} y ${high}.`,
+    guessButton: "Adivinar",
+    inputPlaceholder: "Número",
+    tallyYou: (score) => `Tú: ${score}`,
+    tallyGoal: (target) => `Primero a ${target} rondas`,
+    verdicts: { high: "Demasiado alto", low: "Demasiado bajo" },
+    correctWord: "¡Acertaste! 🎯",
+    logTitle: "Esta ronda",
+    youWord: "Tú",
+  },
+  holRoom: {
+    yourTurn: "Tu turno — ¿mayor o menor?",
+    opponentTurn: (name) => `${name} está decidiendo…`,
+    callPrompt: "¿La siguiente carta será mayor o menor?",
+    calls: { higher: "Mayor", lower: "Menor" },
+    currentLabel: "Carta actual",
+    tallyYou: (score) => `Tú: ${score}`,
+    tallyGoal: (target) => `Primero a ${target} puntos`,
+    lastCall: (name, call, correct) =>
+      `${name} dijo ${call} — ${correct ? "¡correcto! ✓" : "falló ✗"}`,
+    correctWord: "Correcto",
+    missWord: "Fallo",
+    tieTitle: "¡Empate! 🤝",
+    logTitle: "Historial de tiradas",
+    youWord: "Tú",
   },
 };
 

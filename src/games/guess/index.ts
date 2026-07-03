@@ -6,4 +6,5 @@ export const guessGame: GameDefinition = {
   icon: "🔢",
   hasTies: false,
   Component: GuessGame,
+  supportsMultiplayer: true,
 };

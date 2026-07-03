@@ -6,5 +6,6 @@ export const higherOrLowerGame: GameDefinition = {
   icon: "🃏",
   hasTies: true,
   Component: HigherOrLowerGame,
+  supportsMultiplayer: true,
 };
 

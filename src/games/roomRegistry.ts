@@ -1,5 +1,9 @@
 import { BasketRoomGame } from "./basket-shot/BasketRoomGame";
 import { createInitialBasketRoomGame, seedBasketRoomGame } from "./basket-shot/room";
+import { GuessRoomGame } from "./guess/GuessRoomGame";
+import { createInitialGuessRoomGame, seedGuessRoomGame } from "./guess/room";
+import { HolRoomGame } from "./higher-or-lower/HolRoomGame";
+import { createInitialHolRoomGame, seedHolRoomGame } from "./higher-or-lower/room";
 import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
@@ -34,6 +38,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialBasketRoomGame,
     seedGame: seedBasketRoomGame,
     RoomComponent: BasketRoomGame,
+  },
+  guess: {
+    createInitialGame: createInitialGuessRoomGame,
+    seedGame: seedGuessRoomGame,
+    RoomComponent: GuessRoomGame,
+  },
+  "higher-or-lower": {
+    createInitialGame: createInitialHolRoomGame,
+    seedGame: seedHolRoomGame,
+    RoomComponent: HolRoomGame,
   },
 };
 
