@@ -6,4 +6,5 @@ export const neonDriftGame: GameDefinition = {
   icon: "🏎️",
   hasTies: true,
   Component: NeonDriftGame,
+  supportsMultiplayer: true,
 };

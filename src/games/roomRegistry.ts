@@ -4,6 +4,10 @@ import { BeatReactorRoomGame } from "./beat-reactor/BeatReactorRoomGame";
 import { createInitialReactorRoomGame, seedReactorRoomGame } from "./beat-reactor/room";
 import { BlackjackRoomGame } from "./blackjack/BlackjackRoomGame";
 import { createInitialBlackjackRoomGame, seedBlackjackRoomGame } from "./blackjack/room";
+import { CircuitBreakerRoomGame } from "./circuit-breaker/CircuitBreakerRoomGame";
+import { createInitialBreakerRoomGame, seedBreakerRoomGame } from "./circuit-breaker/room";
+import { NeonDriftRoomGame } from "./neon-drift/NeonDriftRoomGame";
+import { createInitialDriftRoomGame, seedDriftRoomGame } from "./neon-drift/room";
 import { ArcheryRoomGame } from "./windline-archery/ArcheryRoomGame";
 import { createInitialArcheryRoomGame, seedArcheryRoomGame } from "./windline-archery/room";
 import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
@@ -118,6 +122,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialReactorRoomGame,
     seedGame: seedReactorRoomGame,
     RoomComponent: BeatReactorRoomGame,
+  },
+  "circuit-breaker": {
+    createInitialGame: createInitialBreakerRoomGame,
+    seedGame: seedBreakerRoomGame,
+    RoomComponent: CircuitBreakerRoomGame,
+  },
+  "neon-drift": {
+    createInitialGame: createInitialDriftRoomGame,
+    seedGame: seedDriftRoomGame,
+    RoomComponent: NeonDriftRoomGame,
   },
 };
 

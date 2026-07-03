@@ -6,4 +6,5 @@ export const circuitBreakerGame: GameDefinition = {
   icon: "🏍️",
   hasTies: true,
   Component: CircuitBreakerGame,
+  supportsMultiplayer: true,
 };
