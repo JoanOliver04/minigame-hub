@@ -1,5 +1,7 @@
 import { BasketRoomGame } from "./basket-shot/BasketRoomGame";
 import { createInitialBasketRoomGame, seedBasketRoomGame } from "./basket-shot/room";
+import { BlackjackRoomGame } from "./blackjack/BlackjackRoomGame";
+import { createInitialBlackjackRoomGame, seedBlackjackRoomGame } from "./blackjack/room";
 import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
 import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
 import { GuessRoomGame } from "./guess/GuessRoomGame";
@@ -10,6 +12,8 @@ import { MemoryRoomGame } from "./memory-match/MemoryRoomGame";
 import { createInitialMemoryRoomGame, seedMemoryRoomGame } from "./memory-match/room";
 import { NimRoomGame } from "./nim/NimRoomGame";
 import { createInitialNimRoomGame, seedNimRoomGame } from "./nim/room";
+import { ReactionRoomGame } from "./reaction-time/ReactionRoomGame";
+import { createInitialReactionRoomGame, seedReactionRoomGame } from "./reaction-time/room";
 import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
@@ -76,6 +80,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialWordRoomGame,
     seedGame: seedWordRoomGame,
     RoomComponent: WordRoomGame,
+  },
+  blackjack: {
+    createInitialGame: createInitialBlackjackRoomGame,
+    seedGame: seedBlackjackRoomGame,
+    RoomComponent: BlackjackRoomGame,
+  },
+  "reaction-time": {
+    createInitialGame: createInitialReactionRoomGame,
+    seedGame: seedReactionRoomGame,
+    RoomComponent: ReactionRoomGame,
   },
 };
 

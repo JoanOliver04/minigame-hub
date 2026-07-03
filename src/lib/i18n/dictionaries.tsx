@@ -762,6 +762,19 @@ export interface Dictionary {
     tieTitle: string;
     youWord: string;
   };
+  reactionRoom: {
+    getReady: string;
+    waitGreen: string;
+    tapNow: string;
+    falseStart: string;
+    roundWon: string;
+    roundLost: string;
+    roundTied: string;
+    ms: (value: number) => string;
+    tallyYou: (score: number) => string;
+    tallyGoal: (target: number) => string;
+    youWord: string;
+  };
 }
 
 const en: Dictionary = {
@@ -2136,6 +2149,19 @@ const en: Dictionary = {
     tallyYou: (score) => `You: ${score}`,
     pairsLeft: (count) => `${count} pair${count === 1 ? "" : "s"} left`,
     tieTitle: "It's a tie! 🤝",
+    youWord: "You",
+  },
+  reactionRoom: {
+    getReady: "Get ready…",
+    waitGreen: "Wait for green…",
+    tapNow: "TAP!",
+    falseStart: "Too early!",
+    roundWon: "You won the round! ⚡",
+    roundLost: "Opponent was faster.",
+    roundTied: "Dead heat!",
+    ms: (value) => `${value} ms`,
+    tallyYou: (score) => `You: ${score}`,
+    tallyGoal: (target) => `First to ${target} rounds`,
     youWord: "You",
   },
 };
@@ -3543,6 +3569,19 @@ const es: Dictionary = {
     tallyYou: (score) => `Tú: ${score}`,
     pairsLeft: (count) => `${count} pareja${count === 1 ? "" : "s"} restante${count === 1 ? "" : "s"}`,
     tieTitle: "¡Empate! 🤝",
+    youWord: "Tú",
+  },
+  reactionRoom: {
+    getReady: "Prepárate…",
+    waitGreen: "Espera al verde…",
+    tapNow: "¡PULSA!",
+    falseStart: "¡Demasiado pronto!",
+    roundWon: "¡Ganaste la ronda! ⚡",
+    roundLost: "Tu rival fue más rápido.",
+    roundTied: "¡Empate técnico!",
+    ms: (value) => `${value} ms`,
+    tallyYou: (score) => `Tú: ${score}`,
+    tallyGoal: (target) => `Primero a ${target} rondas`,
     youWord: "Tú",
   },
 };

@@ -6,4 +6,5 @@ export const blackjackGame: GameDefinition = {
   icon: "🃏",
   hasTies: true,
   Component: BlackjackGame,
+  supportsMultiplayer: true,
 };

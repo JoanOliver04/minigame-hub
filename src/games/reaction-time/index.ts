@@ -6,4 +6,5 @@ export const reactionTimeGame: GameDefinition = {
   icon: "⚡",
   hasTies: true,
   Component: ReactionTimeGame,
+  supportsMultiplayer: true,
 };
