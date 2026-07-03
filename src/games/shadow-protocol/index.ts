@@ -6,4 +6,5 @@ export const shadowProtocolGame: GameDefinition = {
   icon: "🕶️",
   hasTies: false,
   Component: ShadowProtocolGame,
+  supportsMultiplayer: true,
 };

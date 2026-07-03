@@ -6,4 +6,5 @@ export const fleetCommandGame: GameDefinition = {
   icon: "⚓",
   hasTies: false,
   Component: FleetCommandGame,
+  supportsMultiplayer: true,
 };

@@ -775,6 +775,25 @@ export interface Dictionary {
     tallyGoal: (target: number) => string;
     youWord: string;
   };
+  fleetRoom: {
+    placingTitle: string;
+    placingHint: string;
+    shuffle: string;
+    ready: string;
+    readyWaiting: string;
+    yourFleet: string;
+    enemyWaters: string;
+    shotResult: (name: string, result: "miss" | "hit" | "sunk") => string;
+    cellLabel: (index: number) => string;
+    youWord: string;
+  };
+  shadowRoom: {
+    waitingOpponent: string;
+    youEscaped: (score: number) => string;
+    youCaught: string;
+    tieTitle: string;
+    scoreLine: (you: number, them: number) => string;
+  };
 }
 
 const en: Dictionary = {
@@ -2163,6 +2182,26 @@ const en: Dictionary = {
     tallyYou: (score) => `You: ${score}`,
     tallyGoal: (target) => `First to ${target} rounds`,
     youWord: "You",
+  },
+  fleetRoom: {
+    placingTitle: "Place your fleet",
+    placingHint: "Shuffle until you like the layout, then ready up.",
+    shuffle: "Shuffle",
+    ready: "Ready",
+    readyWaiting: "Waiting for your opponent to be ready…",
+    yourFleet: "Your fleet",
+    enemyWaters: "Enemy waters",
+    shotResult: (name, result) =>
+      result === "sunk" ? `${name} sunk a ship! 💥` : result === "hit" ? `${name} scored a hit!` : `${name} missed.`,
+    cellLabel: (index) => `Fire at cell ${index + 1}`,
+    youWord: "You",
+  },
+  shadowRoom: {
+    waitingOpponent: "Waiting for your opponent to finish their run…",
+    youEscaped: (score) => `You escaped! Score ${score}.`,
+    youCaught: "You were caught.",
+    tieTitle: "It's a tie! 🤝",
+    scoreLine: (you, them) => `Your score ${you} · Opponent ${them}`,
   },
 };
 
@@ -3583,6 +3622,26 @@ const es: Dictionary = {
     tallyYou: (score) => `Tú: ${score}`,
     tallyGoal: (target) => `Primero a ${target} rondas`,
     youWord: "Tú",
+  },
+  fleetRoom: {
+    placingTitle: "Coloca tu flota",
+    placingHint: "Baraja hasta que te guste la disposición y confirma.",
+    shuffle: "Barajar",
+    ready: "Listo",
+    readyWaiting: "Esperando a que tu rival esté listo…",
+    yourFleet: "Tu flota",
+    enemyWaters: "Aguas enemigas",
+    shotResult: (name, result) =>
+      result === "sunk" ? `¡${name} hundió un barco! 💥` : result === "hit" ? `¡${name} acertó!` : `${name} falló.`,
+    cellLabel: (index) => `Disparar a la casilla ${index + 1}`,
+    youWord: "Tú",
+  },
+  shadowRoom: {
+    waitingOpponent: "Esperando a que tu rival termine su infiltración…",
+    youEscaped: (score) => `¡Escapaste! Puntuación ${score}.`,
+    youCaught: "Te atraparon.",
+    tieTitle: "¡Empate! 🤝",
+    scoreLine: (you, them) => `Tu puntuación ${you} · Rival ${them}`,
   },
 };
 

@@ -4,6 +4,8 @@ import { BlackjackRoomGame } from "./blackjack/BlackjackRoomGame";
 import { createInitialBlackjackRoomGame, seedBlackjackRoomGame } from "./blackjack/room";
 import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
 import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
+import { FleetRoomGame } from "./fleet-command/FleetRoomGame";
+import { createInitialFleetRoomGame, seedFleetRoomGame } from "./fleet-command/room";
 import { GuessRoomGame } from "./guess/GuessRoomGame";
 import { createInitialGuessRoomGame, seedGuessRoomGame } from "./guess/room";
 import { HolRoomGame } from "./higher-or-lower/HolRoomGame";
@@ -14,6 +16,8 @@ import { NimRoomGame } from "./nim/NimRoomGame";
 import { createInitialNimRoomGame, seedNimRoomGame } from "./nim/room";
 import { ReactionRoomGame } from "./reaction-time/ReactionRoomGame";
 import { createInitialReactionRoomGame, seedReactionRoomGame } from "./reaction-time/room";
+import { ShadowRoomGame } from "./shadow-protocol/ShadowRoomGame";
+import { createInitialShadowRoomGame, seedShadowRoomGame } from "./shadow-protocol/room";
 import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
@@ -90,6 +94,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialReactionRoomGame,
     seedGame: seedReactionRoomGame,
     RoomComponent: ReactionRoomGame,
+  },
+  "fleet-command": {
+    createInitialGame: createInitialFleetRoomGame,
+    seedGame: seedFleetRoomGame,
+    RoomComponent: FleetRoomGame,
+  },
+  "shadow-protocol": {
+    createInitialGame: createInitialShadowRoomGame,
+    seedGame: seedShadowRoomGame,
+    RoomComponent: ShadowRoomGame,
   },
 };
 
