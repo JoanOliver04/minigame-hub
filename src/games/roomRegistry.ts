@@ -1,7 +1,11 @@
 import { BasketRoomGame } from "./basket-shot/BasketRoomGame";
 import { createInitialBasketRoomGame, seedBasketRoomGame } from "./basket-shot/room";
+import { BeatReactorRoomGame } from "./beat-reactor/BeatReactorRoomGame";
+import { createInitialReactorRoomGame, seedReactorRoomGame } from "./beat-reactor/room";
 import { BlackjackRoomGame } from "./blackjack/BlackjackRoomGame";
 import { createInitialBlackjackRoomGame, seedBlackjackRoomGame } from "./blackjack/room";
+import { ArcheryRoomGame } from "./windline-archery/ArcheryRoomGame";
+import { createInitialArcheryRoomGame, seedArcheryRoomGame } from "./windline-archery/room";
 import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
 import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
 import { FleetRoomGame } from "./fleet-command/FleetRoomGame";
@@ -104,6 +108,16 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialShadowRoomGame,
     seedGame: seedShadowRoomGame,
     RoomComponent: ShadowRoomGame,
+  },
+  "windline-archery": {
+    createInitialGame: createInitialArcheryRoomGame,
+    seedGame: seedArcheryRoomGame,
+    RoomComponent: ArcheryRoomGame,
+  },
+  "beat-reactor": {
+    createInitialGame: createInitialReactorRoomGame,
+    seedGame: seedReactorRoomGame,
+    RoomComponent: BeatReactorRoomGame,
   },
 };
 

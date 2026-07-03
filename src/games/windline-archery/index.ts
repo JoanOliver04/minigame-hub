@@ -6,4 +6,5 @@ export const windlineArcheryGame: GameDefinition = {
   icon: "🏹",
   hasTies: true,
   Component: WindlineArcheryGame,
+  supportsMultiplayer: true,
 };

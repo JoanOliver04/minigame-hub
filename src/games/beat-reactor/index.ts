@@ -6,4 +6,5 @@ export const beatReactorGame: GameDefinition = {
   icon: "⚡",
   hasTies: true,
   Component: BeatReactorGame,
+  supportsMultiplayer: true,
 };
