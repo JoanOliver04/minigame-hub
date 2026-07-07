@@ -1,192 +1,134 @@
-/**
- * Blackjack — room (PvP) state and mutations.
- *
- * Sibling to logic.ts/hints.ts, not a replacement: solo mode is player-vs-a
- * fixed-rule dealer. PvP drops the dealer and is a straight 21 duel between
- * the two seats: closest to 21 without busting wins the round. It reuses the
- * pure `calculateHandValue` (Ace-aware totals) and the shared deck primitives;
- * only the uid-keyed turn/hand bookkeeping is new.
- *
- * Turn-based (carries a `turn` field → firestore.rules' turn guard applies).
- * The round starter plays hit/stand until they stand or bust, then the
- * opponent does, then the round resolves. Deck/hands are flat card arrays
- * (Firestore-safe). Both hands are fully visible — there's no hidden hole card
- * in the PvP variant.
- */
-
 "use client";
 
 import { createStandardDeck, shuffleDeck, type Card } from "@/lib/cards";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
-import { calculateHandValue } from "./logic";
+import {
+  applyBlackjackRoundOutcome,
+  calculateHandValue,
+  createBlackjackMatch,
+  dealerShouldHit,
+  resolveRound,
+} from "./logic";
+import type { BlackjackConfig, BlackjackMatchState, RoundOutcome } from "./types";
 
-export const BLACKJACK_ROOM_TARGET = 3;
+export const BLACKJACK_ROOM_TARGET = 5;
+const ROOM_CONFIG: BlackjackConfig = { difficulty: "medium", target: BLACKJACK_ROOM_TARGET };
+
+export interface BlackjackSeatRound {
+  deck: Card[];
+  playerCards: Card[];
+  dealerCards: Card[];
+  holeHidden: boolean;
+  outcome: RoundOutcome | null;
+  ready: boolean;
+}
 
 export interface BlackjackRoomGame {
-  target: number;
-  deck: Card[];
-  hands: Record<string, Card[]>;
-  /** Whether each seat has finished acting (stood or busted) this round. */
-  stood: Record<string, boolean>;
-  /** uid to act now; `null` once the match is finished. */
-  turn: string | null;
-  /** Play order for the current round: [starter, opponent]. */
-  order: string[];
-  scores: Record<string, number>;
-  pushes: number;
-  rounds: number;
+  config: BlackjackConfig;
+  seats: Record<string, BlackjackSeatRound>;
+  matches: Record<string, BlackjackMatchState>;
   finished: boolean;
-  starterUid: string;
-  lastOutcome: {
-    winnerUid: string | null;
-    totals: Record<string, number>;
-    busts: Record<string, boolean>;
-  } | null;
+  winnerUid: string | null;
 }
 
-interface DealtRound {
-  deck: Card[];
-  hands: Record<string, Card[]>;
-}
-
-function deal(order: string[]): DealtRound {
-  const deck = shuffleDeck(createStandardDeck());
-  const hands: Record<string, Card[]> = {};
-  for (const uid of order) hands[uid] = [deck.pop()!, deck.pop()!];
-  return { deck, hands };
-}
-
-function freshRound(order: string[], base: Omit<BlackjackRoomGame, "deck" | "hands" | "stood" | "turn" | "order">): BlackjackRoomGame {
-  const { deck, hands } = deal(order);
+function dealSeat(): BlackjackSeatRound {
+  const [p1, d1, p2, d2, ...deck] = shuffleDeck(createStandardDeck());
   return {
-    ...base,
     deck,
-    hands,
-    stood: Object.fromEntries(order.map((uid) => [uid, false])),
-    turn: order[0],
-    order,
+    playerCards: [p1, p2],
+    dealerCards: [d1, d2],
+    holeHidden: true,
+    outcome: null,
+    ready: false,
   };
 }
 
-/** Host-only placeholder while the room is still "waiting" — see seedBlackjackRoomGame. */
-export function createInitialBlackjackRoomGame(): BlackjackRoomGame {
+function freshGame(uids: string[]): BlackjackRoomGame {
   return {
-    target: BLACKJACK_ROOM_TARGET,
-    deck: [],
-    hands: {},
-    stood: {},
-    turn: null,
-    order: [],
-    scores: {},
-    pushes: 0,
-    rounds: 0,
+    config: ROOM_CONFIG,
+    seats: Object.fromEntries(uids.map((uid) => [uid, dealSeat()])),
+    matches: Object.fromEntries(uids.map((uid) => [uid, createBlackjackMatch(ROOM_CONFIG)])),
     finished: false,
-    starterUid: "",
-    lastOutcome: null,
+    winnerUid: null,
   };
 }
 
-/** Real seed, once both uids are known. Host starts the first round. */
+export function createInitialBlackjackRoomGame(): BlackjackRoomGame {
+  return freshGame([]);
+}
+
 export function seedBlackjackRoomGame(
   _hostGame: BlackjackRoomGame,
   hostUid: string,
   guestUid: string,
 ): BlackjackRoomGame {
-  return freshRound([hostUid, guestUid], {
-    target: BLACKJACK_ROOM_TARGET,
-    scores: { [hostUid]: 0, [guestUid]: 0 },
-    pushes: 0,
-    rounds: 0,
-    finished: false,
-    starterUid: hostUid,
-    lastOutcome: null,
-  });
+  return freshGame([hostUid, guestUid]);
 }
 
-/** Resolve the round once both seats have finished, or hand off to the opponent. */
-function advance(g: BlackjackRoomGame, stood: Record<string, boolean>, hands: Record<string, Card[]>, actingUid: string): Partial<BlackjackRoomGame> {
-  const opponentUid = g.order.find((id) => id !== actingUid)!;
-
-  if (!stood[opponentUid]) {
-    return { hands, stood, turn: opponentUid };
+function playDealer(playerCards: Card[], dealerCards: Card[], deck: Card[]): {
+  dealerCards: Card[];
+  deck: Card[];
+} {
+  let currentDealer = [...dealerCards];
+  let currentDeck = [...deck];
+  while (dealerShouldHit(calculateHandValue(currentDealer)) && currentDeck.length > 0) {
+    const [card, ...rest] = currentDeck;
+    currentDealer = [...currentDealer, card];
+    currentDeck = rest;
   }
+  return { dealerCards: currentDealer, deck: currentDeck };
+}
 
-  // Both done — decide the round. Bust always loses; otherwise closest to 21.
-  const totals: Record<string, number> = {};
-  const busts: Record<string, boolean> = {};
-  for (const uid of g.order) {
-    const value = calculateHandValue(hands[uid]);
-    totals[uid] = value.total;
-    busts[uid] = value.isBust;
-  }
-  const [a, b] = g.order;
-  let winnerUid: string | null;
-  if (busts[a] && busts[b]) winnerUid = null;
-  else if (busts[a]) winnerUid = b;
-  else if (busts[b]) winnerUid = a;
-  else if (totals[a] === totals[b]) winnerUid = null;
-  else winnerUid = totals[a] > totals[b] ? a : b;
+function finishSeatRound(game: BlackjackRoomGame, uid: string, seat: BlackjackSeatRound): BlackjackRoomGame {
+  const outcome = resolveRound(seat.playerCards, seat.dealerCards);
+  const match = applyBlackjackRoundOutcome(game.matches[uid], outcome);
+  const seats = {
+    ...game.seats,
+    [uid]: { ...seat, outcome, holeHidden: false, ready: true },
+  };
+  const matches = { ...game.matches, [uid]: match };
+  const allReady = Object.values(seats).length === 2 && Object.values(seats).every((item) => item.ready);
+  if (!allReady) return { ...game, seats, matches };
 
-  const scores = { ...g.scores };
-  if (winnerUid) scores[winnerUid] = (scores[winnerUid] ?? 0) + 1;
-  const pushes = g.pushes + (winnerUid ? 0 : 1);
-  const rounds = g.rounds + 1;
-  const finished = Object.values(scores).some((score) => score >= g.target);
-  const lastOutcome = { winnerUid, totals, busts };
-
+  const uids = Object.keys(matches);
+  const finished = Object.values(matches).some((item) => item.finished);
   if (finished) {
-    return { hands, stood, turn: null, scores, pushes, rounds, finished: true, lastOutcome };
+    const [a, b] = uids;
+    const scoreA = matches[a].youScore;
+    const scoreB = matches[b].youScore;
+    const winnerUid = scoreA === scoreB ? null : scoreA > scoreB ? a : b;
+    return { ...game, seats, matches, finished: true, winnerUid };
   }
-
-  // Next round: fresh deal, alternate the starter.
-  const nextStarter = g.starterUid === a ? b : a;
-  const nextOrder = [nextStarter, nextStarter === a ? b : a];
-  const { deck, hands: nextHands } = deal(nextOrder);
   return {
-    deck,
-    hands: nextHands,
-    stood: Object.fromEntries(nextOrder.map((uid) => [uid, false])),
-    turn: nextOrder[0],
-    order: nextOrder,
-    scores,
-    pushes,
-    rounds,
-    starterUid: nextStarter,
-    lastOutcome,
+    ...game,
+    seats: Object.fromEntries(uids.map((seatUid) => [seatUid, dealSeat()])),
+    matches,
   };
 }
 
 export async function hitBlackjack(code: string, uid: string): Promise<void> {
   await runRoomUpdate<BlackjackRoomGame>(code, (room) => {
-    const g = room.game;
-    if (room.status !== "playing" || g.finished || g.turn !== uid || g.stood[uid]) return null;
-    if (g.deck.length === 0) return null;
-
-    const deck = [...g.deck];
-    const card = deck.pop()!;
-    const hands = { ...g.hands, [uid]: [...g.hands[uid], card] };
-    const value = calculateHandValue(hands[uid]);
-
-    if (!value.isBust) {
-      // Still under 21 — keep acting.
-      return { game: { ...g, deck, hands } };
+    const game = room.game;
+    const seat = game.seats[uid];
+    if (room.status !== "playing" || game.finished || !seat || seat.ready || seat.outcome || seat.deck.length === 0) {
+      return null;
     }
-
-    // Bust ends this seat's turn.
-    const stood = { ...g.stood, [uid]: true };
-    const patch = advance({ ...g, deck }, stood, hands, uid);
-    return { game: { ...g, deck, ...patch }, status: patch.finished ? "finished" : room.status };
+    const [card, ...deck] = seat.deck;
+    const nextSeat = { ...seat, deck, playerCards: [...seat.playerCards, card] };
+    const value = calculateHandValue(nextSeat.playerCards);
+    const nextGame = value.isBust ? finishSeatRound(game, uid, { ...nextSeat, holeHidden: false }) : { ...game, seats: { ...game.seats, [uid]: nextSeat } };
+    return { game: nextGame, status: nextGame.finished ? "finished" : room.status };
   });
 }
 
 export async function standBlackjack(code: string, uid: string): Promise<void> {
   await runRoomUpdate<BlackjackRoomGame>(code, (room) => {
-    const g = room.game;
-    if (room.status !== "playing" || g.finished || g.turn !== uid || g.stood[uid]) return null;
-
-    const stood = { ...g.stood, [uid]: true };
-    const patch = advance(g, stood, g.hands, uid);
-    return { game: { ...g, ...patch }, status: patch.finished ? "finished" : room.status };
+    const game = room.game;
+    const seat = game.seats[uid];
+    if (room.status !== "playing" || game.finished || !seat || seat.ready || seat.outcome) return null;
+    const dealer = playDealer(seat.playerCards, seat.dealerCards, seat.deck);
+    const nextGame = finishSeatRound(game, uid, { ...seat, ...dealer, holeHidden: false });
+    return { game: nextGame, status: nextGame.finished ? "finished" : room.status };
   });
 }
 
@@ -195,20 +137,6 @@ export async function resetBlackjackRoomForRematch(code: string): Promise<void> 
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
-
-    const order = [room.hostUid, uids.find((id) => id !== room.hostUid)!];
-    return {
-      game: freshRound(order, {
-        target: BLACKJACK_ROOM_TARGET,
-        scores: Object.fromEntries(order.map((uid) => [uid, 0])),
-        pushes: 0,
-        rounds: 0,
-        finished: false,
-        starterUid: order[0],
-        lastOutcome: null,
-      }),
-      status: "playing",
-      rematchVotes: {},
-    };
+    return { game: freshGame(uids), status: "playing", rematchVotes: {} };
   });
 }

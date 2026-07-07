@@ -1614,7 +1614,7 @@ const en: Dictionary = {
         <p>
           Two pieces of one colour on the same square form a <strong>bridge</strong> that nobody
           may cross. On a 6, you must open one of your bridges if possible. Quick mode uses two
-          pieces; Classic uses four. Friend rooms use the quick two-piece duel.
+          pieces; Classic uses four. Friend rooms keep these same movement, capture and bridge rules.
         </p>
       </>
     ),
@@ -3299,7 +3299,8 @@ const es: Dictionary = {
         <p>
           Dos fichas del mismo color en una casilla forman un <strong>puente</strong> que nadie
           puede atravesar. Con un 6 debes abrir uno de tus puentes si es posible. El modo rápido
-          usa dos fichas y el clásico cuatro. Las salas con amigos usan el duelo rápido.
+          usa dos fichas y el clásico cuatro. Las salas mantienen las mismas reglas de movimiento,
+          capturas y puentes.
         </p>
       </>
     ),

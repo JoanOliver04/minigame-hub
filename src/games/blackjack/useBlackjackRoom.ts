@@ -2,9 +2,8 @@
 
 /**
  * Blackjack room hook — sibling to useBlackjack.ts, backed by Firestore
- * instead of a fixed-rule dealer. Turn-based like TTT: the acting player's own
- * transaction applies the hit/stand and, when both seats are done, resolves
- * the round. Same soft-expiry story and same deliberate omission of
+ * while preserving the fixed-rule dealer. Each player acts on their own
+ * dealer hand; when both players finish a round the room advances. Same soft-expiry story and same deliberate omission of
  * ScoresContext.record() as the other room hooks.
  */
 
@@ -33,7 +32,6 @@ export interface UseBlackjackRoomResult {
   uid: string | null;
   room: RoomDoc<BlackjackRoomGame> | null;
   stage: BlackjackRoomStage;
-  isMyTurn: boolean;
   hit: () => void;
   stand: () => void;
   playAgain: () => void;
@@ -82,17 +80,17 @@ export function useBlackjackRoom(code: string): UseBlackjackRoomResult {
     };
   }, [code]);
 
-  const isMyTurn = Boolean(uid && room?.game.turn === uid);
-
   const hit = useCallback(() => {
     if (!uid || !room || room.status !== "playing" || isRoomExpired(room)) return;
-    if (room.game.finished || room.game.turn !== uid) return;
+    const seat = room.game.seats[uid];
+    if (room.game.finished || !seat || seat.ready || seat.outcome) return;
     hitBlackjack(code, uid).catch((error) => console.warn("hitBlackjack", error));
   }, [uid, room, code]);
 
   const stand = useCallback(() => {
     if (!uid || !room || room.status !== "playing" || isRoomExpired(room)) return;
-    if (room.game.finished || room.game.turn !== uid) return;
+    const seat = room.game.seats[uid];
+    if (room.game.finished || !seat || seat.ready || seat.outcome) return;
     standBlackjack(code, uid).catch((error) => console.warn("standBlackjack", error));
   }, [uid, room, code]);
 
@@ -107,5 +105,5 @@ export function useBlackjackRoom(code: string): UseBlackjackRoomResult {
     leaveRoom(code).catch((error) => console.warn("leaveRoom", error));
   }, [code]);
 
-  return { uid, room, stage, isMyTurn, hit, stand, playAgain, leave };
+  return { uid, room, stage, hit, stand, playAgain, leave };
 }
