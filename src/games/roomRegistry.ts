@@ -24,10 +24,14 @@ import { FleetRoomGame } from "./fleet-command/FleetRoomGame";
 import { createInitialFleetRoomGame, seedFleetRoomGame } from "./fleet-command/room";
 import { GuessRoomGame } from "./guess/GuessRoomGame";
 import { createInitialGuessRoomGame, seedGuessRoomGame } from "./guess/room";
+import { GooseRoomGame } from "./goose-game/GooseRoomGame";
+import { createInitialGooseRoomGame, seedGooseRoomGame } from "./goose-game/room";
 import { HolRoomGame } from "./higher-or-lower/HolRoomGame";
 import { createInitialHolRoomGame, seedHolRoomGame } from "./higher-or-lower/room";
 import { MemoryRoomGame } from "./memory-match/MemoryRoomGame";
 import { createInitialMemoryRoomGame, seedMemoryRoomGame } from "./memory-match/room";
+import { ParchisRoomGame } from "./parchis/ParchisRoomGame";
+import { createInitialParchisRoomGame, seedParchisRoomGame } from "./parchis/room";
 import { NimRoomGame } from "./nim/NimRoomGame";
 import { createInitialNimRoomGame, seedNimRoomGame } from "./nim/room";
 import { ReactionRoomGame } from "./reaction-time/ReactionRoomGame";
@@ -36,10 +40,14 @@ import { ShadowRoomGame } from "./shadow-protocol/ShadowRoomGame";
 import { createInitialShadowRoomGame, seedShadowRoomGame } from "./shadow-protocol/room";
 import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
+import { PrismRoomGame } from "./prism-clash/PrismRoomGame";
+import { createInitialPrismRoomGame, seedPrismRoomGame } from "./prism-clash/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
 import { createInitialRpsRoomGame, seedRpsRoomGame } from "./rps/room";
 import { TttRoomGame } from "./ttt/TttRoomGame";
 import { createInitialTttRoomGame, seedTttRoomGame } from "./ttt/room";
+import { TileRummyRoomGame } from "./tile-rummy/TileRummyRoomGame";
+import { createInitialTileRummyRoomGame, seedTileRummyRoomGame } from "./tile-rummy/room";
 import { WordRoomGame } from "./word-guess/WordRoomGame";
 import { createInitialWordRoomGame, seedWordRoomGame } from "./word-guess/room";
 import type { RoomGameModule } from "./roomTypes";
@@ -105,6 +113,26 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialBlackjackRoomGame,
     seedGame: seedBlackjackRoomGame,
     RoomComponent: BlackjackRoomGame,
+  },
+  "prism-clash": {
+    createInitialGame: createInitialPrismRoomGame,
+    seedGame: seedPrismRoomGame,
+    RoomComponent: PrismRoomGame,
+  },
+  parchis: {
+    createInitialGame: createInitialParchisRoomGame,
+    seedGame: seedParchisRoomGame,
+    RoomComponent: ParchisRoomGame,
+  },
+  "goose-game": {
+    createInitialGame: createInitialGooseRoomGame,
+    seedGame: seedGooseRoomGame,
+    RoomComponent: GooseRoomGame,
+  },
+  "tile-rummy": {
+    createInitialGame: createInitialTileRummyRoomGame,
+    seedGame: seedTileRummyRoomGame,
+    RoomComponent: TileRummyRoomGame,
   },
   "reaction-time": {
     createInitialGame: createInitialReactionRoomGame,

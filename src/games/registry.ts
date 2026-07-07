@@ -17,19 +17,23 @@ import { circuitBreakerGame } from "./circuit-breaker";
 import { connectFourGame } from "./connect-four";
 import { diceforgeArenaGame } from "./diceforge-arena";
 import { fleetCommandGame } from "./fleet-command";
+import { gooseGame } from "./goose-game";
 import { guessGame } from "./guess";
 import { higherOrLowerGame } from "./higher-or-lower";
 import { hexDominionGame } from "./hex-dominion";
 import { memoryMatchGame } from "./memory-match";
 import { neonDriftGame } from "./neon-drift";
 import { nimGame } from "./nim";
+import { parchisGame } from "./parchis";
 import { penaltyKickGame } from "./penalty-kick";
+import { prismClashGame } from "./prism-clash";
 import { reactionTimeGame } from "./reaction-time";
 import { rpsGame } from "./rps";
 import { shadowProtocolGame } from "./shadow-protocol";
 import { signalBreakerGame } from "./signal-breaker";
 import { spellstormGame } from "./spellstorm";
 import { tttGame } from "./ttt";
+import { tileRummyGame } from "./tile-rummy";
 import { windlineArcheryGame } from "./windline-archery";
 import { wordGuessGame } from "./word-guess";
 
@@ -43,6 +47,10 @@ export const GAMES: GameDefinition[] = [
   nimGame,
   wordGuessGame,
   blackjackGame,
+  prismClashGame,
+  parchisGame,
+  gooseGame,
+  tileRummyGame,
   reactionTimeGame,
   penaltyKickGame,
   basketShotGame,

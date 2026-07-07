@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Multiplayer rooms for the Mini-Game Hub (all 22 games).
+// Multiplayer rooms for the Mini-Game Hub (all 26 games).
 //
 // Model: rooms/{code}, code IS the document id (never enumerable — `list`
 // is disabled below, so a room is only reachable by already knowing its
@@ -48,7 +48,7 @@ service cloud.firestore {
         && request.resource.data.hostUid == request.auth.uid
         && request.resource.data.code == code
         && request.resource.data.status == "waiting"
-        && request.resource.data.gameId in ["rps", "ttt", "penalty-kick", "basket-shot", "guess", "higher-or-lower", "connect-four", "memory-match", "nim", "word-guess", "blackjack", "reaction-time", "fleet-command", "shadow-protocol", "windline-archery", "beat-reactor", "circuit-breaker", "neon-drift", "signal-breaker", "diceforge-arena", "hex-dominion", "spellstorm"]
+        && request.resource.data.gameId in ["rps", "ttt", "penalty-kick", "basket-shot", "guess", "higher-or-lower", "connect-four", "memory-match", "nim", "word-guess", "blackjack", "prism-clash", "parchis", "goose-game", "tile-rummy", "reaction-time", "fleet-command", "shadow-protocol", "windline-archery", "beat-reactor", "circuit-breaker", "neon-drift", "signal-breaker", "diceforge-arena", "hex-dominion", "spellstorm"]
         && request.resource.data.players.keys().hasOnly([request.auth.uid])
         && request.resource.data.expiresAt > request.time;
 

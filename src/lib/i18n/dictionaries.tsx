@@ -306,6 +306,133 @@ export interface Dictionary {
       blackjack: boolean,
     ) => string;
   };
+  prismClash: {
+    rules: ReactNode;
+    tagline: string;
+    difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    playFriend: string;
+    colors: Record<"ember" | "tide" | "bloom" | "volt", string>;
+    yourTurn: string;
+    aiTurn: string;
+    actionDraw: (actor: string) => string;
+    actionCombo: (actor: string) => string;
+    actionFreeze: (actor: string) => string;
+    actionDraw2: (actor: string) => string;
+    actionPrism: (actor: string, color: string) => string;
+    roundWin: (actor: string) => string;
+    scoreYou: (score: number) => string;
+    scoreAi: (score: number) => string;
+    firstTo: (target: number) => string;
+    cardsCount: (count: number) => string;
+    opponentHand: string;
+    hiddenCard: string;
+    drawCard: string;
+    drawPile: string;
+    activeColor: (color: string) => string;
+    chooseColor: string;
+    cardLabel: (
+      kind: "number" | "freeze" | "draw2" | "prism",
+      color: string,
+      value?: number,
+    ) => string;
+    yourHand: string;
+    playHint: string;
+    drawHint: string;
+    waitHint: string;
+  };
+  parchis: {
+    rules: ReactNode;
+    tagline: string;
+    difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    gameLength: string;
+    quickGame: string;
+    classicGame: string;
+    playFriend: string;
+    finishedCount: (count: number) => string;
+    yourRoll: string;
+    choosePiece: string;
+    aiTurn: string;
+    chooseBonus: (steps: number) => string;
+    captured: (actor: string) => string;
+    reachedGoal: (actor: string) => string;
+    tripleSix: (actor: string) => string;
+    noMove: (actor: string) => string;
+    pieceStatus: (home: number, goal: number) => string;
+    boardLabel: string;
+    pieceStatuses: Record<"home" | "track" | "lane" | "goal", string>;
+    pieceLabel: (actor: string, piece: number, status: string) => string;
+    rollDice: string;
+    moveSteps: (steps: number) => string;
+    rollPrompt: string;
+    waitPrompt: string;
+    safeLegend: string;
+    bridgeLegend: string;
+  };
+  gooseGame: {
+    rules: ReactNode;
+    tagline: string;
+    difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    playFriend: string;
+    goalReached: string;
+    yourRoll: string;
+    chooseRoll: (roll: number) => string;
+    aiTurn: string;
+    rerolled: (actor: string, roll: number) => string;
+    specialNames: Record<
+      "goose" | "bridge" | "inn" | "dice" | "well" | "maze" | "prison" | "death" | "goal",
+      string
+    >;
+    specialFeedback: Record<
+      "goose" | "bridge" | "inn" | "dice" | "well" | "maze" | "prison" | "death" | "goal",
+      (actor: string, destination: number) => string
+    >;
+    moved: (actor: string, destination: number) => string;
+    swapped: (actor: string) => string;
+    skippedTurns: (count: number) => string;
+    squareStatus: (square: number) => string;
+    feathers: (count: number) => string;
+    boardLabel: string;
+    squareLabel: (square: number, special?: string) => string;
+    tokenLabel: (actor: string, square: number) => string;
+    dieResult: (roll: number) => string;
+    dieReady: string;
+    rollDice: string;
+    moveButton: (roll: number) => string;
+    move: string;
+    useFeather: string;
+  };
+  tileRummy: {
+    rules: ReactNode;
+    tagline: string;
+    difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    playFriend: string;
+    colors: Record<"ruby" | "sun" | "leaf" | "sky", string>;
+    meldKinds: Record<"group" | "run", string>;
+    invalidReasons: Record<"tooFew" | "mixed" | "duplicateColor" | "gap" | "opening", string>;
+    emptyRack: string;
+    yourTurn: string;
+    aiTurn: string;
+    drew: (actor: string) => string;
+    played: (actor: string, count: number, score: number) => string;
+    won: (actor: string) => string;
+    tilesLeft: (count: number) => string;
+    opened: string;
+    needsOpening: string;
+    pool: string;
+    openingRule: string;
+    tableLabel: string;
+    emptyTable: string;
+    points: (score: number) => string;
+    playMeld: (score: number) => string;
+    playSelection: string;
+    drawTile: string;
+    selectedCount: (count: number) => string;
+    yourRack: string;
+    drawHint: string;
+    playHint: string;
+    jokerTile: string;
+    tileLabel: (color: string, value: number) => string;
+  };
   reactionTime: {
     rules: ReactNode;
     difficultyTipLabel: string;
@@ -850,6 +977,22 @@ const en: Dictionary = {
       name: "Blackjack",
       description: "Beat the dealer's fixed rules without going over 21.",
     },
+    "prism-clash": {
+      name: "Prism Clash",
+      description: "Match colours and symbols, chain clever combos and empty your hand first.",
+    },
+    parchis: {
+      name: "Parchís Duel",
+      description: "Race home through safe squares, captures, bridges and tactical bonus moves.",
+    },
+    "goose-game": {
+      name: "Game of the Goose",
+      description: "Race across 63 squares, survive classic traps and spend rerolls wisely.",
+    },
+    "tile-rummy": {
+      name: "Tile Rummy",
+      description: "Build groups and runs, open with 30 points and empty your rack first.",
+    },
     "reaction-time": {
       name: "Reaction Time",
       description: "Wait for the signal, then react faster than the AI.",
@@ -1385,6 +1528,262 @@ const en: Dictionary = {
       `Round ${round}: Player ${playerTotal} vs Dealer ${dealerTotal} — ${
         result === "win" ? (blackjack ? "Blackjack win" : "Win") : result === "lose" ? "Loss" : "Push"
       }`,
+  },
+  prismClash: {
+    rules: (
+      <>
+        <p>
+          Your goal is to <strong>empty your hand first</strong>. On your turn, play a card
+          matching the discard pile&apos;s <strong>active colour, number or symbol</strong>.
+          Prism cards match anything and let you choose the next colour.
+        </p>
+        <p>
+          <strong>Freeze ❄</strong> skips your rival and lets you play again.{" "}
+          <strong>Draw +2</strong> makes your rival take two cards. If you have no legal card,
+          draw one card and your turn ends.
+        </p>
+        <p>
+          The signature rule is the <strong>Prism Combo</strong>: play the same number in a
+          different colour to earn one extra play. A combo can trigger only once before the turn
+          passes, so choose the follow-up carefully.
+        </p>
+        <p>
+          Each round starts with seven cards. The first player to empty their hand wins the
+          round; <strong>first to two rounds wins the match</strong>. In friend rooms, hands stay
+          hidden on screen and the same rules apply.
+        </p>
+      </>
+    ),
+    tagline: "Control the colour. Build the combo. Leave nothing behind.",
+    difficultyDescription: {
+      easy: "Plays any legal card without planning ahead.",
+      medium: "Uses powers and colour balance, with occasional imperfect choices.",
+      hard: "Tracks hand structure, protects Prism cards and pressures a short rival hand.",
+    },
+    playFriend: "Play with a friend",
+    colors: { ember: "Ember", tide: "Tide", bloom: "Bloom", volt: "Volt" },
+    yourTurn: "Your turn — match the colour, number or symbol.",
+    aiTurn: "The AI is reading the prism…",
+    actionDraw: (actor) => `${actor} had no match and drew a card.`,
+    actionCombo: (actor) => `${actor} triggered a Prism Combo — one extra play!`,
+    actionFreeze: (actor) => `${actor} froze the rival — one extra play!`,
+    actionDraw2: (actor) => `${actor} surged: the rival draws two cards.`,
+    actionPrism: (actor, color) => `${actor} shifted the active colour to ${color}.`,
+    roundWin: (actor) => `${actor} emptied the hand and won the round!`,
+    scoreYou: (score) => `You ${score}`,
+    scoreAi: (score) => `${score} AI`,
+    firstTo: (target) => `first to ${target}`,
+    cardsCount: (count) => `${count} ${count === 1 ? "card" : "cards"}`,
+    opponentHand: "Opponent's hidden hand",
+    hiddenCard: "Hidden card",
+    drawCard: "Draw one card",
+    drawPile: "Draw pile",
+    activeColor: (color) => `Active: ${color}`,
+    chooseColor: "Choose the next colour",
+    cardLabel: (kind, color, value) =>
+      kind === "number"
+        ? `${color} ${value}`
+        : kind === "freeze"
+          ? `${color} Freeze`
+          : kind === "draw2"
+            ? `${color} Draw two`
+            : "Prism wild card",
+    yourHand: "Your hand",
+    playHint: "Bright cards are legal plays. Match colour, number or symbol.",
+    drawHint: "No match available — draw one card.",
+    waitHint: "Wait for your rival to finish the turn.",
+  },
+  parchis: {
+    rules: (
+      <>
+        <p>
+          Bring every piece from <strong>home to the central goal</strong>. Roll the die, then
+          choose one of the glowing pieces. A natural <strong>5 must bring a piece out</strong>{" "}
+          whenever your start square has room.
+        </p>
+        <p>
+          A <strong>6 gives another roll</strong>; once every piece is out, a 6 moves seven
+          spaces instead. Three consecutive sixes send your last moved piece home. Reaching the
+          goal requires the <strong>exact number</strong>.
+        </p>
+        <p>
+          Dotted squares are <strong>safe</strong>: pieces there cannot be captured. Land on an
+          exposed rival elsewhere to send it home, then choose any legal piece for a{" "}
+          <strong>20-space bonus</strong>. Reaching goal grants a similar 10-space bonus.
+        </p>
+        <p>
+          Two pieces of one colour on the same square form a <strong>bridge</strong> that nobody
+          may cross. On a 6, you must open one of your bridges if possible. Quick mode uses two
+          pieces; Classic uses four. Friend rooms use the quick two-piece duel.
+        </p>
+      </>
+    ),
+    tagline: "Race, block, capture — and count every square.",
+    difficultyDescription: {
+      easy: "Moves a random legal piece.",
+      medium: "Prioritises exits, captures, safe squares and reaching goal.",
+      hard: "Also evaluates threats, bridge building and the best target for each bonus.",
+    },
+    gameLength: "Game format",
+    quickGame: "Quick · 2 pieces",
+    classicGame: "Classic · 4 pieces",
+    playFriend: "Play with a friend",
+    finishedCount: (count) => `${count} pieces reached the goal`,
+    yourRoll: "Your turn — roll the die.",
+    choosePiece: "Choose one of the glowing pieces.",
+    aiTurn: "The AI is counting squares…",
+    chooseBonus: (steps) => `Bonus move: choose a piece to advance ${steps} spaces.`,
+    captured: (actor) => `${actor}: rival piece captured — choose a piece for the bonus.`,
+    reachedGoal: (actor) => `${actor}: piece in goal — choose a piece for the 10-space bonus.`,
+    tripleSix: (actor) => `${actor}: third six; the last piece returns home.`,
+    noMove: (actor) => `No legal move for ${actor}.`,
+    pieceStatus: (home, goal) => `${home} home · ${goal} goal`,
+    boardLabel: "Parchís board",
+    pieceStatuses: { home: "at home", track: "on the track", lane: "in the home lane", goal: "in goal" },
+    pieceLabel: (actor, piece, status) => `${actor}, piece ${piece}, ${status}`,
+    rollDice: "Roll die",
+    moveSteps: (steps) => `Move ${steps} spaces`,
+    rollPrompt: "Roll to begin your move",
+    waitPrompt: "Wait for the rival",
+    safeLegend: "Safe square",
+    bridgeLegend: "Bridge blocks passage",
+  },
+  gooseGame: {
+    rules: (
+      <>
+        <p>
+          Be the first to reach <strong>square 63</strong>. Roll, then move that many squares.
+          You need the exact count: if you pass 63, your token <strong>bounces backwards</strong>.
+        </p>
+        <p>
+          Landing on a <strong>goose</strong> jumps to the next goose and grants another turn.
+          The bridge (6→12) and dice (26↔53) also grant another turn. If you finish on your
+          rival, the two tokens <strong>swap positions</strong>.
+        </p>
+        <p>
+          Classic hazards still apply: the inn loses 1 turn, the well 2, the maze returns to 30,
+          prison loses 3 and death sends you back to the start. The board marks every special
+          square with an icon.
+        </p>
+        <p>
+          Each player has <strong>three Fortune Feathers</strong>. After seeing a roll, spend one
+          to reroll once before moving. Easy spends them almost randomly; Hard compares the roll
+          against every possible destination. Friend rooms use exactly the same rules.
+        </p>
+      </>
+    ),
+    tagline: "From goose to goose — if fortune lets you.",
+    difficultyDescription: {
+      easy: "Rarely rerolls and does so without much judgement.",
+      medium: "Uses feathers to escape the worst hazards.",
+      hard: "Compares the current landing with the expected value of all six rolls.",
+    },
+    playFriend: "Play with a friend",
+    goalReached: "Square 63 reached",
+    yourRoll: "Your turn — roll the die.",
+    chooseRoll: (roll) => `You rolled ${roll}. Move or spend a Fortune Feather.`,
+    aiTurn: "The AI is consulting its fortune…",
+    rerolled: (actor, roll) => `${actor}: Fortune Feather spent — new roll ${roll}.`,
+    specialNames: {
+      goose: "Goose",
+      bridge: "Bridge",
+      inn: "Inn",
+      dice: "Dice",
+      well: "Well",
+      maze: "Maze",
+      prison: "Prison",
+      death: "Death",
+      goal: "Goal",
+    },
+    specialFeedback: {
+      goose: (actor, destination) => `${actor}: goose jump to ${destination} — roll again!`,
+      bridge: (actor) => `${actor}: across the bridge to 12 — roll again!`,
+      inn: (actor) => `${actor}: the inn costs one turn.`,
+      dice: (actor, destination) => `${actor}: from dice to dice, landing on ${destination} — roll again!`,
+      well: (actor) => `${actor}: trapped in the well for two turns.`,
+      maze: (actor) => `${actor}: lost in the maze, back to 30.`,
+      prison: (actor) => `${actor}: prison costs three turns.`,
+      death: (actor) => `${actor}: death sends the token back to the start.`,
+      goal: (actor) => `${actor}: square 63 — victory!`,
+    },
+    moved: (actor, destination) => `${actor}: moved to square ${destination}.`,
+    swapped: (actor) => `${actor} landed on the rival: positions swapped.`,
+    skippedTurns: (count) => `${count} pending ${count === 1 ? "turn was" : "turns were"} skipped.`,
+    squareStatus: (square) => (square === 0 ? "Start" : `Square ${square}`),
+    feathers: (count) => `${count} ${count === 1 ? "feather" : "feathers"}`,
+    boardLabel: "Game of the Goose board, squares 1 to 63",
+    squareLabel: (square, special) => `Square ${square}${special ? `, ${special}` : ""}`,
+    tokenLabel: (actor, square) => `${actor} on ${square === 0 ? "the start" : `square ${square}`}`,
+    dieResult: (roll) => `Die result: ${roll}`,
+    dieReady: "Die ready to roll",
+    rollDice: "Roll die",
+    moveButton: (roll) => `Move ${roll}`,
+    move: "Move",
+    useFeather: "Reroll",
+  },
+  tileRummy: {
+    rules: (
+      <>
+        <p>
+          Each player starts with <strong>14 tiles</strong>. On your turn, select tiles from your
+          rack and play one valid meld to the table, or draw one tile if you have no legal meld.
+          First player to empty their rack wins.
+        </p>
+        <p>
+          A <strong>group</strong> is 3 or 4 tiles with the same number and different colours. A{" "}
+          <strong>run</strong> is 3 or more consecutive numbers in the same colour. Jokers can
+          replace any missing tile.
+        </p>
+        <p>
+          Before playing normal melds, you must <strong>open with at least 30 points</strong> in a
+          single meld. After that, any valid meld is allowed. Tile points are their face values;
+          jokers score the value they represent.
+        </p>
+        <p>
+          This version keeps turns clean for online play: you build new melds from your rack rather
+          than rearranging the whole table. Friend rooms use the exact same rules as solo mode.
+        </p>
+      </>
+    ),
+    tagline: "Read the rack, save the joker, strike at the right time.",
+    difficultyDescription: {
+      easy: "Plays a random legal meld and often wastes jokers.",
+      medium: "Usually chooses the highest scoring meld, with occasional imperfect choices.",
+      hard: "Prioritises opening, efficient runs and endgame pressure.",
+    },
+    playFriend: "Play with a friend",
+    colors: { ruby: "ruby", sun: "sun", leaf: "leaf", sky: "sky" },
+    meldKinds: { group: "Group", run: "Run" },
+    invalidReasons: {
+      tooFew: "Select at least three tiles.",
+      mixed: "That is not a valid group or run.",
+      duplicateColor: "A group cannot repeat a colour.",
+      gap: "The run has a gap the jokers cannot cover.",
+      opening: "Your first meld must be worth at least 30 points.",
+    },
+    emptyRack: "Rack emptied",
+    yourTurn: "Your turn — build a group or run.",
+    aiTurn: "The AI is scanning its rack…",
+    drew: (actor) => `${actor} drew one tile.`,
+    played: (actor, count, score) => `${actor} played ${count} tiles for ${score} points.`,
+    won: (actor) => `${actor} emptied the rack.`,
+    tilesLeft: (count) => `${count} ${count === 1 ? "tile" : "tiles"}`,
+    opened: "Opened",
+    needsOpening: "Needs 30",
+    pool: "Pool",
+    openingRule: "Open with 30",
+    tableLabel: "Tile Rummy table",
+    emptyTable: "No melds on the table yet.",
+    points: (score) => `${score} pts`,
+    playMeld: (score) => `Play meld · ${score}`,
+    playSelection: "Play selection",
+    drawTile: "Draw tile",
+    selectedCount: (count) => `${count} selected`,
+    yourRack: "Your rack",
+    drawHint: "No legal meld available: draw one tile.",
+    playHint: "Select three or more tiles that form a group or a run.",
+    jokerTile: "Joker tile",
+    tileLabel: (color, value) => `${color} ${value}`,
   },
   reactionTime: {
     rules: (
@@ -2259,6 +2658,22 @@ const es: Dictionary = {
       name: "Blackjack",
       description: "Vence al crupier, que juega con reglas fijas, sin pasarte de 21.",
     },
+    "prism-clash": {
+      name: "Choque Prisma",
+      description: "Combina colores y símbolos, encadena combos y vacía tu mano primero.",
+    },
+    parchis: {
+      name: "Parchís Duelo",
+      description: "Lleva tus fichas a meta usando seguros, capturas, puentes y bonus tácticos.",
+    },
+    "goose-game": {
+      name: "Juego de la Oca",
+      description: "Recorre 63 casillas, supera las trampas clásicas y administra tus repeticiones.",
+    },
+    "tile-rummy": {
+      name: "Rummy de Fichas",
+      description: "Forma grupos y escaleras, abre con 30 puntos y vacía tu atril antes que el rival.",
+    },
     "reaction-time": {
       name: "Tiempo de Reacción",
       description: "Espera la señal y reacciona más rápido que la IA.",
@@ -2798,6 +3213,263 @@ const es: Dictionary = {
       `Ronda ${round}: Jugador ${playerTotal} vs Crupier ${dealerTotal} — ${
         result === "win" ? (blackjack ? "Blackjack" : "Victoria") : result === "lose" ? "Derrota" : "Empate"
       }`,
+  },
+  prismClash: {
+    rules: (
+      <>
+        <p>
+          Tu objetivo es <strong>vaciar la mano antes que tu rival</strong>. En tu turno, juega
+          una carta que coincida con el <strong>color activo, número o símbolo</strong> del
+          descarte. Las cartas Prisma combinan con todo y permiten elegir el próximo color.
+        </p>
+        <p>
+          <strong>Congelar ❄</strong> salta al rival y te deja jugar de nuevo.{" "}
+          <strong>Robo +2</strong> obliga al rival a tomar dos cartas. Si no tienes ninguna
+          jugada válida, robas una carta y termina tu turno.
+        </p>
+        <p>
+          La regla especial es el <strong>Combo Prisma</strong>: juega el mismo número con un
+          color diferente para conseguir una jugada extra. Solo puede activarse un combo antes
+          de ceder el turno, así que elige bien la continuación.
+        </p>
+        <p>
+          Cada ronda comienza con siete cartas. Quien vacíe antes su mano gana la ronda;{" "}
+          <strong>quien gane dos rondas se lleva la partida</strong>. En las salas con amigos
+          las manos permanecen ocultas en pantalla y se aplican las mismas reglas.
+        </p>
+      </>
+    ),
+    tagline: "Controla el color. Construye el combo. Vacía tu mano.",
+    difficultyDescription: {
+      easy: "Juega cualquier carta válida sin preparar el siguiente turno.",
+      medium: "Usa poderes y equilibra colores, aunque a veces se equivoca.",
+      hard: "Analiza su mano, conserva cartas Prisma y presiona cuando te quedan pocas.",
+    },
+    playFriend: "Jugar con un amigo",
+    colors: { ember: "Brasa", tide: "Marea", bloom: "Brote", volt: "Voltio" },
+    yourTurn: "Tu turno — combina color, número o símbolo.",
+    aiTurn: "La IA está leyendo el prisma…",
+    actionDraw: (actor) => `${actor} no tenía combinación y robó una carta.`,
+    actionCombo: (actor) => `${actor} activó un Combo Prisma — ¡una jugada extra!`,
+    actionFreeze: (actor) => `${actor} congeló al rival — ¡una jugada extra!`,
+    actionDraw2: (actor) => `${actor} lanzó una sobrecarga: el rival roba dos.`,
+    actionPrism: (actor, color) => `${actor} cambió el color activo a ${color}.`,
+    roundWin: (actor) => `¡${actor} vació la mano y ganó la ronda!`,
+    scoreYou: (score) => `Tú ${score}`,
+    scoreAi: (score) => `${score} IA`,
+    firstTo: (target) => `primero a ${target}`,
+    cardsCount: (count) => `${count} ${count === 1 ? "carta" : "cartas"}`,
+    opponentHand: "Mano oculta del rival",
+    hiddenCard: "Carta oculta",
+    drawCard: "Robar una carta",
+    drawPile: "Mazo de robo",
+    activeColor: (color) => `Activo: ${color}`,
+    chooseColor: "Elige el próximo color",
+    cardLabel: (kind, color, value) =>
+      kind === "number"
+        ? `${color} ${value}`
+        : kind === "freeze"
+          ? `${color} Congelar`
+          : kind === "draw2"
+            ? `${color} Roba dos`
+            : "Carta comodín Prisma",
+    yourHand: "Tu mano",
+    playHint: "Las cartas iluminadas son válidas. Combina color, número o símbolo.",
+    drawHint: "No hay ninguna combinación — roba una carta.",
+    waitHint: "Espera a que el rival termine su turno.",
+  },
+  parchis: {
+    rules: (
+      <>
+        <p>
+          Lleva todas tus fichas desde <strong>casa hasta la meta central</strong>. Tira el dado
+          y elige una de las fichas iluminadas. Un <strong>5 natural obliga a sacar ficha</strong>{" "}
+          siempre que haya sitio en tu salida.
+        </p>
+        <p>
+          Un <strong>6 permite volver a tirar</strong>; cuando todas tus fichas están fuera, el
+          6 mueve siete casillas. Tres seises consecutivos devuelven a casa tu última ficha
+          movida. Para entrar en meta necesitas el <strong>número exacto</strong>.
+        </p>
+        <p>
+          Las casillas con punto son <strong>seguros</strong>: allí no se puede comer. Si caes
+          sobre una ficha rival expuesta, vuelve a su casa y tú eliges una ficha válida para
+          avanzar <strong>20 casillas adicionales</strong>. Llegar a meta concede un bonus de 10.
+        </p>
+        <p>
+          Dos fichas del mismo color en una casilla forman un <strong>puente</strong> que nadie
+          puede atravesar. Con un 6 debes abrir uno de tus puentes si es posible. El modo rápido
+          usa dos fichas y el clásico cuatro. Las salas con amigos usan el duelo rápido.
+        </p>
+      </>
+    ),
+    tagline: "Corre, bloquea, captura… y cuenta cada casilla.",
+    difficultyDescription: {
+      easy: "Mueve una ficha válida al azar.",
+      medium: "Prioriza salidas, capturas, seguros y llegadas a meta.",
+      hard: "También calcula amenazas, puentes y el mejor destino para cada bonus.",
+    },
+    gameLength: "Formato de partida",
+    quickGame: "Rápida · 2 fichas",
+    classicGame: "Clásica · 4 fichas",
+    playFriend: "Jugar con un amigo",
+    finishedCount: (count) => `${count} fichas llegaron a meta`,
+    yourRoll: "Tu turno — tira el dado.",
+    choosePiece: "Elige una de las fichas iluminadas.",
+    aiTurn: "La IA está contando casillas…",
+    chooseBonus: (steps) => `Movimiento de bonus: elige una ficha para avanzar ${steps} casillas.`,
+    captured: (actor) => `${actor}: ficha rival comida — elige una ficha para el bonus.`,
+    reachedGoal: (actor) => `${actor}: ficha en meta — elige una ficha para el bonus de 10.`,
+    tripleSix: (actor) => `${actor}: tercer seis; la última ficha vuelve a casa.`,
+    noMove: (actor) => `Sin movimiento válido para ${actor}.`,
+    pieceStatus: (home, goal) => `${home} en casa · ${goal} en meta`,
+    boardLabel: "Tablero de parchís",
+    pieceStatuses: { home: "en casa", track: "en el circuito", lane: "en el pasillo final", goal: "en meta" },
+    pieceLabel: (actor, piece, status) => `${actor}, ficha ${piece}, ${status}`,
+    rollDice: "Tirar dado",
+    moveSteps: (steps) => `Avanza ${steps} casillas`,
+    rollPrompt: "Tira para comenzar tu movimiento",
+    waitPrompt: "Espera al rival",
+    safeLegend: "Casilla segura",
+    bridgeLegend: "El puente bloquea el paso",
+  },
+  gooseGame: {
+    rules: (
+      <>
+        <p>
+          Llega antes que tu rival a la <strong>casilla 63</strong>. Tira el dado y avanza esa
+          cantidad. Necesitas el número exacto: si te pasas de 63, la ficha{" "}
+          <strong>rebota hacia atrás</strong>.
+        </p>
+        <p>
+          Al caer en una <strong>oca</strong>, saltas hasta la siguiente y vuelves a tirar. El
+          puente (6→12) y los dados (26↔53) también conceden otra tirada. Si terminas sobre tu
+          rival, ambas fichas <strong>intercambian sus posiciones</strong>.
+        </p>
+        <p>
+          Se mantienen las trampas clásicas: la posada pierde 1 turno, el pozo 2, el laberinto
+          vuelve a la 30, la cárcel pierde 3 y la muerte devuelve al inicio. El tablero identifica
+          cada casilla especial con un icono.
+        </p>
+        <p>
+          Cada jugador dispone de <strong>tres Plumas de Fortuna</strong>. Tras ver una tirada,
+          gasta una para repetirla una sola vez antes de mover. La IA fácil las usa casi al azar;
+          la difícil compara todos los destinos posibles. Las salas usan las mismas reglas.
+        </p>
+      </>
+    ),
+    tagline: "De oca a oca… si la fortuna te toca.",
+    difficultyDescription: {
+      easy: "Casi nunca repite y decide sin demasiado criterio.",
+      medium: "Usa las plumas para evitar las peores trampas.",
+      hard: "Compara la llegada actual con el valor esperado de las seis tiradas.",
+    },
+    playFriend: "Jugar con un amigo",
+    goalReached: "Casilla 63 alcanzada",
+    yourRoll: "Tu turno — tira el dado.",
+    chooseRoll: (roll) => `Has sacado ${roll}. Mueve o gasta una Pluma de Fortuna.`,
+    aiTurn: "La IA está consultando a la fortuna…",
+    rerolled: (actor, roll) => `${actor}: Pluma de Fortuna gastada — nueva tirada ${roll}.`,
+    specialNames: {
+      goose: "Oca",
+      bridge: "Puente",
+      inn: "Posada",
+      dice: "Dados",
+      well: "Pozo",
+      maze: "Laberinto",
+      prison: "Cárcel",
+      death: "Muerte",
+      goal: "Meta",
+    },
+    specialFeedback: {
+      goose: (actor, destination) => `${actor}: de oca a oca hasta la ${destination} — ¡vuelve a tirar!`,
+      bridge: (actor) => `${actor}: de puente a puente hasta la 12 — ¡vuelve a tirar!`,
+      inn: (actor) => `${actor}: la posada cuesta un turno.`,
+      dice: (actor, destination) => `${actor}: de dados a dados hasta la ${destination} — ¡vuelve a tirar!`,
+      well: (actor) => `${actor}: atrapado en el pozo durante dos turnos.`,
+      maze: (actor) => `${actor}: perdido en el laberinto, vuelve a la 30.`,
+      prison: (actor) => `${actor}: la cárcel cuesta tres turnos.`,
+      death: (actor) => `${actor}: la muerte devuelve la ficha al inicio.`,
+      goal: (actor) => `${actor}: casilla 63 — ¡victoria!`,
+    },
+    moved: (actor, destination) => `${actor}: avanza a la casilla ${destination}.`,
+    swapped: (actor) => `${actor} cayó sobre el rival: intercambian posiciones.`,
+    skippedTurns: (count) => `Se ${count === 1 ? "saltó" : "saltaron"} ${count} turnos pendientes.`,
+    squareStatus: (square) => (square === 0 ? "Inicio" : `Casilla ${square}`),
+    feathers: (count) => `${count} ${count === 1 ? "pluma" : "plumas"}`,
+    boardLabel: "Tablero del Juego de la Oca, casillas 1 a 63",
+    squareLabel: (square, special) => `Casilla ${square}${special ? `, ${special}` : ""}`,
+    tokenLabel: (actor, square) => `${actor} en ${square === 0 ? "el inicio" : `la casilla ${square}`}`,
+    dieResult: (roll) => `Resultado del dado: ${roll}`,
+    dieReady: "Dado listo para tirar",
+    rollDice: "Tirar dado",
+    moveButton: (roll) => `Avanzar ${roll}`,
+    move: "Avanzar",
+    useFeather: "Repetir",
+  },
+  tileRummy: {
+    rules: (
+      <>
+        <p>
+          Cada jugador empieza con <strong>14 fichas</strong>. En tu turno, selecciona fichas del
+          atril y baja una combinación válida a la mesa, o roba una ficha si no tienes ninguna
+          jugada legal. Gana quien vacíe antes su atril.
+        </p>
+        <p>
+          Un <strong>grupo</strong> son 3 o 4 fichas del mismo número y colores distintos. Una{" "}
+          <strong>escalera</strong> son 3 o más números consecutivos del mismo color. Los comodines
+          sustituyen cualquier ficha que falte.
+        </p>
+        <p>
+          Antes de jugar combinaciones normales debes <strong>abrir con al menos 30 puntos</strong>{" "}
+          en una sola combinación. Después vale cualquier combinación válida. Cada ficha suma su
+          valor; el comodín suma el valor que representa.
+        </p>
+        <p>
+          Esta versión mantiene los turnos limpios para jugar online: creas nuevas combinaciones
+          desde tu atril, sin reorganizar toda la mesa. Las salas usan exactamente las mismas reglas.
+        </p>
+      </>
+    ),
+    tagline: "Lee el atril, guarda el comodín y baja en el momento justo.",
+    difficultyDescription: {
+      easy: "Juega una combinación legal al azar y suele malgastar comodines.",
+      medium: "Normalmente elige la combinación con más puntos, con algún fallo ocasional.",
+      hard: "Prioriza abrir, usar bien las escaleras y presionar en el final.",
+    },
+    playFriend: "Jugar con un amigo",
+    colors: { ruby: "rojo", sun: "amarillo", leaf: "verde", sky: "azul" },
+    meldKinds: { group: "Grupo", run: "Escalera" },
+    invalidReasons: {
+      tooFew: "Selecciona al menos tres fichas.",
+      mixed: "Eso no es un grupo ni una escalera válidos.",
+      duplicateColor: "Un grupo no puede repetir color.",
+      gap: "La escalera tiene un hueco que los comodines no cubren.",
+      opening: "Tu primera combinación debe valer al menos 30 puntos.",
+    },
+    emptyRack: "Atril vacío",
+    yourTurn: "Tu turno — forma un grupo o una escalera.",
+    aiTurn: "La IA está revisando su atril…",
+    drew: (actor) => `${actor} roba una ficha.`,
+    played: (actor, count, score) => `${actor} baja ${count} fichas por ${score} puntos.`,
+    won: (actor) => `${actor} ha vaciado el atril.`,
+    tilesLeft: (count) => `${count} ${count === 1 ? "ficha" : "fichas"}`,
+    opened: "Abierto",
+    needsOpening: "Necesita 30",
+    pool: "Pozo",
+    openingRule: "Abrir con 30",
+    tableLabel: "Mesa de Rummy de Fichas",
+    emptyTable: "Aún no hay combinaciones en la mesa.",
+    points: (score) => `${score} pts`,
+    playMeld: (score) => `Bajar combinación · ${score}`,
+    playSelection: "Bajar selección",
+    drawTile: "Robar ficha",
+    selectedCount: (count) => `${count} seleccionadas`,
+    yourRack: "Tu atril",
+    drawHint: "No tienes jugada legal: roba una ficha.",
+    playHint: "Selecciona tres o más fichas que formen un grupo o una escalera.",
+    jokerTile: "Comodín",
+    tileLabel: (color, value) => `${color} ${value}`,
   },
   reactionTime: {
     rules: (
