@@ -106,7 +106,7 @@ export function RoomClient({ code }: { code: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsToJoin, name]);
 
-  if (phase === "connecting" || !room || !uid) {
+  if (phase === "connecting" || !uid) {
     return (
       <section className="card screen">
         <p>{t.rooms.connecting}</p>
@@ -122,7 +122,7 @@ export function RoomClient({ code }: { code: string }) {
     );
   }
 
-  if (phase === "not-found" || (!alreadySeated && !roomIsJoinable)) {
+  if (phase === "not-found" || !room || (!alreadySeated && !roomIsJoinable)) {
     const message = expired ? t.rooms.roomExpired : t.rooms.roomNotFound;
     return (
       <section className="card screen">

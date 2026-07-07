@@ -39,6 +39,50 @@ service cloud.firestore {
       return gameId in ["rps", "ttt", "penalty-kick", "basket-shot", "guess", "higher-or-lower", "connect-four", "memory-match", "nim", "word-guess", "blackjack", "prism-clash", "property-baron", "parchis", "goose-game", "tile-rummy", "reaction-time", "fleet-command", "shadow-protocol", "windline-archery", "beat-reactor", "circuit-breaker", "neon-drift", "signal-breaker", "diceforge-arena", "hex-dominion", "spellstorm"];
     }
 
+    function validInGameStatusTransition() {
+      return request.resource.data.status == resource.data.status
+        || (resource.data.status == "playing" && request.resource.data.status == "finished")
+        || (
+          resource.data.status == "finished"
+          && request.resource.data.status == "playing"
+          && request.resource.data.rematchVotes == {}
+          && resource.data.rematchVotes.keys().hasAll(resource.data.players.keys())
+        );
+    }
+
+    function validRematchVotesTransition() {
+      return request.resource.data.rematchVotes == resource.data.rematchVotes
+        || (
+          resource.data.status == "finished"
+          && request.resource.data.status == "finished"
+          && request.resource.data.rematchVotes.diff(resource.data.rematchVotes).affectedKeys().hasOnly([request.auth.uid])
+          && request.resource.data.rematchVotes[request.auth.uid] == true
+        )
+        || (
+          resource.data.status == "finished"
+          && request.resource.data.status == "playing"
+          && request.resource.data.rematchVotes == {}
+          && resource.data.rematchVotes.keys().hasAll(resource.data.players.keys())
+        );
+    }
+
+    function validInGameChangedFields() {
+      return (
+          resource.data.status == "playing"
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["game", "status", "updatedAt"])
+        )
+        || (
+          resource.data.status == "finished"
+          && request.resource.data.status == "finished"
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["rematchVotes", "updatedAt"])
+        )
+        || (
+          resource.data.status == "finished"
+          && request.resource.data.status == "playing"
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["game", "status", "rematchVotes", "updatedAt"])
+        );
+    }
+
     match /rooms/{code} {
       allow get: if isSignedIn();
       allow list: if false;
@@ -51,6 +95,7 @@ service cloud.firestore {
         && request.resource.data.status == "waiting"
         && validGameId(request.resource.data.gameId)
         && request.resource.data.players.keys().hasOnly([request.auth.uid])
+        && request.resource.data.rematchVotes == {}
         && request.resource.data.expiresAt > request.time;
 
       allow update: if isSignedIn() && notExpired(resource.data) && (
@@ -67,6 +112,7 @@ service cloud.firestore {
           && unchanged("gameId")
           && unchanged("code")
           && unchanged("gameSettings")
+          && unchanged("rematchVotes")
           && unchanged("createdAt")
           && unchanged("expiresAt")
         )
@@ -95,6 +141,7 @@ service cloud.firestore {
         // seated player, and the room's identity fields never change.
         (
           isSeated(resource.data)
+          && resource.data.status in ["playing", "finished"]
           && unchanged("hostUid")
           && unchanged("gameId")
           && unchanged("code")
@@ -102,6 +149,9 @@ service cloud.firestore {
           && unchanged("players")
           && unchanged("createdAt")
           && unchanged("expiresAt")
+          && validInGameStatusTransition()
+          && validRematchVotesTransition()
+          && validInGameChangedFields()
           // Generic turn-based guard: any per-game payload that carries a
           // `turn` field can only be written by the uid whose turn it is.
           // Games without a `turn` field (e.g. simultaneous-move RPS) skip
@@ -125,6 +175,7 @@ service cloud.firestore {
           && unchanged("code")
           && unchanged("gameSettings")
           && unchanged("players")
+          && unchanged("rematchVotes")
           && unchanged("createdAt")
           && unchanged("expiresAt")
         )

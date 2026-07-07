@@ -116,8 +116,8 @@ Create room  →  share 6-char code  →  friend joins  →  live match  →  re
 - **Rules are never reimplemented for multiplayer.** Each game's `room.ts` imports its solo `logic.ts`'s pure functions (`judge`, `applyMove`, `resolveArrow`, `resolveTick`, `scoreGuess`, `resolveCombat`, `placeStone`, …) and adds only uid-keyed score/turn/pending bookkeeping — the AI-shaped solo state types are never touched.
 - **No server compute of any kind.** Every sync pattern runs entirely as Firestore client-SDK writes and transactions — there are no Cloud Functions, no API routes, no Firebase Hosting. The project stays on Firebase's free **Spark** plan.
 - **Room-specific scores, not the AI scoreboard.** A PvP result is intentionally **not** written to the same `ScoresContext` the hub's "you vs AI" table reads — that table's semantics are specifically solo-vs-AI, and conflating the two would make it meaningless. Each room's own score/history lives only in that room's Firestore document.
-- **Rematch is mutual.** Either player can propose one; the reset only applies once both players have agreed (`rematchVotes`), using the same idempotent-transaction pattern as round resolution.
-- **Leaving closes the room.** Current clients physically delete the Firestore room document when a seated player leaves, so closed rooms do not leave abandoned `status: "abandoned"` residue behind. Existing listeners treat the missing document as a closed/gone room for the other player.
+- **Rematch is mutual and rule-guarded.** Either player can propose one; Security Rules only allow a player to add their own `rematchVotes.{uid}` flag, and the reset back to `playing` is accepted only after both seated players have voted.
+- **Leaving closes the room.** Current clients physically delete the Firestore room document when a seated player leaves, so closed rooms do not leave abandoned `status: "abandoned"` residue behind. Existing listeners treat the missing document as a closed/gone room for the other player instead of getting stuck in a loading state.
 
 ### Security model
 
@@ -127,6 +127,7 @@ Firestore **Security Rules** (`firestore.rules`, deployed to the Firebase consol
 - In Tic-Tac-Toe, a write is rejected unless `request.auth.uid` matches the room's current `turn` — a client cannot move out of turn even if it forges local UI state.
 - Room codes are **never enumerable** (`allow list: false`): the only way to reach a room is to already have its code.
 - Only the seated host can switch a room to a different game/settings payload, and only to a game id in the Security Rules allow-list; the code, host, players and expiry fields must stay unchanged.
+- Room status changes are constrained by rules: gameplay can keep the same status or move `playing → finished`; rematches can only move `finished → playing` after both players have voted, and finished-room vote writes cannot also mutate the game payload.
 - **Soft expiry**: every room carries `expiresAt` (`createdAt + 24h`); a rule-level `notExpired()` check denies gameplay updates — join, move, rematch, game switch — on an expired room, regardless of what the client sends.
 - A room can only be **deleted by a seated player**. This allows intentional cleanup when someone leaves while still preventing deletion of rooms by users who merely know/guess another code but are not seated in it.
 
@@ -373,7 +374,7 @@ src/
         ├── expiry.ts           isRoomExpired() — client mirror of the Security Rules' notExpired()
         └── usePlayerName.ts    localStorage-backed display name, same hydration pattern as ScoresContext
 
-firestore.rules                 Security Rules — seat membership, turn ownership, soft expiry (see §2)
+firestore.rules                 Security Rules — seat membership, turn ownership, rematch/status guards, soft expiry (see §2)
 firebase.json                   Points the Firebase CLI at firestore.rules (rules are otherwise pasted
                                  into the Firebase console manually — no CLI/Cloud Functions dependency)
 .env.example                    NEXT_PUBLIC_FIREBASE_* placeholders — see §9
@@ -447,7 +448,7 @@ Only needed to run `/rooms` locally. Without it, everything else in the app work
 - **Logic first, React second — and network third.** Every game's rules and AI live in framework-free `.ts` modules; the React hook is a thin state-machine wrapper on top. Multiplayer's `room.ts` modules follow the same discipline one layer further out: game rules stay pure and reused, only the network/transaction plumbing is new. This is what makes twenty-seven independent games (plus a multiplayer layer) maintainable by one person.
 - **Type-checked content.** The bilingual dictionary uses `satisfies Dictionary` on both locales — English/Spanish key drift is a compile error, not a runtime gap discovered by a user.
 - **SSR-safe client state.** Both global contexts hydrate from `localStorage` after mount rather than during the server render, so there is no hydration-mismatch warning and no flash of default state.
-- **Access control lives in the backend, not the client.** Every multiplayer permission (who can join, whose turn it is, whether a room has expired) is enforced by Firestore Security Rules, independent of what the client sends — the client-side checks in the hooks are a UX convenience for instant feedback, not the actual boundary.
+- **Access control lives in the backend, not the client.** Every multiplayer permission (who can join, whose turn it is, whether a room has expired, who can vote rematch, and which status transitions are legal) is enforced by Firestore Security Rules, independent of what the client sends — the client-side checks in the hooks are a UX convenience for instant feedback, not the actual boundary.
 - **Minimal, deliberate dependencies.** The twenty-seven solo games add nothing beyond Next.js/React. Multiplayer adds exactly one dependency, `firebase`, chosen because it's a serverless BaaS that needs no infrastructure of the project's own to run or operate.
 
 ---
