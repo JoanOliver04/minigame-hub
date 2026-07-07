@@ -22,6 +22,7 @@
 
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import { createTiles, flipTile, hideTiles, solveTiles } from "./logic";
+import type { RoomGameSettings } from "../roomTypes";
 import type { MatchTile, MemoryGridSize } from "./types";
 
 export const MEMORY_ROOM_SIZE: MemoryGridSize = 4;
@@ -61,11 +62,16 @@ function freshGame(
   };
 }
 
+function sizeFromSettings(settings?: RoomGameSettings): MemoryGridSize {
+  return settings?.size === "6" ? 6 : 4;
+}
+
 /** Host-only placeholder while the room is still "waiting" — see seedMemoryRoomGame. */
-export function createInitialMemoryRoomGame(): MemoryRoomGame {
+export function createInitialMemoryRoomGame(settings?: RoomGameSettings): MemoryRoomGame {
+  const size = sizeFromSettings(settings);
   return {
-    size: MEMORY_ROOM_SIZE,
-    tiles: createTiles(MEMORY_ROOM_SIZE),
+    size,
+    tiles: createTiles(size),
     turn: null,
     scores: {},
     moves: {},
@@ -81,8 +87,9 @@ export function seedMemoryRoomGame(
   _hostGame: MemoryRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): MemoryRoomGame {
-  return freshGame(MEMORY_ROOM_SIZE, [hostUid, guestUid], hostUid);
+  return freshGame(sizeFromSettings(settings), [hostUid, guestUid], hostUid);
 }
 
 export async function flipMemoryTile(code: string, uid: string, index: number): Promise<void> {
@@ -173,7 +180,7 @@ export async function resetMemoryRoomForRematch(code: string): Promise<void> {
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
 
     return {
-      game: freshGame(MEMORY_ROOM_SIZE, uids, room.hostUid),
+      game: freshGame(room.game.size, uids, room.hostUid),
       status: "playing",
       rematchVotes: {},
     };

@@ -788,6 +788,14 @@ export interface Dictionary {
     createTab: string;
     joinTab: string;
     chooseGameLabel: string;
+    currentGameLabel: string;
+    roomSettingsTitle: string;
+    hostSettingsHint: string;
+    guestSettingsHint: string;
+    applyRoomSettings: string;
+    changingGame: string;
+    settingLabels: Record<string, string>;
+    settingOptionLabels: Record<string, Record<string, string>>;
     createButton: string;
     roomCodeLabel: string;
     codePlaceholder: string;
@@ -2456,6 +2464,32 @@ const en: Dictionary = {
     createTab: "Create a room",
     joinTab: "Join a room",
     chooseGameLabel: "Game",
+    currentGameLabel: "Current game",
+    roomSettingsTitle: "Room game & settings",
+    hostSettingsHint: "Host controls: changing game or settings restarts the room for both players, keeping the same code.",
+    guestSettingsHint: "The host can change game or settings here without creating a new room.",
+    applyRoomSettings: "Apply to room",
+    changingGame: "Changing room…",
+    settingLabels: {
+      size: "Board size",
+      pieceCount: "Pieces",
+      rule: "Rules",
+      target: "Match length",
+      aceHigh: "Ace rule",
+      bpm: "BPM",
+      bars: "Length",
+      density: "Density",
+    },
+    settingOptionLabels: {
+      size: { "4": "4 × 4", "6": "6 × 6" },
+      pieceCount: { "2": "Quick · 2 pieces", "4": "Classic · 4 pieces" },
+      rule: { normal: "Normal", misere: "Misère" },
+      target: { "1": "Single round", "3": "First to 3", "5": "First to 5", "10": "First to 10" },
+      aceHigh: { true: "Ace high", false: "Ace low" },
+      bpm: { "90": "90", "110": "110", "130": "130" },
+      bars: { "8": "8 bars", "12": "12 bars", "16": "16 bars" },
+      density: { light: "Light", normal: "Normal", dense: "Dense" },
+    },
     createButton: "Create room",
     roomCodeLabel: "Room code",
     codePlaceholder: "e.g. K7RXPQ",
@@ -4170,6 +4204,32 @@ const es: Dictionary = {
     createTab: "Crear sala",
     joinTab: "Unirse a una sala",
     chooseGameLabel: "Juego",
+    currentGameLabel: "Juego actual",
+    roomSettingsTitle: "Juego y ajustes de la sala",
+    hostSettingsHint: "Controles del anfitrión: cambiar juego o ajustes reinicia la sala para ambos manteniendo el mismo código.",
+    guestSettingsHint: "El anfitrión puede cambiar aquí el juego o los ajustes sin crear otra sala.",
+    applyRoomSettings: "Aplicar a la sala",
+    changingGame: "Cambiando sala…",
+    settingLabels: {
+      size: "Tamaño del tablero",
+      pieceCount: "Fichas",
+      rule: "Reglas",
+      target: "Duración",
+      aceHigh: "Valor del as",
+      bpm: "BPM",
+      bars: "Duración",
+      density: "Densidad",
+    },
+    settingOptionLabels: {
+      size: { "4": "4 × 4", "6": "6 × 6" },
+      pieceCount: { "2": "Rápida · 2 fichas", "4": "Clásica · 4 fichas" },
+      rule: { normal: "Normal", misere: "Misère" },
+      target: { "1": "Una ronda", "3": "Primero a 3", "5": "Primero a 5", "10": "Primero a 10" },
+      aceHigh: { true: "As alto", false: "As bajo" },
+      bpm: { "90": "90", "110": "110", "130": "130" },
+      bars: { "8": "8 compases", "12": "12 compases", "16": "16 compases" },
+      density: { light: "Ligera", normal: "Normal", dense: "Densa" },
+    },
     createButton: "Crear sala",
     roomCodeLabel: "Código de sala",
     codePlaceholder: "p. ej. K7RXPQ",

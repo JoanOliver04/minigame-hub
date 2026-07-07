@@ -22,6 +22,37 @@
   font-size: 16px;
 }
 
+.room-control-panel {
+  max-width: 980px;
+  margin-bottom: 14px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(108, 140, 255, .16), transparent 30%),
+    var(--surface);
+}
+.room-control-heading {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.room-control-heading > div {
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255,255,255,.045);
+}
+.room-control-panel h2 {
+  margin: 14px 0 4px;
+  font-size: 1.05rem;
+}
+.room-control-panel p {
+  color: var(--text-dim);
+  margin: 0 0 12px;
+}
+@media (max-width: 640px) {
+  .room-control-heading { grid-template-columns: 1fr; }
+}
+
 /* Tile Rummy — tile set-building duel */
 .tile-rummy-screen {
   max-width: 980px;

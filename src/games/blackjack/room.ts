@@ -1,6 +1,7 @@
 "use client";
 
 import { createStandardDeck, shuffleDeck, type Card } from "@/lib/cards";
+import type { RoomGameSettings } from "@/games/roomTypes";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import {
   applyBlackjackRoundOutcome,
@@ -43,26 +44,34 @@ function dealSeat(): BlackjackSeatRound {
   };
 }
 
-function freshGame(uids: string[]): BlackjackRoomGame {
+function configFromSettings(settings?: RoomGameSettings): BlackjackConfig {
+  if (settings?.target === "3") return { ...ROOM_CONFIG, target: 3 };
+  if (settings?.target === "10") return { ...ROOM_CONFIG, target: 10 };
+  return ROOM_CONFIG;
+}
+
+function freshGame(uids: string[], settings?: RoomGameSettings): BlackjackRoomGame {
+  const config = configFromSettings(settings);
   return {
-    config: ROOM_CONFIG,
+    config,
     seats: Object.fromEntries(uids.map((uid) => [uid, dealSeat()])),
-    matches: Object.fromEntries(uids.map((uid) => [uid, createBlackjackMatch(ROOM_CONFIG)])),
+    matches: Object.fromEntries(uids.map((uid) => [uid, createBlackjackMatch(config)])),
     finished: false,
     winnerUid: null,
   };
 }
 
-export function createInitialBlackjackRoomGame(): BlackjackRoomGame {
-  return freshGame([]);
+export function createInitialBlackjackRoomGame(settings?: RoomGameSettings): BlackjackRoomGame {
+  return freshGame([], settings);
 }
 
 export function seedBlackjackRoomGame(
   _hostGame: BlackjackRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): BlackjackRoomGame {
-  return freshGame([hostUid, guestUid]);
+  return freshGame([hostUid, guestUid], settings);
 }
 
 function playDealer(playerCards: Card[], dealerCards: Card[], deck: Card[]): {
@@ -137,6 +146,6 @@ export async function resetBlackjackRoomForRematch(code: string): Promise<void> 
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
-    return { game: freshGame(uids), status: "playing", rematchVotes: {} };
+    return { game: freshGame(uids, { target: String(room.game.config.target) }), status: "playing", rematchVotes: {} };
   });
 }

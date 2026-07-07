@@ -17,6 +17,7 @@
 
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
+import type { RoomGameSettings } from "@/games/roomTypes";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import { randomSignalDelay } from "./logic";
 
@@ -42,10 +43,14 @@ export interface ReactionRoomGame {
   lastResult: { winnerUid: string | null; entries: Record<string, ReactionResult> } | null;
 }
 
+function targetFromSettings(settings?: RoomGameSettings): number {
+  return settings?.target === "5" ? 5 : REACTION_ROOM_TARGET;
+}
+
 /** Host-only placeholder while the room is still "waiting" — see seedReactionRoomGame. */
-export function createInitialReactionRoomGame(): ReactionRoomGame {
+export function createInitialReactionRoomGame(settings?: RoomGameSettings): ReactionRoomGame {
   return {
-    target: REACTION_ROOM_TARGET,
+    target: targetFromSettings(settings),
     scores: {},
     ties: 0,
     rounds: 0,
@@ -62,9 +67,10 @@ export function seedReactionRoomGame(
   _hostGame: ReactionRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): ReactionRoomGame {
   return {
-    target: REACTION_ROOM_TARGET,
+    target: targetFromSettings(settings),
     scores: { [hostUid]: 0, [guestUid]: 0 },
     ties: 0,
     rounds: 0,
@@ -145,7 +151,7 @@ export async function resetReactionRoomForRematch(code: string): Promise<void> {
 
     return {
       game: {
-        target: REACTION_ROOM_TARGET,
+        target: room.game.target,
         scores: { [uidA]: 0, [uidB]: 0 },
         ties: 0,
         rounds: 0,

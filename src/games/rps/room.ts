@@ -12,9 +12,9 @@
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import type { RoomGameSettings } from "@/games/roomTypes";
 import { judge, type Move, type RoundResult } from "./logic";
 
-/** Fixed for the room MVP — no "first to N" picker yet, unlike solo mode. */
 export const RPS_ROOM_TARGET = 3;
 
 export interface RpsRoomHistoryEntry {
@@ -37,9 +37,13 @@ export interface RpsRoomGame {
 
 const HISTORY_CAP = 10;
 
+function targetFromSettings(settings?: RoomGameSettings): number {
+  return settings?.target === "5" ? 5 : RPS_ROOM_TARGET;
+}
+
 /** Host-only placeholder while the room is still "waiting" — see seedRpsRoomGame. */
-export function createInitialRpsRoomGame(): RpsRoomGame {
-  return { target: RPS_ROOM_TARGET, scores: {}, rounds: 0, finished: false, pendingMoves: {}, history: [] };
+export function createInitialRpsRoomGame(settings?: RoomGameSettings): RpsRoomGame {
+  return { target: targetFromSettings(settings), scores: {}, rounds: 0, finished: false, pendingMoves: {}, history: [] };
 }
 
 /** Real seed, once both uids are known (called by joinRoom). */
@@ -47,9 +51,10 @@ export function seedRpsRoomGame(
   _hostGame: RpsRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): RpsRoomGame {
   return {
-    target: RPS_ROOM_TARGET,
+    target: targetFromSettings(settings),
     scores: { [hostUid]: 0, [guestUid]: 0 },
     rounds: 0,
     finished: false,
@@ -121,7 +126,7 @@ export async function resetRpsRoomForRematch(code: string): Promise<void> {
 
     return {
       game: {
-        target: RPS_ROOM_TARGET,
+        target: room.game.target,
         scores: { [uidA]: 0, [uidB]: 0 },
         rounds: 0,
         finished: false,

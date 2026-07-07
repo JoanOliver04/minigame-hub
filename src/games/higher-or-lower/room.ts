@@ -23,6 +23,7 @@ import {
   type Card,
 } from "@/lib/cards";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import type { RoomGameSettings } from "../roomTypes";
 import { isPredictionCorrect } from "./logic";
 import type { Prediction } from "./types";
 
@@ -57,17 +58,26 @@ export interface HolRoomGame {
 
 const HISTORY_CAP = 12;
 
+function targetFromSettings(settings?: RoomGameSettings): number {
+  const target = Number(settings?.target ?? HOL_ROOM_TARGET);
+  return target === 3 || target === 10 ? target : HOL_ROOM_TARGET;
+}
+
+function aceHighFromSettings(settings?: RoomGameSettings): boolean {
+  return settings?.aceHigh === "false" ? false : HOL_ROOM_ACE_HIGH;
+}
+
 function freshDeck(): { deck: Card[]; currentCard: Card } {
   const deck = shuffleDeck(createStandardDeck());
   return { deck: deck.slice(0, -1), currentCard: deck[deck.length - 1] };
 }
 
 /** Host-only placeholder while the room is still "waiting" — see seedHolRoomGame. */
-export function createInitialHolRoomGame(): HolRoomGame {
+export function createInitialHolRoomGame(settings?: RoomGameSettings): HolRoomGame {
   const { deck, currentCard } = freshDeck();
   return {
-    target: HOL_ROOM_TARGET,
-    aceHigh: HOL_ROOM_ACE_HIGH,
+    target: targetFromSettings(settings),
+    aceHigh: aceHighFromSettings(settings),
     scores: {},
     rounds: 0,
     finished: false,
@@ -83,11 +93,12 @@ export function seedHolRoomGame(
   _hostGame: HolRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): HolRoomGame {
   const { deck, currentCard } = freshDeck();
   return {
-    target: HOL_ROOM_TARGET,
-    aceHigh: HOL_ROOM_ACE_HIGH,
+    target: targetFromSettings(settings),
+    aceHigh: aceHighFromSettings(settings),
     scores: { [hostUid]: 0, [guestUid]: 0 },
     rounds: 0,
     finished: false,
@@ -151,8 +162,8 @@ export async function resetHolRoomForRematch(code: string): Promise<void> {
 
     return {
       game: {
-        target: HOL_ROOM_TARGET,
-        aceHigh: HOL_ROOM_ACE_HIGH,
+        target: room.game.target,
+        aceHigh: room.game.aceHigh,
         scores: Object.fromEntries(uids.map((uid) => [uid, 0])),
         rounds: 0,
         finished: false,

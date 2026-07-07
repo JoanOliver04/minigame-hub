@@ -2,12 +2,17 @@
 
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import { createParchisGame, moveParchisPiece, rollParchisDie } from "./logic";
+import type { RoomGameSettings } from "../roomTypes";
 import type { ParchisGameState } from "./types";
 
 export type ParchisRoomGame = ParchisGameState;
 
-export function createInitialParchisRoomGame(): ParchisRoomGame {
-  const game = createParchisGame(["waiting-host", "waiting-guest"], 2);
+function pieceCountFromSettings(settings?: RoomGameSettings): 2 | 4 {
+  return settings?.pieceCount === "4" ? 4 : 2;
+}
+
+export function createInitialParchisRoomGame(settings?: RoomGameSettings): ParchisRoomGame {
+  const game = createParchisGame(["waiting-host", "waiting-guest"], pieceCountFromSettings(settings));
   return { ...game, order: [], colors: {}, pieces: {}, turn: null };
 }
 
@@ -15,8 +20,9 @@ export function seedParchisRoomGame(
   _hostGame: ParchisRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): ParchisRoomGame {
-  return createParchisGame([hostUid, guestUid], 2, hostUid);
+  return createParchisGame([hostUid, guestUid], pieceCountFromSettings(settings), hostUid);
 }
 
 export async function rollParchisRoom(code: string, uid: string, roll: number): Promise<void> {
@@ -42,7 +48,7 @@ export async function resetParchisRoomForRematch(code: string): Promise<void> {
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
     return {
-      game: createParchisGame(uids, 2, room.hostUid),
+      game: createParchisGame(uids, room.game.pieceCount, room.hostUid),
       status: "playing",
       rematchVotes: {},
     };

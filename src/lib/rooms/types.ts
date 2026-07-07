@@ -25,6 +25,7 @@ export interface RoomPlayer {
 export interface RoomDoc<TGame = unknown> {
   code: string;
   gameId: string;
+  gameSettings?: Record<string, string>;
   status: RoomStatus;
   hostUid: string;
   players: Record<string, RoomPlayer>;

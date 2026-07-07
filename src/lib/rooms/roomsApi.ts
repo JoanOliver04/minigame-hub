@@ -45,6 +45,7 @@ export async function createRoom<TGame>(
   hostUid: string,
   hostName: string,
   createInitialGame: () => TGame,
+  gameSettings: Record<string, string> = {},
 ): Promise<string> {
   for (let attempt = 0; attempt < CREATE_ATTEMPTS; attempt++) {
     const code = generateRoomCode();
@@ -56,6 +57,7 @@ export async function createRoom<TGame>(
     const room: RoomDoc<TGame> = {
       code,
       gameId,
+      gameSettings,
       status: "waiting",
       hostUid,
       players: {
@@ -88,7 +90,12 @@ export async function joinRoom<TGame>(
   code: string,
   guestUid: string,
   guestName: string,
-  seedGame: (hostGame: TGame, hostUid: string, guestUid: string) => TGame,
+  seedGame: (
+    hostGame: TGame,
+    hostUid: string,
+    guestUid: string,
+    settings?: Record<string, string>,
+  ) => TGame,
 ): Promise<void> {
   const ref = roomRef(code);
   await runTransaction(getDb(), async (tx) => {
@@ -110,7 +117,47 @@ export async function joinRoom<TGame>(
         role: "guest",
         joinedAt: Timestamp.now(),
       },
-      game: seedGame(room.game, room.hostUid, guestUid),
+      game: seedGame(room.game, room.hostUid, guestUid, room.gameSettings ?? {}),
+      updatedAt: serverTimestamp(),
+    });
+  });
+}
+
+export async function switchRoomGame<TGame>(
+  code: string,
+  uid: string,
+  nextGameId: string,
+  gameSettings: Record<string, string>,
+  createInitialGame: (settings?: Record<string, string>) => TGame,
+  seedGame: (
+    hostGame: TGame,
+    hostUid: string,
+    guestUid: string,
+    settings?: Record<string, string>,
+  ) => TGame,
+): Promise<void> {
+  const ref = roomRef(code);
+  await runTransaction(getDb(), async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new RoomError("Room not found.");
+    const room = snap.data() as RoomDoc<unknown>;
+    if (isRoomExpired(room)) throw new RoomError("This room has expired.");
+    if (room.hostUid !== uid || !room.players[uid]) throw new RoomError("Only the host can change games.");
+    if (room.status === "abandoned") throw new RoomError("This room has ended.");
+
+    const uids = Object.keys(room.players);
+    const hostGame = createInitialGame(gameSettings);
+    const nextGame =
+      uids.length >= 2
+        ? seedGame(hostGame, room.hostUid, uids.find((id) => id !== room.hostUid)!, gameSettings)
+        : hostGame;
+
+    tx.update(ref, {
+      gameId: nextGameId,
+      gameSettings,
+      game: nextGame,
+      status: uids.length >= 2 ? ("playing" satisfies RoomStatus) : ("waiting" satisfies RoomStatus),
+      rematchVotes: {},
       updatedAt: serverTimestamp(),
     });
   });

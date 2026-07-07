@@ -15,6 +15,7 @@
 
 "use client";
 
+import type { RoomGameSettings } from "@/games/roomTypes";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import {
   applyMove,
@@ -27,7 +28,6 @@ import {
   type TttMove,
 } from "./logic";
 
-/** Fixed for the room MVP — no "first to N" picker yet, unlike solo mode. */
 export const TTT_ROOM_TARGET = 3;
 
 export interface TttRoomGame {
@@ -44,8 +44,14 @@ export interface TttRoomGame {
   lastOutcome: RoundOutcome | null;
 }
 
+function targetFromSettings(settings?: RoomGameSettings): number {
+  if (settings?.target === "1") return 1;
+  if (settings?.target === "5") return 5;
+  return TTT_ROOM_TARGET;
+}
+
 /** Host-only placeholder while the room is still "waiting" — see seedTttRoomGame. */
-export function createInitialTttRoomGame(): TttRoomGame {
+export function createInitialTttRoomGame(settings?: RoomGameSettings): TttRoomGame {
   return {
     board: emptyBoard(),
     turn: null,
@@ -54,7 +60,7 @@ export function createInitialTttRoomGame(): TttRoomGame {
     draws: 0,
     rounds: 0,
     finished: false,
-    target: TTT_ROOM_TARGET,
+    target: targetFromSettings(settings),
     lastOutcome: null,
   };
 }
@@ -64,6 +70,7 @@ export function seedTttRoomGame(
   _hostGame: TttRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): TttRoomGame {
   return {
     board: emptyBoard(),
@@ -73,7 +80,7 @@ export function seedTttRoomGame(
     draws: 0,
     rounds: 0,
     finished: false,
-    target: TTT_ROOM_TARGET,
+    target: targetFromSettings(settings),
     lastOutcome: null,
   };
 }
@@ -159,7 +166,7 @@ export async function resetTttRoomForRematch(code: string): Promise<void> {
         draws: 0,
         rounds: 0,
         finished: false,
-        target: TTT_ROOM_TARGET,
+        target: room.game.target,
         lastOutcome: null,
       },
       status: "playing",

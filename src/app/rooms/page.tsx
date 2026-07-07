@@ -44,7 +44,13 @@ export default function RoomsPage() {
     setError(null);
     try {
       const user = await ensureSignedIn();
-      const code = await createRoom(gameId, user.uid, trimmed, roomGame.createInitialGame);
+      const code = await createRoom(
+        gameId,
+        user.uid,
+        trimmed,
+        () => roomGame.createInitialGame(roomGame.defaultSettings),
+        roomGame.defaultSettings ?? {},
+      );
       router.push(`/rooms/${code}`);
     } catch {
       setError(t.rooms.errorGeneric);

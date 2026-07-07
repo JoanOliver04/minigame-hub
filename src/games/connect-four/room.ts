@@ -16,6 +16,7 @@
 
 "use client";
 
+import type { RoomGameSettings } from "@/games/roomTypes";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import {
   COLUMNS,
@@ -68,8 +69,14 @@ export interface ConnectRoomGame {
 const HOST_PIECE: ConnectPiece = "R"; // mirrors solo PLAYER_PIECE
 const GUEST_PIECE: ConnectPiece = "Y";
 
+function targetFromSettings(settings?: RoomGameSettings): number {
+  if (settings?.target === "1") return 1;
+  if (settings?.target === "5") return 5;
+  return CONNECT_ROOM_TARGET;
+}
+
 /** Host-only placeholder while the room is still "waiting" — see seedConnectRoomGame. */
-export function createInitialConnectRoomGame(): ConnectRoomGame {
+export function createInitialConnectRoomGame(settings?: RoomGameSettings): ConnectRoomGame {
   return {
     cells: emptyCells(),
     turn: null,
@@ -78,7 +85,7 @@ export function createInitialConnectRoomGame(): ConnectRoomGame {
     draws: 0,
     rounds: 0,
     finished: false,
-    target: CONNECT_ROOM_TARGET,
+    target: targetFromSettings(settings),
     lastOutcome: null,
   };
 }
@@ -88,6 +95,7 @@ export function seedConnectRoomGame(
   _hostGame: ConnectRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): ConnectRoomGame {
   return {
     cells: emptyCells(),
@@ -97,7 +105,7 @@ export function seedConnectRoomGame(
     draws: 0,
     rounds: 0,
     finished: false,
-    target: CONNECT_ROOM_TARGET,
+    target: targetFromSettings(settings),
     lastOutcome: null,
   };
 }
@@ -182,7 +190,7 @@ export async function resetConnectRoomForRematch(code: string): Promise<void> {
         draws: 0,
         rounds: 0,
         finished: false,
-        target: CONNECT_ROOM_TARGET,
+        target: room.game.target,
         lastOutcome: null,
       },
       status: "playing",

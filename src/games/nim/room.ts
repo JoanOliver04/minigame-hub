@@ -15,6 +15,7 @@
 
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import { applyPileMove, createPiles, isGameOver, isValidMove } from "./logic";
+import type { RoomGameSettings } from "../roomTypes";
 import type { NimRule } from "./types";
 
 export const NIM_ROOM_TARGET = 3;
@@ -46,12 +47,16 @@ export interface NimRoomGame {
 
 const LOG_CAP = 12;
 
+function ruleFromSettings(settings?: RoomGameSettings): NimRule {
+  return settings?.rule === "misere" ? "misere" : "normal";
+}
+
 /** Host-only placeholder while the room is still "waiting" — see seedNimRoomGame. */
-export function createInitialNimRoomGame(): NimRoomGame {
+export function createInitialNimRoomGame(settings?: RoomGameSettings): NimRoomGame {
   return {
     piles: createPiles(false),
     turn: null,
-    rule: NIM_ROOM_RULE,
+    rule: ruleFromSettings(settings),
     scores: {},
     rounds: 0,
     finished: false,
@@ -67,11 +72,12 @@ export function seedNimRoomGame(
   _hostGame: NimRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): NimRoomGame {
   return {
     piles: createPiles(false),
     turn: hostUid,
-    rule: NIM_ROOM_RULE,
+    rule: ruleFromSettings(settings),
     scores: { [hostUid]: 0, [guestUid]: 0 },
     rounds: 0,
     finished: false,
@@ -170,7 +176,7 @@ export async function resetNimRoomForRematch(code: string): Promise<void> {
       game: {
         piles: createPiles(false),
         turn: starter,
-        rule: NIM_ROOM_RULE,
+        rule: room.game.rule,
         scores: Object.fromEntries(uids.map((uid) => [uid, 0])),
         rounds: 0,
         finished: false,

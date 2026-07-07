@@ -19,6 +19,7 @@ import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { randomSeed } from "@/lib/rng";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import type { RoomGameSettings } from "../roomTypes";
 import type { Bars, Bpm, ChartDensity } from "./types";
 
 export const REACTOR_ROOM_BPM: Bpm = 110;
@@ -36,12 +37,28 @@ export interface ReactorRoomGame {
   winnerUid: string | null;
 }
 
-function freshGame(uids: string[]): ReactorRoomGame {
+function bpmFromSettings(settings?: RoomGameSettings): Bpm {
+  const bpm = Number(settings?.bpm ?? REACTOR_ROOM_BPM);
+  return bpm === 90 || bpm === 130 ? bpm : REACTOR_ROOM_BPM;
+}
+
+function barsFromSettings(settings?: RoomGameSettings): Bars {
+  const bars = Number(settings?.bars ?? REACTOR_ROOM_BARS);
+  return bars === 8 || bars === 16 ? bars : REACTOR_ROOM_BARS;
+}
+
+function densityFromSettings(settings?: RoomGameSettings): ChartDensity {
+  return settings?.density === "light" || settings?.density === "dense"
+    ? settings.density
+    : REACTOR_ROOM_DENSITY;
+}
+
+function freshGame(uids: string[], settings?: RoomGameSettings): ReactorRoomGame {
   return {
     seed: randomSeed(),
-    bpm: REACTOR_ROOM_BPM,
-    bars: REACTOR_ROOM_BARS,
-    density: REACTOR_ROOM_DENSITY,
+    bpm: bpmFromSettings(settings),
+    bars: barsFromSettings(settings),
+    density: densityFromSettings(settings),
     results: Object.fromEntries(uids.map((uid) => [uid, null])),
     finished: false,
     winnerUid: null,
@@ -49,8 +66,8 @@ function freshGame(uids: string[]): ReactorRoomGame {
 }
 
 /** Host-only placeholder while the room is still "waiting" — see seedReactorRoomGame. */
-export function createInitialReactorRoomGame(): ReactorRoomGame {
-  return freshGame([]);
+export function createInitialReactorRoomGame(settings?: RoomGameSettings): ReactorRoomGame {
+  return freshGame([], settings);
 }
 
 /** Real seed, once both uids are known (called by joinRoom). */
@@ -58,8 +75,9 @@ export function seedReactorRoomGame(
   _hostGame: ReactorRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): ReactorRoomGame {
-  return freshGame([hostUid, guestUid]);
+  return freshGame([hostUid, guestUid], settings);
 }
 
 /** Always conflict-free: a client only ever writes its own score. */
@@ -96,6 +114,15 @@ export async function resetReactorRoomForRematch(code: string): Promise<void> {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
-    return { game: freshGame(uids), status: "playing", rematchVotes: {} };
+    return {
+      game: {
+        ...freshGame(uids),
+        bpm: room.game.bpm,
+        bars: room.game.bars,
+        density: room.game.density,
+      },
+      status: "playing",
+      rematchVotes: {},
+    };
   });
 }

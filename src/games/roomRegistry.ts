@@ -50,7 +50,36 @@ import { TileRummyRoomGame } from "./tile-rummy/TileRummyRoomGame";
 import { createInitialTileRummyRoomGame, seedTileRummyRoomGame } from "./tile-rummy/room";
 import { WordRoomGame } from "./word-guess/WordRoomGame";
 import { createInitialWordRoomGame, seedWordRoomGame } from "./word-guess/room";
-import type { RoomGameModule } from "./roomTypes";
+import type { RoomGameModule, RoomSettingDefinition } from "./roomTypes";
+
+const TARGET_SETTING: RoomSettingDefinition = {
+  key: "target",
+  label: "Match length",
+  options: [
+    { value: "3", label: "First to 3" },
+    { value: "5", label: "First to 5" },
+    { value: "10", label: "First to 10" },
+  ],
+};
+
+const TARGET_SHORT_SETTING: RoomSettingDefinition = {
+  key: "target",
+  label: "Match length",
+  options: [
+    { value: "3", label: "First to 3" },
+    { value: "5", label: "First to 5" },
+  ],
+};
+
+const TARGET_BOARD_SETTING: RoomSettingDefinition = {
+  key: "target",
+  label: "Match length",
+  options: [
+    { value: "1", label: "Single round" },
+    { value: "3", label: "First to 3" },
+    { value: "5", label: "First to 5" },
+  ],
+};
 
 /**
  * Games with a room-based PvP mode, keyed by GameDefinition.id.
@@ -62,11 +91,15 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   rps: {
     createInitialGame: createInitialRpsRoomGame,
     seedGame: seedRpsRoomGame,
+    defaultSettings: { target: "3" },
+    settings: [TARGET_SHORT_SETTING],
     RoomComponent: RpsRoomGame,
   },
   ttt: {
     createInitialGame: createInitialTttRoomGame,
     seedGame: seedTttRoomGame,
+    defaultSettings: { target: "3" },
+    settings: [TARGET_BOARD_SETTING],
     RoomComponent: TttRoomGame,
   },
   "penalty-kick": {
@@ -87,21 +120,57 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   "higher-or-lower": {
     createInitialGame: createInitialHolRoomGame,
     seedGame: seedHolRoomGame,
+    defaultSettings: { target: "5", aceHigh: "true" },
+    settings: [
+      TARGET_SETTING,
+      {
+        key: "aceHigh",
+        label: "Ace rule",
+        options: [
+          { value: "true", label: "Ace high" },
+          { value: "false", label: "Ace low" },
+        ],
+      },
+    ],
     RoomComponent: HolRoomGame,
   },
   "connect-four": {
     createInitialGame: createInitialConnectRoomGame,
     seedGame: seedConnectRoomGame,
+    defaultSettings: { target: "3" },
+    settings: [TARGET_BOARD_SETTING],
     RoomComponent: ConnectRoomGame,
   },
   "memory-match": {
     createInitialGame: createInitialMemoryRoomGame,
     seedGame: seedMemoryRoomGame,
+    defaultSettings: { size: "4" },
+    settings: [
+      {
+        key: "size",
+        label: "Board size",
+        options: [
+          { value: "4", label: "4 × 4" },
+          { value: "6", label: "6 × 6" },
+        ],
+      },
+    ],
     RoomComponent: MemoryRoomGame,
   },
   nim: {
     createInitialGame: createInitialNimRoomGame,
     seedGame: seedNimRoomGame,
+    defaultSettings: { rule: "normal" },
+    settings: [
+      {
+        key: "rule",
+        label: "Rules",
+        options: [
+          { value: "normal", label: "Normal" },
+          { value: "misere", label: "Misère" },
+        ],
+      },
+    ],
     RoomComponent: NimRoomGame,
   },
   "word-guess": {
@@ -112,6 +181,8 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   blackjack: {
     createInitialGame: createInitialBlackjackRoomGame,
     seedGame: seedBlackjackRoomGame,
+    defaultSettings: { target: "5" },
+    settings: [TARGET_SETTING],
     RoomComponent: BlackjackRoomGame,
   },
   "prism-clash": {
@@ -122,6 +193,17 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   parchis: {
     createInitialGame: createInitialParchisRoomGame,
     seedGame: seedParchisRoomGame,
+    defaultSettings: { pieceCount: "2" },
+    settings: [
+      {
+        key: "pieceCount",
+        label: "Pieces",
+        options: [
+          { value: "2", label: "Quick · 2 pieces" },
+          { value: "4", label: "Classic · 4 pieces" },
+        ],
+      },
+    ],
     RoomComponent: ParchisRoomGame,
   },
   "goose-game": {
@@ -137,6 +219,8 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   "reaction-time": {
     createInitialGame: createInitialReactionRoomGame,
     seedGame: seedReactionRoomGame,
+    defaultSettings: { target: "3" },
+    settings: [TARGET_SHORT_SETTING],
     RoomComponent: ReactionRoomGame,
   },
   "fleet-command": {
@@ -157,6 +241,36 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   "beat-reactor": {
     createInitialGame: createInitialReactorRoomGame,
     seedGame: seedReactorRoomGame,
+    defaultSettings: { bpm: "110", bars: "12", density: "normal" },
+    settings: [
+      {
+        key: "bpm",
+        label: "BPM",
+        options: [
+          { value: "90", label: "90" },
+          { value: "110", label: "110" },
+          { value: "130", label: "130" },
+        ],
+      },
+      {
+        key: "bars",
+        label: "Length",
+        options: [
+          { value: "8", label: "8 bars" },
+          { value: "12", label: "12 bars" },
+          { value: "16", label: "16 bars" },
+        ],
+      },
+      {
+        key: "density",
+        label: "Density",
+        options: [
+          { value: "light", label: "Light" },
+          { value: "normal", label: "Normal" },
+          { value: "dense", label: "Dense" },
+        ],
+      },
+    ],
     RoomComponent: BeatReactorRoomGame,
   },
   "circuit-breaker": {
