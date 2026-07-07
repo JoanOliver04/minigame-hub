@@ -7,6 +7,7 @@ import { HowToPlay } from "@/components/ui/HowToPlay";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import { BARON_TILES, canBuy, canUpgrade, netWorth } from "./logic";
+import { formatBaronLogEntry } from "./logText";
 import type { PropertyDifficulty } from "./types";
 import { usePropertyBaron } from "./usePropertyBaron";
 
@@ -57,6 +58,7 @@ export function PropertyBaronGame() {
   const you = state.players.player;
   const ai = state.players.ai;
   const tile = state.pendingTile === null ? null : BARON_TILES[state.pendingTile];
+  const logNames = { player: t.common.you, ai: t.common.ai };
 
   if (game.phase === "end") {
     const won = state.winner === "player";
@@ -108,8 +110,8 @@ export function PropertyBaronGame() {
         <button className="btn" disabled={!canUpgrade(state, "player")} onClick={game.upgrade}>{t.propertyBaron.upgrade}</button>
         <button className="btn" disabled={state.turn !== "player" || state.phase !== "decision"} onClick={game.pass}>{t.propertyBaron.pass}</button>
       </div>
-      <div className="log">
-        {state.log.map((entry) => <p key={entry.id}>{entry.text}</p>)}
+      <div className="log" aria-label={t.propertyBaron.logTitle}>
+        {state.log.map((entry) => <p key={entry.id}>{formatBaronLogEntry(entry, t.propertyBaron, logNames)}</p>)}
       </div>
     </section>
   );

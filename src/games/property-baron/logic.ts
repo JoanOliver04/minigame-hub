@@ -1,9 +1,14 @@
-import type { BaronActor, BaronGameState, BaronLogEntry, BaronTile } from "./types";
+import type { BaronActor, BaronGameState, BaronLogEntry, BaronStructuredLogEntry, BaronTile } from "./types";
 
 export const START_MONEY = 1500;
 export const START_BONUS = 200;
 export const JAIL_FINE = 80;
 export const LOW_CASH_RESERVE = 180;
+type BaronLogInput = BaronStructuredLogEntry extends infer Entry
+  ? Entry extends unknown
+    ? Omit<Entry, "id">
+    : never
+  : never;
 
 export const BARON_TILES: BaronTile[] = [
   { id: 0, kind: "start", name: "Start" },
@@ -28,8 +33,9 @@ export function rollDice(): [number, number] {
   return [Math.floor(Math.random() * 6) + 1, Math.floor(Math.random() * 6) + 1];
 }
 
-function log(game: BaronGameState, text: string): BaronLogEntry[] {
-  return [{ id: Date.now() + Math.floor(Math.random() * 1000), text }, ...game.log].slice(0, 8);
+function log(game: BaronGameState, entry: BaronLogInput): BaronLogEntry[] {
+  const nextEntry = { id: Date.now() + Math.floor(Math.random() * 1000), ...entry } as BaronLogEntry;
+  return [nextEntry, ...game.log].slice(0, 8);
 }
 
 export function propertyTiles(): BaronTile[] {
@@ -89,7 +95,7 @@ function finishIfNeeded(game: BaronGameState): BaronGameState {
   if (alive.length <= 1) return { ...game, finished: true, phase: "finished", turn: null, winner: alive[0] ?? null };
   if (game.round > game.maxRounds) {
     const winner = winnerByWorth(game);
-    return { ...game, finished: true, phase: "finished", turn: null, winner, log: log(game, "Final audit: richest portfolio wins.") };
+    return { ...game, finished: true, phase: "finished", turn: null, winner, log: log(game, { kind: "finalAudit" }) };
   }
   return game;
 }
@@ -103,7 +109,7 @@ function charge(game: BaronGameState, from: BaronActor, to: BaronActor | null, a
     [from]: { ...payer, money: payer.money - paid, bankrupt: payer.money - paid <= 0 },
   };
   if (to && players[to]) players[to] = { ...players[to], money: players[to].money + paid };
-  const next = { ...game, players, log: log(game, `${reason}: ${from} pays $${paid}${to ? ` to ${to}` : ""}.`) };
+  const next = { ...game, players, log: log(game, { kind: "charge", reason, from, to, amount: paid }) };
   return finishIfNeeded(next);
 }
 
@@ -121,7 +127,7 @@ export function rollBaronTurn(game: BaronGameState, actor: BaronActor, dice = ro
   if (player.inJail > 0) {
     const players = { ...game.players, [actor]: { ...player, inJail: 0 } };
     return endTurn(
-      charge({ ...game, players, dice, log: log(game, `${actor} pays to leave holding.`) }, actor, null, JAIL_FINE, "Holding fine"),
+      charge({ ...game, players, dice, log: log(game, { kind: "leaveHolding", actor }) }, actor, null, JAIL_FINE, "Holding fine"),
       actor,
     );
   }
@@ -136,18 +142,18 @@ export function rollBaronTurn(game: BaronGameState, actor: BaronActor, dice = ro
       [actor]: { ...player, position, money: player.money + (passedStart ? START_BONUS : 0) },
     },
     dice,
-    log: log(game, `${actor} rolls ${dice[0]}+${dice[1]} and lands on ${BARON_TILES[position].name}.`),
+    log: log(game, { kind: "roll", actor, a: dice[0], b: dice[1], tile: BARON_TILES[position].name }),
   };
   const tile = BARON_TILES[position];
-  if (passedStart) next = { ...next, log: log(next, `${actor} passes Start and collects $${START_BONUS}.`) };
+  if (passedStart) next = { ...next, log: log(next, { kind: "passStart", actor, amount: START_BONUS }) };
   if (tile.kind === "bonus") {
-    next = { ...next, players: { ...next.players, [actor]: { ...next.players[actor], money: next.players[actor].money + 120 } }, log: log(next, `${actor} collects a $120 bonus.`) };
+    next = { ...next, players: { ...next.players, [actor]: { ...next.players[actor], money: next.players[actor].money + 120 } }, log: log(next, { kind: "bonus", actor, amount: 120 }) };
     return endTurn(next, actor);
   }
   if (tile.kind === "tax") return endTurn(charge(next, actor, null, 140, tile.name), actor);
   if (tile.kind === "market") {
     const bonus = 60 + propertyTiles().filter((p) => next.properties[p.id].owner === actor).length * 25;
-    next = { ...next, players: { ...next.players, [actor]: { ...next.players[actor], money: next.players[actor].money + bonus } }, log: log(next, `${actor} profits $${bonus} from the market shift.`) };
+    next = { ...next, players: { ...next.players, [actor]: { ...next.players[actor], money: next.players[actor].money + bonus } }, log: log(next, { kind: "market", actor, amount: bonus }) };
     return endTurn(next, actor);
   }
   const prop = next.properties[position];
@@ -167,7 +173,7 @@ export function buyProperty(game: BaronGameState, actor: BaronActor): BaronGameS
     ...game,
     properties: { ...game.properties, [tile.id]: { owner: actor, level: 0 } },
     players: { ...game.players, [actor]: { ...player, money: player.money - (tile.price ?? 0) } },
-    log: log(game, `${actor} buys ${tile.name} for $${tile.price}.`),
+    log: log(game, { kind: "buy", actor, tile: tile.name, price: tile.price ?? 0 }),
   };
   return endTurn(next, actor);
 }
@@ -182,14 +188,14 @@ export function upgradeProperty(game: BaronGameState, actor: BaronActor): BaronG
     ...game,
     properties: { ...game.properties, [tile.id]: { ...prop, level: prop.level + 1 } },
     players: { ...game.players, [actor]: { ...player, money: player.money - (tile.upgradeCost ?? 0) } },
-    log: log(game, `${actor} upgrades ${tile.name} to level ${prop.level + 1}.`),
+    log: log(game, { kind: "upgrade", actor, tile: tile.name, level: prop.level + 1 }),
   };
   return endTurn(next, actor);
 }
 
 export function passDecision(game: BaronGameState, actor: BaronActor): BaronGameState {
   if (game.phase !== "decision" || game.turn !== actor) return game;
-  return endTurn({ ...game, log: log(game, `${actor} passes.`) }, actor);
+  return endTurn({ ...game, log: log(game, { kind: "pass", actor }) }, actor);
 }
 
 export function canBuy(game: BaronGameState, actor: BaronActor): boolean {

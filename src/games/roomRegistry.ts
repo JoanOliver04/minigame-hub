@@ -14,6 +14,8 @@ import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
 import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
 import { DiceforgeRoomGame } from "./diceforge-arena/DiceforgeRoomGame";
 import { createInitialForgeRoomGame, seedForgeRoomGame } from "./diceforge-arena/room";
+import { DominoRoomGame } from "./domino/DominoRoomGame";
+import { createInitialDominoRoomGame, seedDominoRoomGame } from "./domino/room";
 import { HexRoomGame } from "./hex-dominion/HexRoomGame";
 import { createInitialHexRoomGame, seedHexRoomGame } from "./hex-dominion/room";
 import { SpellstormRoomGame } from "./spellstorm/SpellstormRoomGame";
@@ -244,6 +246,11 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
     createInitialGame: createInitialTileRummyRoomGame,
     seedGame: seedTileRummyRoomGame,
     RoomComponent: TileRummyRoomGame,
+  },
+  domino: {
+    createInitialGame: createInitialDominoRoomGame,
+    seedGame: seedDominoRoomGame,
+    RoomComponent: DominoRoomGame,
   },
   "reaction-time": {
     createInitialGame: createInitialReactionRoomGame,

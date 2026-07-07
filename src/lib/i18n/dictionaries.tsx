@@ -361,6 +361,18 @@ export interface Dictionary {
     buy: string;
     upgrade: string;
     pass: string;
+    logTitle: string;
+    logFinalAudit: string;
+    logHoldingFineReason: string;
+    logCharge: (reason: string, from: string, amount: number, to: string | null) => string;
+    logLeaveHolding: (actor: string) => string;
+    logRoll: (actor: string, a: number, b: number, tile: string) => string;
+    logPassStart: (actor: string, amount: number) => string;
+    logBonus: (actor: string, amount: number) => string;
+    logMarket: (actor: string, amount: number) => string;
+    logBuy: (actor: string, tile: string, price: number) => string;
+    logUpgrade: (actor: string, tile: string, level: number) => string;
+    logPass: (actor: string) => string;
   };
   parchis: {
     rules: ReactNode;
@@ -454,6 +466,50 @@ export interface Dictionary {
     playHint: string;
     jokerTile: string;
     tileLabel: (color: string, value: number) => string;
+  };
+  domino: {
+    rules: ReactNode;
+    tagline: string;
+    difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    playFriend: string;
+    blockedTie: string;
+    endScore: (you: number, them: number) => string;
+    yourTurn: string;
+    aiTurn: string;
+    played: (actor: string, tile: string) => string;
+    drew: (actor: string) => string;
+    passed: (actor: string) => string;
+    won: (actor: string) => string;
+    notPlayable: string;
+    pool: string;
+    tilesLeft: (count: number) => string;
+    emptyBoard: string;
+    boardLabel: string;
+    playLeft: string;
+    playRight: string;
+    drawTile: string;
+    pass: string;
+    yourHand: string;
+    drawHint: string;
+    playHint: string;
+    tileLabel: (a: number, b: number) => string;
+  };
+  slidingPuzzle: {
+    rules: ReactNode;
+    tagline: string;
+    boardSize: string;
+    sizeLabels: Record<3 | 4 | 5, string>;
+    sizeDescription: Record<3 | 4 | 5, string>;
+    solvedTitle: string;
+    result: (moves: number, seconds: number) => string;
+    moves: string;
+    time: string;
+    size: string;
+    playingHint: string;
+    boardLabel: string;
+    emptyTile: string;
+    tileLabel: (tile: number) => string;
+    moveHint: string;
   };
   reactionTime: {
     rules: ReactNode;
@@ -1026,6 +1082,14 @@ const en: Dictionary = {
     "tile-rummy": {
       name: "Tile Rummy",
       description: "Build groups and runs, open with 30 points and empty your rack first.",
+    },
+    domino: {
+      name: "Domino",
+      description: "Place double-six tiles on either end, draw when blocked and empty your hand.",
+    },
+    "sliding-puzzle": {
+      name: "Sliding Puzzle",
+      description: "Slide numbered tiles into order on a solvable 3x3, 4x4 or 5x5 board.",
     },
     "reaction-time": {
       name: "Reaction Time",
@@ -1668,6 +1732,18 @@ const en: Dictionary = {
     buy: "Buy",
     upgrade: "Upgrade",
     pass: "Pass",
+    logTitle: "Move history",
+    logFinalAudit: "Final audit: richest portfolio wins.",
+    logHoldingFineReason: "Holding fine",
+    logCharge: (reason, from, amount, to) => `${reason}: ${from} pays $${amount}${to ? ` to ${to}` : ""}.`,
+    logLeaveHolding: (actor) => `${actor} pays to leave holding.`,
+    logRoll: (actor, a, b, tile) => `${actor} rolls ${a}+${b} and lands on ${tile}.`,
+    logPassStart: (actor, amount) => `${actor} passes Start and collects $${amount}.`,
+    logBonus: (actor, amount) => `${actor} collects a $${amount} bonus.`,
+    logMarket: (actor, amount) => `${actor} profits $${amount} from the market shift.`,
+    logBuy: (actor, tile, price) => `${actor} buys ${tile} for $${price}.`,
+    logUpgrade: (actor, tile, level) => `${actor} upgrades ${tile} to level ${level}.`,
+    logPass: (actor) => `${actor} passes.`,
   },
   parchis: {
     rules: (
@@ -1860,6 +1936,84 @@ const en: Dictionary = {
     playHint: "Select three or more tiles that form a group or a run.",
     jokerTile: "Joker tile",
     tileLabel: (color, value) => `${color} ${value}`,
+  },
+  domino: {
+    rules: (
+      <>
+        <p>
+          Each player starts with <strong>7 double-six dominoes</strong>. On your turn, play one
+          tile on the left or right end of the chain. Matching pips must touch.
+        </p>
+        <p>
+          If you cannot play, draw from the pool. When the pool is empty, you may pass. Empty your
+          hand to win.
+        </p>
+        <p>
+          If both players pass with no pool left, the board is blocked. The player with the lowest
+          pip total in hand wins; equal totals count as a tie.
+        </p>
+      </>
+    ),
+    tagline: "Control the ends, count the pips, block at the right moment.",
+    difficultyDescription: {
+      easy: "Plays a random legal tile and does not plan the open ends.",
+      medium: "Usually sheds high-value tiles and keeps some flexibility.",
+      hard: "Prioritises doubles, end control and late blocking pressure.",
+    },
+    playFriend: "Play with a friend",
+    blockedTie: "Blocked board — tied pip totals.",
+    endScore: (you, them) => `Pips left: ${you} / ${them}`,
+    yourTurn: "Your turn — choose a tile and an end.",
+    aiTurn: "The AI is counting the open ends…",
+    played: (actor, tile) => `${actor} played ${tile}.`,
+    drew: (actor) => `${actor} drew a domino.`,
+    passed: (actor) => `${actor} passed.`,
+    won: (actor) => `${actor} emptied the hand.`,
+    notPlayable: "That domino does not match either open end.",
+    pool: "Pool",
+    tilesLeft: (count) => `${count} ${count === 1 ? "tile" : "tiles"}`,
+    emptyBoard: "Play any domino to start the chain.",
+    boardLabel: "Domino board",
+    playLeft: "Play left",
+    playRight: "Play right",
+    drawTile: "Draw",
+    pass: "Pass",
+    yourHand: "Your hand",
+    drawHint: "No matching tile available: draw from the pool.",
+    playHint: "Select a domino, then choose the left or right end.",
+    tileLabel: (a, b) => `Domino ${a}-${b}`,
+  },
+  slidingPuzzle: {
+    rules: (
+      <>
+        <p>
+          Slide tiles into the empty space until every number is back in order, left to right and
+          top to bottom. The empty space belongs in the bottom-right corner.
+        </p>
+        <p>
+          Every board is generated by legal shuffling from the solved layout, so the puzzle is
+          always possible. Larger boards require more planning and fewer impulsive moves.
+        </p>
+      </>
+    ),
+    tagline: "Read the gap, plan the row, bring every tile home.",
+    boardSize: "Board size",
+    sizeLabels: { 3: "3 × 3", 4: "4 × 4", 5: "5 × 5" },
+    sizeDescription: {
+      3: "Fast puzzle with eight tiles.",
+      4: "Classic fifteen-puzzle balance.",
+      5: "Large board for a longer solve.",
+    },
+    solvedTitle: "Puzzle solved",
+    result: (moves, seconds) => `${moves} moves · ${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`,
+    moves: "Moves",
+    time: "Time",
+    size: "Size",
+    playingHint: "Slide a tile adjacent to the empty space.",
+    boardLabel: "Sliding puzzle board",
+    emptyTile: "Empty space",
+    tileLabel: (tile) => `Tile ${tile}`,
+    moveHint: "Only highlighted neighbours can move into the gap.",
   },
   reactionTime: {
     rules: (
@@ -2782,6 +2936,14 @@ const es: Dictionary = {
       name: "Rummy de Fichas",
       description: "Forma grupos y escaleras, abre con 30 puntos y vacía tu atril antes que el rival.",
     },
+    domino: {
+      name: "Dominó",
+      description: "Coloca fichas doble-seis en los extremos, roba si te bloqueas y vacía la mano.",
+    },
+    "sliding-puzzle": {
+      name: "Rompecabezas",
+      description: "Desliza fichas numeradas hasta ordenarlas en tableros 3x3, 4x4 o 5x5.",
+    },
     "reaction-time": {
       name: "Tiempo de Reacción",
       description: "Espera la señal y reacciona más rápido que la IA.",
@@ -3427,6 +3589,19 @@ const es: Dictionary = {
     buy: "Comprar",
     upgrade: "Mejorar",
     pass: "Pasar",
+    logTitle: "Historial de movimientos",
+    logFinalAudit: "Auditoría final: gana el patrimonio más alto.",
+    logHoldingFineReason: "Multa de retención",
+    logCharge: (reason, from, amount, to) =>
+      `${reason}: ${from} paga ${amount}$${to ? ` a ${to}` : ""}.`,
+    logLeaveHolding: (actor) => `${actor} paga para salir de la retención.`,
+    logRoll: (actor, a, b, tile) => `${actor} tira ${a}+${b} y cae en ${tile}.`,
+    logPassStart: (actor, amount) => `${actor} pasa por Start y cobra ${amount}$.`,
+    logBonus: (actor, amount) => `${actor} cobra un bonus de ${amount}$.`,
+    logMarket: (actor, amount) => `${actor} gana ${amount}$ con el movimiento del mercado.`,
+    logBuy: (actor, tile, price) => `${actor} compra ${tile} por ${price}$.`,
+    logUpgrade: (actor, tile, level) => `${actor} mejora ${tile} al nivel ${level}.`,
+    logPass: (actor) => `${actor} pasa.`,
   },
   parchis: {
     rules: (
@@ -3621,6 +3796,86 @@ const es: Dictionary = {
     playHint: "Selecciona tres o más fichas que formen un grupo o una escalera.",
     jokerTile: "Comodín",
     tileLabel: (color, value) => `${color} ${value}`,
+  },
+  domino: {
+    rules: (
+      <>
+        <p>
+          Cada jugador empieza con <strong>7 fichas de dominó doble-seis</strong>. En tu turno,
+          juega una ficha en el extremo izquierdo o derecho de la cadena. Los puntos que se tocan
+          deben coincidir.
+        </p>
+        <p>
+          Si no puedes jugar, roba del pozo. Cuando el pozo está vacío, puedes pasar. Gana quien
+          vacíe antes la mano.
+        </p>
+        <p>
+          Si ambos jugadores pasan sin pozo, la partida queda bloqueada. Gana quien tenga menos
+          puntos en la mano; si hay igualdad, cuenta como empate.
+        </p>
+      </>
+    ),
+    tagline: "Controla los extremos, cuenta los puntos y bloquea en el momento justo.",
+    difficultyDescription: {
+      easy: "Juega una ficha legal al azar y no planifica los extremos.",
+      medium: "Normalmente se quita fichas de alto valor y conserva algo de flexibilidad.",
+      hard: "Prioriza dobles, control de extremos y presión de bloqueo al final.",
+    },
+    playFriend: "Jugar con un amigo",
+    blockedTie: "Mesa bloqueada — empate a puntos.",
+    endScore: (you, them) => `Puntos restantes: ${you} / ${them}`,
+    yourTurn: "Tu turno — elige una ficha y un extremo.",
+    aiTurn: "La IA está contando los extremos abiertos…",
+    played: (actor, tile) => `${actor} juega ${tile}.`,
+    drew: (actor) => `${actor} roba una ficha.`,
+    passed: (actor) => `${actor} pasa.`,
+    won: (actor) => `${actor} ha vaciado la mano.`,
+    notPlayable: "Esa ficha no encaja en ningún extremo.",
+    pool: "Pozo",
+    tilesLeft: (count) => `${count} ${count === 1 ? "ficha" : "fichas"}`,
+    emptyBoard: "Juega cualquier ficha para iniciar la cadena.",
+    boardLabel: "Mesa de dominó",
+    playLeft: "Izquierda",
+    playRight: "Derecha",
+    drawTile: "Robar",
+    pass: "Pasar",
+    yourHand: "Tu mano",
+    drawHint: "No tienes una ficha que encaje: roba del pozo.",
+    playHint: "Selecciona una ficha y luego elige el extremo izquierdo o derecho.",
+    tileLabel: (a, b) => `Ficha ${a}-${b}`,
+  },
+  slidingPuzzle: {
+    rules: (
+      <>
+        <p>
+          Desliza fichas hacia el espacio vacío hasta que todos los números queden ordenados de
+          izquierda a derecha y de arriba abajo. El hueco debe terminar en la esquina inferior
+          derecha.
+        </p>
+        <p>
+          Cada tablero se mezcla con movimientos legales desde la solución, así que siempre se
+          puede resolver. Los tableros grandes exigen planificar más y mover menos por impulso.
+        </p>
+      </>
+    ),
+    tagline: "Lee el hueco, planifica la fila y devuelve cada ficha a su sitio.",
+    boardSize: "Tamaño del tablero",
+    sizeLabels: { 3: "3 × 3", 4: "4 × 4", 5: "5 × 5" },
+    sizeDescription: {
+      3: "Puzzle rápido de ocho fichas.",
+      4: "El clásico quince-puzzle equilibrado.",
+      5: "Tablero grande para una partida más larga.",
+    },
+    solvedTitle: "Rompecabezas resuelto",
+    result: (moves, seconds) => `${moves} movimientos · ${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, "0")}`,
+    moves: "Movimientos",
+    time: "Tiempo",
+    size: "Tamaño",
+    playingHint: "Desliza una ficha adyacente al hueco.",
+    boardLabel: "Tablero del rompecabezas",
+    emptyTile: "Espacio vacío",
+    tileLabel: (tile) => `Ficha ${tile}`,
+    moveHint: "Solo las fichas resaltadas junto al hueco pueden moverse.",
   },
   reactionTime: {
     rules: (

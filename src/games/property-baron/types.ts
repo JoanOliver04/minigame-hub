@@ -26,10 +26,77 @@ export interface BaronProperty {
   level: number;
 }
 
-export interface BaronLogEntry {
-  id: number;
-  text: string;
-}
+export type BaronStructuredLogEntry =
+  | {
+      id: number;
+      kind: "finalAudit";
+    }
+  | {
+      id: number;
+      kind: "charge";
+      reason: string;
+      from: BaronActor;
+      to: BaronActor | null;
+      amount: number;
+    }
+  | {
+      id: number;
+      kind: "leaveHolding";
+      actor: BaronActor;
+    }
+  | {
+      id: number;
+      kind: "roll";
+      actor: BaronActor;
+      a: number;
+      b: number;
+      tile: string;
+    }
+  | {
+      id: number;
+      kind: "passStart";
+      actor: BaronActor;
+      amount: number;
+    }
+  | {
+      id: number;
+      kind: "bonus";
+      actor: BaronActor;
+      amount: number;
+    }
+  | {
+      id: number;
+      kind: "market";
+      actor: BaronActor;
+      amount: number;
+    }
+  | {
+      id: number;
+      kind: "buy";
+      actor: BaronActor;
+      tile: string;
+      price: number;
+    }
+  | {
+      id: number;
+      kind: "upgrade";
+      actor: BaronActor;
+      tile: string;
+      level: number;
+    }
+  | {
+      id: number;
+      kind: "pass";
+      actor: BaronActor;
+    };
+
+export type BaronLogEntry =
+  | BaronStructuredLogEntry
+  | {
+      id: number;
+      kind?: never;
+      text: string;
+    };
 
 export interface BaronGameState {
   players: Record<BaronActor, BaronPlayer>;

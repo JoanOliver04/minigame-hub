@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { BARON_TILES, canBuy, canUpgrade, netWorth } from "./logic";
+import { formatBaronLogEntry } from "./logText";
 import { usePropertyBaronRoom } from "./usePropertyBaronRoom";
 
 export function PropertyBaronRoomGame({ code }: { code: string }) {
@@ -23,6 +24,10 @@ export function PropertyBaronRoomGame({ code }: { code: string }) {
   const them = opponentUid ? game.players[opponentUid] : null;
   const opponentName = opponentUid ? room.players[opponentUid]?.name : undefined;
   const tile = game.pendingTile === null ? null : BARON_TILES[game.pendingTile];
+  const logNames = {
+    [uid]: t.common.you,
+    ...(opponentUid ? { [opponentUid]: opponentName ?? "?" } : {}),
+  };
 
   if (stage === "waiting" || !me || !them) {
     return (
@@ -87,7 +92,9 @@ export function PropertyBaronRoomGame({ code }: { code: string }) {
         <button className="btn" disabled={!isMyTurn || game.phase !== "decision"} onClick={pass}>{t.propertyBaron.pass}</button>
         <button className="btn" onClick={leave}>{t.rooms.leaveButton}</button>
       </div>
-      <div className="log">{game.log.map((entry) => <p key={entry.id}>{entry.text}</p>)}</div>
+      <div className="log" aria-label={t.propertyBaron.logTitle}>
+        {game.log.map((entry) => <p key={entry.id}>{formatBaronLogEntry(entry, t.propertyBaron, logNames)}</p>)}
+      </div>
     </section>
   );
 }

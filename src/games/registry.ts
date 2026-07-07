@@ -16,6 +16,7 @@ import { blackjackGame } from "./blackjack";
 import { circuitBreakerGame } from "./circuit-breaker";
 import { connectFourGame } from "./connect-four";
 import { diceforgeArenaGame } from "./diceforge-arena";
+import { dominoGame } from "./domino";
 import { fleetCommandGame } from "./fleet-command";
 import { gooseGame } from "./goose-game";
 import { guessGame } from "./guess";
@@ -32,6 +33,7 @@ import { reactionTimeGame } from "./reaction-time";
 import { rpsGame } from "./rps";
 import { shadowProtocolGame } from "./shadow-protocol";
 import { signalBreakerGame } from "./signal-breaker";
+import { slidingPuzzleGame } from "./sliding-puzzle";
 import { spellstormGame } from "./spellstorm";
 import { tttGame } from "./ttt";
 import { tileRummyGame } from "./tile-rummy";
@@ -53,6 +55,8 @@ export const GAMES: GameDefinition[] = [
   parchisGame,
   gooseGame,
   tileRummyGame,
+  dominoGame,
+  slidingPuzzleGame,
   reactionTimeGame,
   penaltyKickGame,
   basketShotGame,
