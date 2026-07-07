@@ -310,6 +310,9 @@ export interface Dictionary {
     rules: ReactNode;
     tagline: string;
     difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    matchLengthLabel: string;
+    singleWin: string;
+    bestOfThree: string;
     playFriend: string;
     colors: Record<"ember" | "tide" | "bloom" | "volt", string>;
     yourTurn: string;
@@ -339,6 +342,25 @@ export interface Dictionary {
     playHint: string;
     drawHint: string;
     waitHint: string;
+  };
+  propertyBaron: {
+    rules: ReactNode;
+    tagline: string;
+    difficultyDescription: Record<"easy" | "medium" | "hard", string>;
+    shortGame: string;
+    standardGame: string;
+    playFriend: string;
+    cash: (name: string, money: number) => string;
+    round: (round: number, max: number) => string;
+    netWorthLine: (you: number, them: number) => string;
+    rollPrompt: string;
+    decisionPrompt: (tile: string) => string;
+    aiTurn: string;
+    rollDice: string;
+    dice: (a: number, b: number) => string;
+    buy: string;
+    upgrade: string;
+    pass: string;
   };
   parchis: {
     rules: ReactNode;
@@ -989,6 +1011,10 @@ const en: Dictionary = {
       name: "Prism Clash",
       description: "Match colours and symbols, chain clever combos and empty your hand first.",
     },
+    "property-baron": {
+      name: "Property Baron",
+      description: "Buy streets, collect rent, upgrade holdings and bankrupt the rival investor.",
+    },
     parchis: {
       name: "Parchís Duel",
       description: "Race home through safe squares, captures, bridges and tactical bonus moves.",
@@ -1557,7 +1583,8 @@ const en: Dictionary = {
         </p>
         <p>
           Each round starts with seven cards. The first player to empty their hand wins the
-          round; <strong>first to two rounds wins the match</strong>. In friend rooms, hands stay
+          round. Choose <strong>one win</strong> for a fast match or <strong>best of three</strong>
+          for the full duel. In friend rooms, hands stay
           hidden on screen and the same rules apply.
         </p>
       </>
@@ -1568,6 +1595,9 @@ const en: Dictionary = {
       medium: "Uses powers and colour balance, with occasional imperfect choices.",
       hard: "Tracks hand structure, protects Prism cards and pressures a short rival hand.",
     },
+    matchLengthLabel: "Victory condition",
+    singleWin: "One win",
+    bestOfThree: "Best of 3",
     playFriend: "Play with a friend",
     colors: { ember: "Ember", tide: "Tide", bloom: "Bloom", volt: "Volt" },
     yourTurn: "Your turn — match the colour, number or symbol.",
@@ -1600,6 +1630,44 @@ const en: Dictionary = {
     playHint: "Bright cards are legal plays. Match colour, number or symbol.",
     drawHint: "No match available — draw one card.",
     waitHint: "Wait for your rival to finish the turn.",
+  },
+  propertyBaron: {
+    rules: (
+      <>
+        <p>
+          Roll two dice and move around the city loop. Landing on an empty property lets you buy it;
+          landing on a rival property makes you pay rent.
+        </p>
+        <p>
+          Your own properties can be upgraded twice. Higher levels cost money now but multiply future
+          rent, so the key decision is whether to invest or keep enough cash for taxes and rent.
+        </p>
+        <p>
+          Bonus and market squares inject cash, tax squares drain it. The match ends when someone
+          goes bankrupt or when the round limit is reached; then the highest net worth wins.
+        </p>
+      </>
+    ),
+    tagline: "Build the city. Tax the rival. Stay liquid.",
+    difficultyDescription: {
+      easy: "Buys and upgrades loosely, often running short of cash.",
+      medium: "Keeps a cash reserve and invests when the return is obvious.",
+      hard: "Values rent pressure, group control and liquidity before every investment.",
+    },
+    shortGame: "Short · 12 rounds",
+    standardGame: "Standard · 20 rounds",
+    playFriend: "Play with a friend",
+    cash: (name, money) => `${name}: $${money}`,
+    round: (round, max) => `Round ${Math.min(round, max)}/${max}`,
+    netWorthLine: (you, them) => `Net worth: $${you} · $${them}`,
+    rollPrompt: "Roll the dice and choose your next investment.",
+    decisionPrompt: (tile) => `Decision on ${tile}: buy, upgrade or pass.`,
+    aiTurn: "The AI is checking cash flow…",
+    rollDice: "Roll dice",
+    dice: (a, b) => `${a}+${b}`,
+    buy: "Buy",
+    upgrade: "Upgrade",
+    pass: "Pass",
   },
   parchis: {
     rules: (
@@ -2476,6 +2544,7 @@ const en: Dictionary = {
       rule: "Rules",
       target: "Match length",
       aceHigh: "Ace rule",
+      maxRounds: "Game length",
       bpm: "BPM",
       bars: "Length",
       density: "Density",
@@ -2484,8 +2553,9 @@ const en: Dictionary = {
       size: { "4": "4 × 4", "6": "6 × 6" },
       pieceCount: { "2": "Quick · 2 pieces", "4": "Classic · 4 pieces" },
       rule: { normal: "Normal", misere: "Misère" },
-      target: { "1": "Single round", "3": "First to 3", "5": "First to 5", "10": "First to 10" },
+      target: { "1": "One win", "2": "Best of 3", "3": "First to 3", "5": "First to 5", "10": "First to 10" },
       aceHigh: { true: "Ace high", false: "Ace low" },
+      maxRounds: { "12": "Short · 12 rounds", "20": "Standard · 20 rounds" },
       bpm: { "90": "90", "110": "110", "130": "130" },
       bars: { "8": "8 bars", "12": "12 bars", "16": "16 bars" },
       density: { light: "Light", normal: "Normal", dense: "Dense" },
@@ -2695,6 +2765,10 @@ const es: Dictionary = {
     "prism-clash": {
       name: "Choque Prisma",
       description: "Combina colores y símbolos, encadena combos y vacía tu mano primero.",
+    },
+    "property-baron": {
+      name: "Barón Inmobiliario",
+      description: "Compra calles, cobra alquileres, mejora propiedades y arruina al rival.",
     },
     parchis: {
       name: "Parchís Duelo",
@@ -3268,7 +3342,8 @@ const es: Dictionary = {
         </p>
         <p>
           Cada ronda comienza con siete cartas. Quien vacíe antes su mano gana la ronda;{" "}
-          <strong>quien gane dos rondas se lleva la partida</strong>. En las salas con amigos
+          Puedes elegir <strong>una victoria</strong> para una partida rápida o{" "}
+          <strong>mejor de 3</strong> para el duelo completo. En las salas con amigos
           las manos permanecen ocultas en pantalla y se aplican las mismas reglas.
         </p>
       </>
@@ -3279,6 +3354,9 @@ const es: Dictionary = {
       medium: "Usa poderes y equilibra colores, aunque a veces se equivoca.",
       hard: "Analiza su mano, conserva cartas Prisma y presiona cuando te quedan pocas.",
     },
+    matchLengthLabel: "Condición de victoria",
+    singleWin: "Una victoria",
+    bestOfThree: "Mejor de 3",
     playFriend: "Jugar con un amigo",
     colors: { ember: "Brasa", tide: "Marea", bloom: "Brote", volt: "Voltio" },
     yourTurn: "Tu turno — combina color, número o símbolo.",
@@ -3311,6 +3389,44 @@ const es: Dictionary = {
     playHint: "Las cartas iluminadas son válidas. Combina color, número o símbolo.",
     drawHint: "No hay ninguna combinación — roba una carta.",
     waitHint: "Espera a que el rival termine su turno.",
+  },
+  propertyBaron: {
+    rules: (
+      <>
+        <p>
+          Tira dos dados y avanza por el circuito de la ciudad. Si caes en una propiedad libre
+          puedes comprarla; si caes en una del rival, pagas alquiler.
+        </p>
+        <p>
+          Tus propiedades pueden mejorarse dos veces. Las mejoras cuestan dinero ahora pero
+          multiplican el alquiler futuro, así que debes decidir entre invertir o conservar liquidez.
+        </p>
+        <p>
+          Las casillas de bonus y mercado dan dinero; los impuestos lo quitan. La partida termina
+          por bancarrota o al llegar al límite de rondas; entonces gana el mayor patrimonio.
+        </p>
+      </>
+    ),
+    tagline: "Construye la ciudad. Cobra al rival. Mantén liquidez.",
+    difficultyDescription: {
+      easy: "Compra y mejora con poca planificación, a menudo quedándose sin caja.",
+      medium: "Mantiene una reserva y solo invierte cuando el retorno es claro.",
+      hard: "Valora alquiler, control de grupos y liquidez antes de cada inversión.",
+    },
+    shortGame: "Corta · 12 rondas",
+    standardGame: "Estándar · 20 rondas",
+    playFriend: "Jugar con un amigo",
+    cash: (name, money) => `${name}: ${money}$`,
+    round: (round, max) => `Ronda ${Math.min(round, max)}/${max}`,
+    netWorthLine: (you, them) => `Patrimonio: ${you}$ · ${them}$`,
+    rollPrompt: "Tira los dados y decide tu próxima inversión.",
+    decisionPrompt: (tile) => `Decisión en ${tile}: compra, mejora o pasa.`,
+    aiTurn: "La IA está revisando el flujo de caja…",
+    rollDice: "Tirar dados",
+    dice: (a, b) => `${a}+${b}`,
+    buy: "Comprar",
+    upgrade: "Mejorar",
+    pass: "Pasar",
   },
   parchis: {
     rules: (
@@ -4216,6 +4332,7 @@ const es: Dictionary = {
       rule: "Reglas",
       target: "Duración",
       aceHigh: "Valor del as",
+      maxRounds: "Duración",
       bpm: "BPM",
       bars: "Duración",
       density: "Densidad",
@@ -4224,8 +4341,9 @@ const es: Dictionary = {
       size: { "4": "4 × 4", "6": "6 × 6" },
       pieceCount: { "2": "Rápida · 2 fichas", "4": "Clásica · 4 fichas" },
       rule: { normal: "Normal", misere: "Misère" },
-      target: { "1": "Una ronda", "3": "Primero a 3", "5": "Primero a 5", "10": "Primero a 10" },
+      target: { "1": "Una victoria", "2": "Mejor de 3", "3": "Primero a 3", "5": "Primero a 5", "10": "Primero a 10" },
       aceHigh: { true: "As alto", false: "As bajo" },
+      maxRounds: { "12": "Corta · 12 rondas", "20": "Estándar · 20 rondas" },
       bpm: { "90": "90", "110": "110", "130": "130" },
       bars: { "8": "8 compases", "12": "12 compases", "16": "16 compases" },
       density: { light: "Ligera", normal: "Normal", dense: "Densa" },

@@ -28,6 +28,7 @@ export function PrismClashGame() {
     toSetup,
   } = usePrismClash();
   const [difficulty, setDifficulty] = useState<PrismDifficulty>("medium");
+  const [target, setTarget] = useState(2);
 
   if (phase === "setup") {
     return (
@@ -51,10 +52,19 @@ export function PrismClashGame() {
           onChange={(value) => setDifficulty(value as PrismDifficulty)}
         />
         <p className="prism-difficulty-note">{t.prismClash.difficultyDescription[difficulty]}</p>
+        <span className="field-label">{t.prismClash.matchLengthLabel}</span>
+        <SegPicker
+          options={[
+            { value: "1", label: t.prismClash.singleWin },
+            { value: "2", label: t.prismClash.bestOfThree },
+          ]}
+          value={String(target)}
+          onChange={(value) => setTarget(Number(value))}
+        />
         <div className="btn-row" style={{ marginTop: 22 }}>
           <button
             className="btn primary"
-            onClick={() => startMatch({ difficulty, target: 2 })}
+            onClick={() => startMatch({ difficulty, target })}
           >
             {t.common.startMatch}
           </button>

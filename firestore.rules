@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Multiplayer rooms for the Mini-Game Hub (all 26 games).
+// Multiplayer rooms for the Mini-Game Hub (all 27 games).
 //
 // Model: rooms/{code}, code IS the document id (never enumerable — `list`
 // is disabled below, so a room is only reachable by already knowing its
@@ -36,7 +36,7 @@ service cloud.firestore {
     }
 
     function validGameId(gameId) {
-      return gameId in ["rps", "ttt", "penalty-kick", "basket-shot", "guess", "higher-or-lower", "connect-four", "memory-match", "nim", "word-guess", "blackjack", "prism-clash", "parchis", "goose-game", "tile-rummy", "reaction-time", "fleet-command", "shadow-protocol", "windline-archery", "beat-reactor", "circuit-breaker", "neon-drift", "signal-breaker", "diceforge-arena", "hex-dominion", "spellstorm"];
+      return gameId in ["rps", "ttt", "penalty-kick", "basket-shot", "guess", "higher-or-lower", "connect-four", "memory-match", "nim", "word-guess", "blackjack", "prism-clash", "property-baron", "parchis", "goose-game", "tile-rummy", "reaction-time", "fleet-command", "shadow-protocol", "windline-archery", "beat-reactor", "circuit-breaker", "neon-drift", "signal-breaker", "diceforge-arena", "hex-dominion", "spellstorm"];
     }
 
     match /rooms/{code} {

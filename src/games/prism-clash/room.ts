@@ -1,5 +1,6 @@
 "use client";
 
+import type { RoomGameSettings } from "@/games/roomTypes";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import {
   createPrismGame,
@@ -12,8 +13,12 @@ import type { PrismColor, PrismGameState } from "./types";
 export type PrismRoomGame = PrismGameState;
 export const PRISM_ROOM_TARGET = 2;
 
-export function createInitialPrismRoomGame(): PrismRoomGame {
-  const game = createPrismGame(["waiting-host", "waiting-guest"], PRISM_ROOM_TARGET);
+function targetFromSettings(settings?: RoomGameSettings): number {
+  return settings?.target === "1" ? 1 : PRISM_ROOM_TARGET;
+}
+
+export function createInitialPrismRoomGame(settings?: RoomGameSettings): PrismRoomGame {
+  const game = createPrismGame(["waiting-host", "waiting-guest"], targetFromSettings(settings));
   return { ...game, hands: {}, scores: {}, order: [], turn: null, starter: "" };
 }
 
@@ -21,8 +26,9 @@ export function seedPrismRoomGame(
   _hostGame: PrismRoomGame,
   hostUid: string,
   guestUid: string,
+  settings?: RoomGameSettings,
 ): PrismRoomGame {
-  return createPrismGame([hostUid, guestUid], PRISM_ROOM_TARGET, hostUid);
+  return createPrismGame([hostUid, guestUid], targetFromSettings(settings), hostUid);
 }
 
 export async function playPrismRoomCard(
@@ -62,7 +68,7 @@ export async function resetPrismRoomForRematch(code: string): Promise<void> {
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
     return {
-      game: createPrismGame(uids, PRISM_ROOM_TARGET, room.hostUid),
+      game: createPrismGame(uids, room.game.target, room.hostUid),
       status: "playing",
       rematchVotes: {},
     };

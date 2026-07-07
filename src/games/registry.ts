@@ -27,6 +27,7 @@ import { nimGame } from "./nim";
 import { parchisGame } from "./parchis";
 import { penaltyKickGame } from "./penalty-kick";
 import { prismClashGame } from "./prism-clash";
+import { propertyBaronGame } from "./property-baron";
 import { reactionTimeGame } from "./reaction-time";
 import { rpsGame } from "./rps";
 import { shadowProtocolGame } from "./shadow-protocol";
@@ -48,6 +49,7 @@ export const GAMES: GameDefinition[] = [
   wordGuessGame,
   blackjackGame,
   prismClashGame,
+  propertyBaronGame,
   parchisGame,
   gooseGame,
   tileRummyGame,

@@ -42,6 +42,8 @@ import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
 import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
 import { PrismRoomGame } from "./prism-clash/PrismRoomGame";
 import { createInitialPrismRoomGame, seedPrismRoomGame } from "./prism-clash/room";
+import { PropertyBaronRoomGame } from "./property-baron/PropertyBaronRoomGame";
+import { createInitialPropertyBaronRoomGame, seedPropertyBaronRoomGame } from "./property-baron/room";
 import { RpsRoomGame } from "./rps/RpsRoomGame";
 import { createInitialRpsRoomGame, seedRpsRoomGame } from "./rps/room";
 import { TttRoomGame } from "./ttt/TttRoomGame";
@@ -188,7 +190,34 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
   "prism-clash": {
     createInitialGame: createInitialPrismRoomGame,
     seedGame: seedPrismRoomGame,
+    defaultSettings: { target: "2" },
+    settings: [
+      {
+        key: "target",
+        label: "Match length",
+        options: [
+          { value: "1", label: "One win" },
+          { value: "2", label: "Best of 3" },
+        ],
+      },
+    ],
     RoomComponent: PrismRoomGame,
+  },
+  "property-baron": {
+    createInitialGame: createInitialPropertyBaronRoomGame,
+    seedGame: seedPropertyBaronRoomGame,
+    defaultSettings: { maxRounds: "20" },
+    settings: [
+      {
+        key: "maxRounds",
+        label: "Game length",
+        options: [
+          { value: "12", label: "Short · 12 rounds" },
+          { value: "20", label: "Standard · 20 rounds" },
+        ],
+      },
+    ],
+    RoomComponent: PropertyBaronRoomGame,
   },
   parchis: {
     createInitialGame: createInitialParchisRoomGame,
