@@ -4,7 +4,7 @@
 
 # 🎮 Mini-Game Hub — You vs AI
 
-### **Twenty-five browser mini-games sharing one hub, one scoreboard and one bilingual UI — each played against an AI opponent built on a genuinely different algorithm, from XOR nim-sum game theory to Monte Carlo tree search. Every one of them can also be played live against a friend over a room code.**
+### **Twenty-six browser mini-games sharing one hub, one scoreboard and one bilingual UI — each played against an AI opponent built on a genuinely different algorithm, from XOR nim-sum game theory to Monte Carlo tree search. Every one of them can also be played live against a friend over a room code.**
 
 [![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React_19-149ECA?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
@@ -13,7 +13,7 @@
 [![ESLint](https://img.shields.io/badge/ESLint_9-4B32C3?style=for-the-badge&logo=eslint&logoColor=white)](https://eslint.org/)
 
 ![Status](https://img.shields.io/badge/status-active-2ea44f?style=flat-square)
-![Games](https://img.shields.io/badge/mini--games-25-1d3a5f?style=flat-square)
+![Games](https://img.shields.io/badge/mini--games-26-1d3a5f?style=flat-square)
 ![Multiplayer](https://img.shields.io/badge/multiplayer_rooms-all_26_games-6f42c1?style=flat-square)
 ![Dependencies](https://img.shields.io/badge/dependencies-Next%2FReact_%2B_Firebase_(rooms_only)-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey?style=flat-square)
@@ -96,7 +96,7 @@ Full breakdown of six of the search/probability-driven opponents — a sample of
 Every game can also be played **against a friend, live**, instead of the AI: one player creates a room and gets a short code, the other joins with it, and both see every move as it happens. No account, no email, no password — a name and a code is the entire flow.
 
 ```
-Create room  →  share 6-char code  →  friend joins  →  live match  →  rematch or leave
+Create room  →  share 6-char code  →  friend joins  →  live match  →  rematch, switch game/settings or leave
    (host)          (e.g. K7RXPQ)        (guest)
 ```
 
@@ -104,6 +104,8 @@ Create room  →  share 6-char code  →  friend joins  →  live match  →  re
 
 - **Identity without accounts.** Joining triggers Firebase **Anonymous Authentication** invisibly (`ensureSignedIn()` in `src/lib/firebase/anonAuth.ts`) — every player gets a stable `uid` for that browser/device, with no signup form. A display name is remembered in `localStorage` for next time.
 - **Rooms live in Cloud Firestore.** One document per room at `rooms/{code}` — the room code *is* the document id, and the collection is never listable, so a room is only reachable by whoever has its exact code (see [Security model](#security-model) below).
+- **The room code survives game changes.** Once both players are in a room, the host can switch to any multiplayer game and adjust supported room settings without creating a new code or making the guest rejoin. Applying a different game/settings combination reseeds the room for both players and clears rematch votes, while preserving the same `rooms/{code}` document and seated players.
+- **Room settings are first-class.** `src/games/roomTypes.ts` exposes typed `settings`/`defaultSettings` metadata for room modules, and `src/games/roomRegistry.ts` declares the options shown in the room UI. Examples include Memory Match 4×4/6×6 boards, Parchís 2/4 pieces, Nim normal/misère, Higher or Lower ace/target rules, Beat Reactor BPM/length/density, and match-length targets for games like RPS, Tic-Tac-Toe, Connect Four, Reaction Time and Blackjack.
 - **Five sync patterns cover all 26 games** — every game picks the one that fits its shape, all built on the same generic `runRoomUpdate` transaction primitive:
   - **Turn-based** (Tic-Tac-Toe, Connect Four, Number Duel, Higher or Lower, Nim, Word Guess, Blackjack, Prism Clash, Parchís Duel, Game of the Goose, Hex Dominion). The payload carries a `turn: uid` field; the moving player's own transaction re-validates and applies the move against the **same pure functions the solo AI uses**, and Firestore Security Rules reject any write from the uid whose turn it isn't ([Security model](#security-model)).
   - **Simultaneous-move** (Rock-Paper-Scissors, Penalty Shootout, Basket Challenge, Windline Archery). Both clients write their own pending move blind; whichever listener first sees both present runs a transaction that resolves the round. A lost race is a safe, logged no-op, not an error.
@@ -114,6 +116,7 @@ Create room  →  share 6-char code  →  friend joins  →  live match  →  re
 - **No server compute of any kind.** Every sync pattern runs entirely as Firestore client-SDK writes and transactions — there are no Cloud Functions, no API routes, no Firebase Hosting. The project stays on Firebase's free **Spark** plan.
 - **Room-specific scores, not the AI scoreboard.** A PvP result is intentionally **not** written to the same `ScoresContext` the hub's "you vs AI" table reads — that table's semantics are specifically solo-vs-AI, and conflating the two would make it meaningless. Each room's own score/history lives only in that room's Firestore document.
 - **Rematch is mutual.** Either player can propose one; the reset only applies once both players have agreed (`rematchVotes`), using the same idempotent-transaction pattern as round resolution.
+- **Leaving closes the room.** Current clients physically delete the Firestore room document when a seated player leaves, so closed rooms do not leave abandoned `status: "abandoned"` residue behind. Existing listeners treat the missing document as a closed/gone room for the other player.
 
 ### Security model
 
@@ -122,11 +125,13 @@ Firestore **Security Rules** (`firestore.rules`, deployed to the Firebase consol
 - A room can only be **read/written by a signed-in (anonymous) user**, and only **written by one of its two seated players** — enforced per-field, not just per-document.
 - In Tic-Tac-Toe, a write is rejected unless `request.auth.uid` matches the room's current `turn` — a client cannot move out of turn even if it forges local UI state.
 - Room codes are **never enumerable** (`allow list: false`): the only way to reach a room is to already have its code.
-- **Soft expiry**: every room carries `expiresAt` (`createdAt + 24h`); a rule-level `notExpired()` check denies *any* write — join, move, rematch, leave — on an expired room, regardless of what the client sends.
+- Only the seated host can switch a room to a different game/settings payload, and only to a game id in the Security Rules allow-list; the code, host, players and expiry fields must stay unchanged.
+- **Soft expiry**: every room carries `expiresAt` (`createdAt + 24h`); a rule-level `notExpired()` check denies gameplay updates — join, move, rematch, game switch — on an expired room, regardless of what the client sends.
+- A room can only be **deleted by a seated player**. This allows intentional cleanup when someone leaves while still preventing deletion of rooms by users who merely know/guess another code but are not seated in it.
 
 ### Expiry and cleanup
 
-Every room is time-boxed to 24 hours via its `expiresAt` field. The "proper" way to garbage-collect old documents in Firestore is a native **TTL policy**, but on this project TTL policy creation is gated behind enabling Firebase billing — and upgrading off the free Spark plan purely for housekeeping wasn't worth it. So cleanup here is **soft expiry** instead of physical deletion: the Security Rules' `notExpired()` check (above) makes an expired room permanently unusable — unjoinable, unplayable, un-rematchable — the moment it ages out, even though the document itself is still sitting in Firestore. The client mirrors the same check (`src/lib/rooms/expiry.ts`) to show a clear "this room has expired" message instead of a generic error. Enabling a real TTL policy later to physically delete those inert documents is a purely additive, non-breaking change whenever billing is turned on — not a blocker today.
+Every room is time-boxed to 24 hours via its `expiresAt` field. Normal user-closed rooms are physically deleted by `leaveRoom()` (`deleteDoc(rooms/{code})`), so they do not accumulate as abandoned documents. Expiry is still enforced separately: the Security Rules' `notExpired()` check makes a stale room unusable for gameplay the moment it ages out, and the client mirrors the same check (`src/lib/rooms/expiry.ts`) to show a clear "this room has expired" message instead of a generic error. A native Firestore TTL policy can still be enabled later as an additive cleanup layer for rooms that expire without anyone explicitly closing them.
 
 ### Trust model
 
@@ -192,7 +197,7 @@ The room layer (`src/lib/rooms/`, `src/games/roomTypes.ts`, `src/games/roomRegis
 
 ## 4. Architecture
 
-A Next.js App Router application. The twenty-five solo games are **fully static and client-only** — no backend, no network call, `localStorage` for scores and preferences. Multiplayer rooms are the one exception: they're backed by Cloud Firestore + Firebase Anonymous Auth, a serverless BaaS layer with no server of the project's own (no custom API routes, no Cloud Functions).
+A Next.js App Router application. The twenty-six solo games are **fully static and client-only** — no backend, no network call, `localStorage` for scores and preferences. Multiplayer rooms are the one exception: they're backed by Cloud Firestore + Firebase Anonymous Auth, a serverless BaaS layer with no server of the project's own (no custom API routes, no Cloud Functions).
 
 ```mermaid
 flowchart TB
@@ -274,7 +279,7 @@ flowchart TB
 
 ## 6. Inside the AI — six strategies in depth
 
-Six of the twenty-five opponents are driven by an actual algorithm rather than a probability roll. This is the part of the project worth reading the source for.
+Six of the twenty-six opponents are driven by an actual algorithm rather than a probability roll. This is the part of the project worth reading the source for.
 
 #### Minimax + alpha-beta pruning — Tic-Tac-Toe & Connect Four
 Both games share the same shape: a depth-limited [`minimax`](src/games/connect-four/ai.ts) search with alpha-beta pruning and a `Map`-based transposition cache keyed on board state. Connect Four adds **move ordering** (center columns searched first — `[3, 2, 4, 1, 5, 0, 6]`), which both improves play quality and dramatically increases the pruning rate, and a **windowed threat heuristic** that scores every open four-cell line, penalizing the opponent's threats more heavily than symmetric AI opportunities. Hard mode searches 6 plies on a 7×6 board — deep enough to be genuinely hard to beat without blocking the UI thread.
@@ -320,7 +325,7 @@ src/
 │   ├── types.ts                GameDefinition contract (incl. `supportsMultiplayer`)
 │   ├── registry.ts             Central game list — see §8
 │   ├── roomTypes.ts            RoomGameModule<TGame> contract for multiplayer-capable games
-│   ├── roomRegistry.ts         Games with a PvP room mode (all 25)
+│   ├── roomRegistry.ts         Games with a PvP room mode (all 26)
 │   ├── guess/                  logic.ts · ai.ts · useGuessGame.ts · GuessGame.tsx · index.ts
 │   ├── rps/                    solo files + room.ts · useRpsRoom.ts · RpsRoomGame.tsx
 │   ├── ttt/                    solo files + room.ts · useTttRoom.ts · TttRoomGame.tsx (minimax in ai.ts)
@@ -362,7 +367,7 @@ src/
     └── rooms/
         ├── types.ts            RoomDoc<TGame>, RoomPlayer, RoomStatus
         ├── code.ts             generateRoomCode() — 6 chars, unambiguous alphabet
-        ├── roomsApi.ts         createRoom/joinRoom/subscribeRoom/leaveRoom/voteRematch/runRoomUpdate
+        ├── roomsApi.ts         createRoom/joinRoom/switchRoomGame/subscribeRoom/leaveRoom/voteRematch/runRoomUpdate
         ├── expiry.ts           isRoomExpired() — client mirror of the Security Rules' notExpired()
         └── usePlayerName.ts    localStorage-backed display name, same hydration pattern as ScoresContext
 
@@ -397,7 +402,7 @@ Every game adds a parallel, equally small set of files (`room.ts`, `use<Name>Roo
 
 That's it. The hub card, the `/games/<id>` route and the scoreboard row are all derived from the registry — `ScoresContext` creates a zeroed win/loss/tie entry for any new game id the first time `record()` is called on it.
 
-**Optional — adding a multiplayer room mode to a game:** create its `room.ts` (uid-keyed reducers, reusing that game's pure `logic.ts` functions), `use<Name>Room.ts` and `<Name>RoomGame.tsx`, register the module in `src/games/roomRegistry.ts`, and set `supportsMultiplayer: true` in the game's `GameDefinition`. This is entirely additive — it never touches the game's existing solo files.
+**Optional — adding a multiplayer room mode to a game:** create its `room.ts` (uid-keyed reducers, reusing that game's pure `logic.ts` functions), `use<Name>Room.ts` and `<Name>RoomGame.tsx`, register the module in `src/games/roomRegistry.ts`, and set `supportsMultiplayer: true` in the game's `GameDefinition`. If the room mode has configurable options, add `defaultSettings` and typed `settings` metadata in `roomRegistry.ts`; the shared room shell will render the controls automatically. This is entirely additive — it never touches the game's existing solo files.
 
 ---
 
@@ -419,7 +424,7 @@ npm run dev      # http://localhost:3000 (Turbopack)
 | `npm start` | Serves the production build |
 | `npm run lint` | ESLint over the whole project |
 
-All twenty-five solo games work immediately with no configuration — they have no dependency on the steps below.
+All twenty-six solo games work immediately with no configuration — they have no dependency on the steps below.
 
 ### Multiplayer setup (optional)
 
@@ -437,11 +442,11 @@ Only needed to run `/rooms` locally. Without it, everything else in the app work
 
 - **Difficulty is an algorithm, not a multiplier.** Where a game admits a real strategy (Tic-Tac-Toe, Connect Four, Nim, RPS, Word Guess, Higher or Lower), "Hard" runs that strategy at full strength — it is never simulated by inflating a hit chance.
 - **The AI only ever sees what it's allowed to see.** Memory Match's AI has no code path that reads a hidden tile's value directly; Higher or Lower's Medium tier reasons from the nominal deck, not the real one — the *information asymmetry* is the difficulty knob.
-- **Logic first, React second — and network third.** Every game's rules and AI live in framework-free `.ts` modules; the React hook is a thin state-machine wrapper on top. Multiplayer's `room.ts` modules follow the same discipline one layer further out: game rules stay pure and reused, only the network/transaction plumbing is new. This is what makes twenty-five independent games (plus a multiplayer layer) maintainable by one person.
+- **Logic first, React second — and network third.** Every game's rules and AI live in framework-free `.ts` modules; the React hook is a thin state-machine wrapper on top. Multiplayer's `room.ts` modules follow the same discipline one layer further out: game rules stay pure and reused, only the network/transaction plumbing is new. This is what makes twenty-six independent games (plus a multiplayer layer) maintainable by one person.
 - **Type-checked content.** The bilingual dictionary uses `satisfies Dictionary` on both locales — English/Spanish key drift is a compile error, not a runtime gap discovered by a user.
 - **SSR-safe client state.** Both global contexts hydrate from `localStorage` after mount rather than during the server render, so there is no hydration-mismatch warning and no flash of default state.
 - **Access control lives in the backend, not the client.** Every multiplayer permission (who can join, whose turn it is, whether a room has expired) is enforced by Firestore Security Rules, independent of what the client sends — the client-side checks in the hooks are a UX convenience for instant feedback, not the actual boundary.
-- **Minimal, deliberate dependencies.** The twenty-five solo games add nothing beyond Next.js/React. Multiplayer adds exactly one dependency, `firebase`, chosen because it's a serverless BaaS that needs no infrastructure of the project's own to run or operate.
+- **Minimal, deliberate dependencies.** The twenty-six solo games add nothing beyond Next.js/React. Multiplayer adds exactly one dependency, `firebase`, chosen because it's a serverless BaaS that needs no infrastructure of the project's own to run or operate.
 
 ---
 
@@ -450,7 +455,7 @@ Only needed to run `/rooms` locally. Without it, everything else in the app work
 - **Automated tests** — the `logic.ts`/`ai.ts` split exists specifically to make the pure game rules and AI strategies unit-testable (Vitest is a natural fit); this coverage doesn't exist yet.
 - **CI** — lint + test on every push once the test suite lands.
 - **Presence detection** — knocked-out and timed-out players in the real-time modes are handled, but a peer who simply closes their tab mid-match (without clicking "Leave") isn't auto-detected today; real presence would need either Realtime Database's `onDisconnect` or a small heartbeat scheme.
-- **Physical TTL cleanup** — soft expiry (see [§2](#2-multiplayer-rooms)) already makes expired rooms unusable; enabling Firestore's native TTL policy to actually delete them is deferred behind enabling Firebase billing, and is a non-breaking addition whenever that happens.
+- **Physical TTL cleanup for abandoned expired rooms** — user-closed rooms are already deleted immediately; enabling Firestore's native TTL policy later would only clean up rooms that expire without anyone pressing leave/close.
 - **More games** — the registry pattern in [§8](#8-adding-a-new-mini-game) is designed for this; new opponents keep the "real algorithm per difficulty tier" bar from [§10](#10-engineering-principles).
 
 ---

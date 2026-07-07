@@ -10,6 +10,7 @@
 
 import {
   Timestamp,
+  deleteDoc,
   doc,
   getDoc,
   onSnapshot,
@@ -176,10 +177,7 @@ export function subscribeRoom<TGame>(
 }
 
 export async function leaveRoom(code: string): Promise<void> {
-  await updateDoc(roomRef(code), {
-    status: "abandoned" satisfies RoomStatus,
-    updatedAt: serverTimestamp(),
-  });
+  await deleteDoc(roomRef(code));
 }
 
 export async function voteRematch(code: string, uid: string): Promise<void> {

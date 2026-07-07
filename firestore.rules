@@ -11,14 +11,11 @@ rules_version = '2';
 // (Firebase Spark / free plan, no Cloud Functions).
 //
 // Expiry: every room carries `expiresAt` (createdAt + 24h). Physical
-// deletion via a Firestore TTL policy is OPTIONAL and currently NOT
-// enabled — TTL policies are gated behind billing being enabled on this
-// project, and we're not upgrading off Spark just for housekeeping. Instead
-// this is "soft expiry": `notExpired()` below denies every write on an
-// expired room (join/move/rematch/leave), so an expired room simply
-// freezes in place — un-writable, still readable so the UI can show a
-// clear "this room has expired" message — until someone enables TTL later
-// (a purely additive, non-breaking change) or the doc is manually cleared.
+// deletion via a Firestore TTL policy is OPTIONAL. Normal user-closed rooms
+// are physically deleted by `leaveRoom()` so they do not leave abandoned
+// documents behind. Expiry still protects stale rooms by denying further
+// updates after `expiresAt`; seated players may still delete their own stale
+// room as cleanup.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -118,7 +115,8 @@ service cloud.firestore {
           )
         )
         ||
-        // Leave: a seated player may only flip status to "abandoned".
+        // Legacy leave path: older clients may still flip status to
+        // "abandoned"; current clients delete the document instead.
         (
           isSeated(resource.data)
           && request.resource.data.status == "abandoned"
@@ -132,10 +130,10 @@ service cloud.firestore {
         )
       );
 
-      // No TTL policy enabled (see note above) — physical cleanup is
-      // deliberately out of scope; soft expiry above is what actually
-      // protects the app. Deletes stay disallowed either way.
-      allow delete: if false;
+      // Close room: only a seated player can delete the room document.
+      // No list access exists, so this does not create an enumerable cleanup
+      // endpoint; it just prevents closed rooms from leaving residue.
+      allow delete: if isSignedIn() && isSeated(resource.data);
     }
   }
 }
