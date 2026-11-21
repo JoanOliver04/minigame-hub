@@ -110,7 +110,7 @@ export function seedHolRoomGame(
 }
 
 export async function submitCall(code: string, uid: string, call: HolCall): Promise<void> {
-  await runRoomUpdate<HolRoomGame>(code, (room) => {
+  await runRoomUpdate<HolRoomGame>(code, "higher-or-lower", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
     if (g.deck.length === 0) return null;
@@ -154,7 +154,7 @@ export async function submitCall(code: string, uid: string, call: HolCall): Prom
 
 /** Fires once both seated players have voted rematch; idempotent otherwise. */
 export async function resetHolRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<HolRoomGame>(code, (room) => {
+  await runRoomUpdate<HolRoomGame>(code, "higher-or-lower", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

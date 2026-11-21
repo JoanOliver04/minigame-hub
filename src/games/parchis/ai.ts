@@ -3,9 +3,25 @@ import {
   SAFE_CELLS,
   globalCell,
   legalParchisMoves,
+  moveParchisPiece,
   pieceDestination,
+  rollParchisDie,
 } from "./logic";
 import type { ParchisDifficulty, ParchisGameState } from "./types";
+
+const DIE_FACES = [1, 2, 3, 4, 5, 6];
+
+function captureRisk(state: ParchisGameState, actor: string, cell: number): number {
+  if (state.turn !== actor) return 0;
+  const dangerousRolls = DIE_FACES.filter((roll) => {
+    const rolled = rollParchisDie(state, actor, roll);
+    return legalParchisMoves(rolled, actor).some((id) => {
+      const next = pieceDestination(rolled, actor, id);
+      return next !== null && globalCell(rolled, actor, next) === cell;
+    });
+  });
+  return dangerousRolls.length / DIE_FACES.length;
+}
 
 export function chooseParchisMove(
   state: ParchisGameState,
@@ -34,13 +50,9 @@ export function chooseParchisMove(
     if (cell !== null && SAFE_CELLS.has(cell)) score += difficulty === "hard" ? 24 : 12;
 
     if (difficulty === "hard" && cell !== null && !SAFE_CELLS.has(cell)) {
-      const threatened = state.pieces[opponent].some((enemy) => {
-        const enemyCell = globalCell(state, opponent, enemy.progress);
-        if (enemyCell === null) return false;
-        const distance = (cell - enemyCell + 68) % 68;
-        return distance >= 1 && distance <= 6;
-      });
-      if (threatened) score -= 32;
+      const after = moveParchisPiece(state, actor, pieceId);
+      // Reuse the rules, including compulsory exits, bridges and the home lane.
+      score -= captureRisk(after, opponent, cell) * 100;
       const ownAtDestination = state.pieces[actor].some(
         (candidate) =>
           candidate.id !== pieceId &&
@@ -50,6 +62,11 @@ export function chooseParchisMove(
       if (state.pendingSource === "capture" || state.pendingSource === "goal") {
         score += Math.max(0, destination - piece.progress) * 0.6;
       }
+    }
+    if (difficulty === "hard" && destination === GOAL_PROGRESS) {
+      const wins = state.pieces[actor].every((candidate) =>
+        candidate.id === pieceId || candidate.progress === GOAL_PROGRESS);
+      if (wins) score += 1_000;
     }
     return { pieceId, score };
   });

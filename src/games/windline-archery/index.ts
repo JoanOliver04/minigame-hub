@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { WindlineArcheryGame } from "./WindlineArcheryGame";
 
-export const windlineArcheryGame: GameDefinition = {
+export const windlineArcheryGame = {
   id: "windline-archery",
   icon: "🏹",
+  category: "action",
   hasTies: true,
-  Component: WindlineArcheryGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

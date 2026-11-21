@@ -25,7 +25,7 @@ export function seedGooseRoomGame(
 }
 
 export async function rollGooseRoom(code: string, uid: string, roll: number): Promise<void> {
-  await runRoomUpdate<GooseRoomGame>(code, (room) => {
+  await runRoomUpdate<GooseRoomGame>(code, "goose-game", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = rollGooseDie(room.game, uid, roll);
     return next === room.game ? null : { game: next };
@@ -33,7 +33,7 @@ export async function rollGooseRoom(code: string, uid: string, roll: number): Pr
 }
 
 export async function rerollGooseRoom(code: string, uid: string, roll: number): Promise<void> {
-  await runRoomUpdate<GooseRoomGame>(code, (room) => {
+  await runRoomUpdate<GooseRoomGame>(code, "goose-game", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = rerollGooseDie(room.game, uid, roll);
     return next === room.game ? null : { game: next };
@@ -41,7 +41,7 @@ export async function rerollGooseRoom(code: string, uid: string, roll: number): 
 }
 
 export async function moveGooseRoom(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<GooseRoomGame>(code, (room) => {
+  await runRoomUpdate<GooseRoomGame>(code, "goose-game", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = moveGooseToken(room.game, uid);
     if (next === room.game) return null;
@@ -50,7 +50,7 @@ export async function moveGooseRoom(code: string, uid: string): Promise<void> {
 }
 
 export async function resetGooseRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<GooseRoomGame>(code, (room) => {
+  await runRoomUpdate<GooseRoomGame>(code, "goose-game", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

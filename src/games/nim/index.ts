@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { NimGame } from "./NimGame";
 
-export const nimGame: GameDefinition = {
+export const nimGame = {
   id: "nim",
   icon: "🪵",
+  category: "logic",
   hasTies: false,
-  Component: NimGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

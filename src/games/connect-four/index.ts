@@ -1,11 +1,9 @@
 import type { GameDefinition } from "../types";
-import { ConnectFourGame } from "./ConnectFourGame";
 
-export const connectFourGame: GameDefinition = {
+export const connectFourGame = {
   id: "connect-four",
   icon: "🔴",
+  category: "strategy",
   hasTies: true,
-  Component: ConnectFourGame,
   supportsMultiplayer: true,
-};
-
+} as const satisfies GameDefinition;

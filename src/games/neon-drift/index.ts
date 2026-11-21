@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { NeonDriftGame } from "./NeonDriftGame";
 
-export const neonDriftGame: GameDefinition = {
+export const neonDriftGame = {
   id: "neon-drift",
   icon: "🏎️",
+  category: "action",
   hasTies: true,
-  Component: NeonDriftGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

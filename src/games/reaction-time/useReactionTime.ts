@@ -103,7 +103,7 @@ export function useReactionTime() {
 
     setStage("ready");
     const signalDelayMs = randomSignalDelay();
-    const aiRoll = simulateAiReaction(config.difficulty);
+    const aiRoll = simulateAiReaction(config.difficulty, signalDelayMs);
     aiRollRef.current = aiRoll;
 
     // The AI's whole round is one precomputed event: it either jumps the

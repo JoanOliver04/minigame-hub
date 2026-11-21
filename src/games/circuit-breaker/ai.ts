@@ -7,8 +7,7 @@
  * before the simultaneous reveal.
  *
  *   Easy   — random legal turn, filtering out immediately fatal ones.
- *   Medium — flood-fill: pick the turn that leaves the AI the most
- *            reachable free space (ignoring the opponent's next move).
+ *   Medium — compare space and collision risk across legal simultaneous moves.
  *   Hard   — simultaneous-move minimax over the 3×3 joint-action matrix,
  *            time-boxed iterative deepening (the blueprint's target of 7
  *            plies is attempted, but the §3.5 performance budget of
@@ -21,8 +20,8 @@ import type { Rng } from "@/lib/rng";
 import { legalActions, reachableSpace, resolveTick } from "./logic";
 import type { BreakerDifficulty, BreakerState, TurnAction } from "./types";
 
-const ACTIONS: TurnAction[] = ["left", "straight", "right"];
-const HARD_TIME_BUDGET_MS = 200;
+const HARD_TIME_BUDGET_MS = 28;
+const HARD_NODE_LIMIT = 1200;
 const HARD_MAX_DEPTH = 7;
 const FLOODFILL_CAP = 260;
 
@@ -47,33 +46,22 @@ function easyAction(state: BreakerState, rng: Rng): TurnAction {
   return rng.pick(legal);
 }
 
-/** Simulate the AI's own move in isolation (opponent's move unknown yet). */
-function simulateSelfMove(state: BreakerState, action: TurnAction): BreakerState {
-  // Opponent "straight" is a neutral placeholder — medium only reads its
-  // own resulting reachable space, so the opponent's chosen branch here
-  // never leaks into the AI's decision. `action` is the AI's own move, so
-  // it belongs in the aiAction slot, not the playerAction slot.
-  return resolveTick(state, "straight", action);
-}
-
 function mediumAction(state: BreakerState, rng: Rng): TurnAction {
   const legal = legalActions(state, "ai");
+  const replies = legalActions(state, "player");
   let best: TurnAction[] = [];
-  let bestSpace = -1;
+  let bestScore = -Infinity;
   for (const action of legal) {
-    const next = simulateSelfMove(state, action);
-    if (!next.ai.alive) continue;
-    const space = reachableSpace(next.grid, next.ai.pos, FLOODFILL_CAP);
-    if (space > bestSpace) {
-      bestSpace = space;
+    const values = replies.map((reply) => evaluate(resolveTick(state, reply, action)));
+    const average = values.reduce((total, value) => total + value, 0) / values.length;
+    const score = Math.min(...values) * 0.7 + average * 0.3;
+    if (score > bestScore) {
+      bestScore = score;
       best = [action];
-    } else if (space === bestSpace) {
+    } else if (score === bestScore) {
       best.push(action);
     }
   }
-  if (best.length === 0) return rng.pick(legal);
-  // Tie-break toward continuing straight: it's an equally good option
-  // that avoids unnecessary zigzagging into the cycle's own future trail.
   return best.includes("straight") ? "straight" : rng.pick(best);
 }
 
@@ -100,7 +88,7 @@ interface SearchBudget {
 
 function searchNode(state: BreakerState, depth: number, budget: SearchBudget): number {
   budget.nodes++;
-  if (budget.nodes % 40 === 0 && performance.now() > budget.deadline) {
+  if (budget.nodes >= HARD_NODE_LIMIT || (budget.nodes % 8 === 0 && performance.now() > budget.deadline)) {
     budget.exhausted = true;
   }
   if (state.status === "round-over" || depth === 0 || budget.exhausted) {
@@ -108,34 +96,28 @@ function searchNode(state: BreakerState, depth: number, budget: SearchBudget): n
   }
   const aiActions = legalActions(state, "ai");
   const playerActions = legalActions(state, "player");
-  const matrix: number[][] = [];
+  let best = -Infinity;
   for (const a of aiActions) {
-    const row: number[] = [];
+    let worst = Infinity;
     for (const p of playerActions) {
       const next = resolveTick(state, p, a);
-      row.push(searchNode(next, depth - 1, budget));
-      if (budget.exhausted) break;
+      worst = Math.min(worst, searchNode(next, depth - 1, budget));
+      // Further replies can only make this row worse.
+      if (budget.exhausted || worst <= best) break;
     }
-    matrix.push(row);
+    best = Math.max(best, worst);
     if (budget.exhausted) break;
   }
-  // Maximin: the AI picks the row whose worst column is least bad — a
-  // safe strategy against an adversary who could reply with anything.
-  let best = -Infinity;
-  for (const row of matrix) {
-    if (row.length === 0) continue;
-    const worst = Math.min(...row);
-    if (worst > best) best = worst;
-  }
-  return best === -Infinity ? evaluate(state) : best;
+  return best;
 }
 
 function hardAction(state: BreakerState): TurnAction {
   const aiActions = legalActions(state, "ai");
+  // Evaluate straight first to preserve heading on equal choices.
+  if (aiActions.includes("straight")) aiActions.sort((a, b) => Number(b === "straight") - Number(a === "straight"));
   const playerActions = legalActions(state, "player");
   const budget: SearchBudget = { deadline: performance.now() + HARD_TIME_BUDGET_MS, nodes: 0, exhausted: false };
 
-  let bestAction: TurnAction = aiActions[0];
   let bestDepthResult: TurnAction = aiActions[0];
 
   for (let depth = 1; depth <= HARD_MAX_DEPTH; depth++) {
@@ -148,7 +130,7 @@ function hardAction(state: BreakerState): TurnAction {
         const next = resolveTick(state, p, a);
         const value = searchNode(next, depth - 1, budget);
         if (value < worst) worst = value;
-        if (budget.exhausted) break;
+        if (budget.exhausted || worst <= depthBestValue) break;
       }
       if (worst > depthBestValue) {
         depthBestValue = worst;
@@ -159,6 +141,5 @@ function hardAction(state: BreakerState): TurnAction {
     if (depthBest && !budget.exhausted) bestDepthResult = depthBest;
     if (budget.exhausted) break;
   }
-  bestAction = bestDepthResult;
-  return ACTIONS.includes(bestAction) ? bestAction : aiActions[0];
+  return bestDepthResult;
 }

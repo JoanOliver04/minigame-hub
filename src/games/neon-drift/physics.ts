@@ -131,12 +131,12 @@ export function stepCar(
     car.checkpoint = (car.checkpoint + 1) % CHECKPOINTS_PER_LAP;
     if (crossingStart) {
       const lapTime = elapsed - car.lastLapStart;
-      if (car.lap > 0 && (car.bestLap === null || lapTime < car.bestLap)) {
+      if (car.bestLap === null || lapTime < car.bestLap) {
         car.bestLap = lapTime;
       }
       car.lastLapStart = elapsed;
       car.lap += 1;
-      if (car.lap > TOTAL_LAPS) {
+      if (car.lap >= TOTAL_LAPS) {
         car.finished = true;
         car.finishTime = elapsed;
       }

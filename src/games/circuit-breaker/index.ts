@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { CircuitBreakerGame } from "./CircuitBreakerGame";
 
-export const circuitBreakerGame: GameDefinition = {
+export const circuitBreakerGame = {
   id: "circuit-breaker",
   icon: "🏍️",
+  category: "action",
   hasTies: true,
-  Component: CircuitBreakerGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

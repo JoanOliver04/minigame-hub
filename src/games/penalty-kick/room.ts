@@ -1,8 +1,6 @@
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import type { PenaltyResult } from "./types";
 
 export interface PenaltyRoomResult {
@@ -41,14 +39,13 @@ export async function submitPenaltyRoomResult(
   uid: string,
   result: PenaltyRoomResult,
 ): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "penalty-kick", {
     [`game.results.${uid}`]: result,
-    updatedAt: serverTimestamp(),
   });
 }
 
 export async function resolvePenaltyRoomIfReady(code: string): Promise<void> {
-  await runRoomUpdate<PenaltyRoomGame>(code, (room) => {
+  await runRoomUpdate<PenaltyRoomGame>(code, "penalty-kick", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished) return null;
     const uids = Object.keys(game.results);
@@ -66,7 +63,7 @@ export async function resolvePenaltyRoomIfReady(code: string): Promise<void> {
 }
 
 export async function resetPenaltyRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<PenaltyRoomGame>(code, (room) => {
+  await runRoomUpdate<PenaltyRoomGame>(code, "penalty-kick", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

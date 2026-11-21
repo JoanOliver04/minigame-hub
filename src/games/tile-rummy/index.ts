@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { TileRummyGame } from "./TileRummyGame";
 
-export const tileRummyGame: GameDefinition = {
+export const tileRummyGame = {
   id: "tile-rummy",
   icon: "🧩",
-  hasTies: false,
-  Component: TileRummyGame,
+  category: "cards",
+  hasTies: true,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

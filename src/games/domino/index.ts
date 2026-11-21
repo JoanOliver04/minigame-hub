@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { DominoGame } from "./DominoGame";
 
-export const dominoGame: GameDefinition = {
+export const dominoGame = {
   id: "domino",
   icon: "🁢",
+  category: "cards",
   hasTies: true,
-  Component: DominoGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

@@ -26,33 +26,33 @@ const GRID_Y = [24, 52, 78] as const;
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-function jitter(point: Point, amount: number): Point {
+function jitter(point: Point, amount: number, random: () => number): Point {
   return {
-    x: clamp(point.x + (Math.random() * 2 - 1) * amount, 7, 93),
-    y: clamp(point.y + (Math.random() * 2 - 1) * amount, 10, 90),
+    x: clamp(point.x + (random() * 2 - 1) * amount, 7, 93),
+    y: clamp(point.y + (random() * 2 - 1) * amount, 10, 90),
   };
 }
 
-function randomGridTarget(): Point {
+function randomGridTarget(random: () => number): Point {
   return {
-    x: GRID_X[Math.floor(Math.random() * GRID_X.length)],
-    y: GRID_Y[Math.floor(Math.random() * GRID_Y.length)],
+    x: GRID_X[Math.floor(random() * GRID_X.length)],
+    y: GRID_Y[Math.floor(random() * GRID_Y.length)],
   };
 }
 
 function learnedTarget(history: PenaltyResult[]): Point {
-  if (history.length === 0) return randomGridTarget();
-  const weighted = history.map((shot, index) => ({
-    point: shot.aim,
-    weight: index + 1,
-  }));
-  const totalWeight = weighted.reduce((sum, entry) => sum + entry.weight, 0);
-  let roll = Math.random() * totalWeight;
-  for (const entry of weighted) {
-    roll -= entry.weight;
-    if (roll <= 0) return entry.point;
+  const zones = Array.from({ length: 9 }, () => ({ weight: 0, x: 0, y: 0 }));
+  for (const [index, { aim }] of history.entries()) {
+    const column = aim.x < 34 ? 0 : aim.x < 66 ? 1 : 2;
+    const row = aim.y < 38 ? 0 : aim.y < 65 ? 1 : 2;
+    const zone = zones[row * 3 + column];
+    const weight = index + 1;
+    zone.weight += weight;
+    zone.x += aim.x * weight;
+    zone.y += aim.y * weight;
   }
-  return weighted[weighted.length - 1].point;
+  const best = zones.reduce((a, b) => b.weight > a.weight ? b : a);
+  return { x: best.x / best.weight, y: best.y / best.weight };
 }
 
 /**
@@ -66,6 +66,7 @@ export function planKeeper(
   history: PenaltyResult[],
   style: ShotStyle,
   power: number,
+  random = Math.random,
 ): KeeperPlan {
   const tuning = TUNING[difficulty];
   const powerDisguise = Math.max(0, power - 72) * 0.0025;
@@ -75,21 +76,21 @@ export function planKeeper(
     tuning.readChance - powerDisguise - chipDisguise,
   );
 
-  const roll = Math.random();
+  const roll = random();
   let strategy: KeeperStrategy = "guess";
   let target: Point;
 
   if (roll < readChance) {
     strategy = "read";
-    target = jitter(aim, tuning.readNoise);
+    target = jitter(aim, tuning.readNoise, random);
   } else if (
     history.length >= 2 &&
     roll < readChance + tuning.learnChance
   ) {
     strategy = "learn";
-    target = jitter(learnedTarget(history), 12);
+    target = jitter(learnedTarget(history), 12, random);
   } else {
-    target = jitter(randomGridTarget(), 12);
+    target = jitter(randomGridTarget(random), 12, random);
   }
 
   return {

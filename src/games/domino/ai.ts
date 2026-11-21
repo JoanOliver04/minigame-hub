@@ -10,6 +10,44 @@ function sideValue(state: DominoGameState, tile: DominoTile, side: DominoSide): 
   return value;
 }
 
+function tileKey(a: number, b: number): string {
+  return `${Math.min(a, b)}-${Math.max(a, b)}`;
+}
+
+function unseenTiles(state: DominoGameState, actor: string): Array<[number, number]> {
+  const known = new Set([...state.hands[actor], ...state.board].map(({ a, b }) => tileKey(a, b)));
+  const unseen: Array<[number, number]> = [];
+  for (let a = 0; a <= 6; a++) {
+    for (let b = a; b <= 6; b++) {
+      if (!known.has(tileKey(a, b))) unseen.push([a, b]);
+    }
+  }
+  return unseen;
+}
+
+function strategyValue(
+  state: DominoGameState,
+  actor: string,
+  tile: DominoTile,
+  side: DominoSide,
+  unseen: Array<[number, number]>,
+): number {
+  const playedEnd = side === "left" ? state.leftValue : state.rightValue;
+  const otherEnd = side === "left" ? state.rightValue : state.leftValue;
+  const left = otherEnd ?? tile.a;
+  const right = playedEnd === null ? tile.b : tile.a === playedEnd ? tile.b : tile.a;
+  const matches = (a: number, b: number) => a === left || b === left || a === right || b === right;
+  const handFit = state.hands[actor].filter((next) => next.id !== tile.id && matches(next.a, next.b)).length;
+  const rival = state.order.find((seat) => seat !== actor);
+  const cardsHeld = Math.min(unseen.length, rival === undefined ? 0 : state.hands[rival].length);
+  const blanks = unseen.filter(([a, b]) => !matches(a, b)).length;
+  let blocked = 1;
+  for (let index = 0; index < cardsHeld; index++) {
+    blocked *= Math.max(0, blanks - index) / (unseen.length - index);
+  }
+  return handFit * 9 + blocked * (cardsHeld <= 2 ? 26 : 14) - (handFit === 0 ? 14 : 0);
+}
+
 export function playDominoAiTurn(
   state: DominoGameState,
   actor: string,
@@ -24,8 +62,13 @@ export function playDominoAiTurn(
     const sides = getPlayableSides(state, tile);
     return playDominoTile(state, actor, tile.id, sides[Math.floor(Math.random() * sides.length)]);
   }
+  const unseen = difficulty === "hard" ? unseenTiles(state, actor) : [];
   const options = playable.flatMap((tile) =>
-    getPlayableSides(state, tile).map((side) => ({ tile, side, value: sideValue(state, tile, side) })),
+    getPlayableSides(state, tile).map((side) => ({
+      tile,
+      side,
+      value: sideValue(state, tile, side) + (difficulty === "hard" ? strategyValue(state, actor, tile, side, unseen) : 0),
+    })),
   );
   options.sort((a, b) => b.value - a.value);
   const picked = difficulty === "medium" && options.length > 1 && Math.random() < 0.2 ? options[1] : options[0];

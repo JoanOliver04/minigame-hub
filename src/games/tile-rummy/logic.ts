@@ -92,7 +92,7 @@ function validateGroup(tiles: TileRummyTile[]): TileRummyValidation {
 }
 
 function validateRun(tiles: TileRummyTile[]): TileRummyValidation {
-  const natural = sortTiles(tiles.filter((tile) => !tile.joker));
+  const natural = tiles.filter((tile) => !tile.joker);
   if (natural.length === 0) return { valid: false, score: 0, reason: "mixed" };
   const color = natural[0].color;
   if (natural.some((tile) => tile.color !== color)) {
@@ -105,11 +105,11 @@ function validateRun(tiles: TileRummyTile[]): TileRummyValidation {
   const max = Math.max(...values);
   const gaps = max - min + 1 - natural.length;
   if (gaps > jokerCount) return { valid: false, score: 0, reason: "gap" };
-  const spareJokers = jokerCount - gaps;
-  const start = Math.max(1, min - spareJokers);
+  // Use the highest legal placement when a joker could extend either end.
+  const start = Math.min(min, 14 - tiles.length);
   const end = start + tiles.length - 1;
-  if (end > 13) return { valid: false, score: 0, reason: "gap" };
-  const score = Array.from({ length: tiles.length }, (_, i) => start + i).reduce((a, b) => a + b, 0);
+  if (start < 1 || end < max) return { valid: false, score: 0, reason: "gap" };
+  const score = ((start + end) * tiles.length) / 2;
   return { valid: true, kind: "run", score };
 }
 
@@ -130,34 +130,69 @@ export function validateTileRummyMeld(
 }
 
 export function canPlayAnyMeld(state: TileRummyGameState, actor: string): boolean {
-  return findTileRummyMelds(state, actor).length > 0;
+  return !legalMelds(state, actor).next().done;
 }
 
-function combinations<T>(items: T[], min: number, max: number): T[][] {
-  const result: T[][] = [];
-  function walk(start: number, picked: T[]) {
-    if (picked.length >= min) result.push([...picked]);
-    if (picked.length === max) return;
-    for (let i = start; i < items.length; i += 1) walk(i + 1, [...picked, items[i]]);
+/** Enumerate groups and runs by board values. A duplicate physical tile is interchangeable here. */
+function* meldCandidates(hand: TileRummyTile[]) {
+  const byColor = new Map(TILE_COLORS.map((color) => [color, new Map<number, TileRummyTile>()]));
+  const jokers = hand.filter((tile) => tile.joker).slice(0, 2);
+  for (const tile of hand) {
+    if (tile.color === "joker" || tile.joker || tile.value === null) continue;
+    const values = byColor.get(tile.color)!;
+    if (!values.has(tile.value)) values.set(tile.value, tile);
   }
-  walk(0, []);
-  return result;
+
+  for (let value = 1; value <= 13; value++) {
+    const available = [...byColor.values()].flatMap((color) => color.get(value) ?? []);
+    for (let mask = 1; mask < 1 << available.length; mask++) {
+      const natural = available.filter((_, index) => (mask & (1 << index)) !== 0);
+      for (let size = Math.max(3, natural.length); size <= Math.min(4, natural.length + jokers.length); size++) {
+        yield [...natural, ...jokers.slice(0, size - natural.length)];
+      }
+    }
+  }
+
+  for (const values of byColor.values()) {
+    for (let start = 1; start <= 11; start++) {
+      const natural: TileRummyTile[] = [];
+      let missing = 0;
+      for (let end = start; end <= 13; end++) {
+        const tile = values.get(end);
+        if (tile) natural.push(tile);
+        else if (++missing > jokers.length) break;
+        if (end - start < 2 || natural.length === 0) continue;
+        yield [...natural, ...jokers.slice(0, missing)];
+
+        // Spare jokers can replace tiles we own so the AI may save those tiles for another meld.
+        if (missing === jokers.length || natural.length < 2) continue;
+        for (let first = 0; first < natural.length; first++) {
+          yield [...natural.filter((_, index) => index !== first), ...jokers.slice(0, missing + 1)];
+          if (missing + 1 === jokers.length || natural.length < 3) continue;
+          for (let second = first + 1; second < natural.length; second++) {
+            yield [...natural.filter((_, index) => index !== first && index !== second), ...jokers];
+          }
+        }
+      }
+    }
+  }
+}
+
+function* legalMelds(state: TileRummyGameState, actor: string): Generator<TileRummyMeld> {
+  const seen = new Set<string>();
+  for (const tiles of meldCandidates(state.hands[actor] ?? [])) {
+    const id = tiles.map((tile) => tile.id).sort().join(",");
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const validation = validateTileRummyMeld(state, actor, tiles);
+    if (validation.valid && validation.kind) {
+      yield { id, owner: actor, kind: validation.kind, tiles, score: validation.score };
+    }
+  }
 }
 
 export function findTileRummyMelds(state: TileRummyGameState, actor: string): TileRummyMeld[] {
-  return combinations(state.hands[actor] ?? [], 3, 5)
-    .map((tiles, index) => {
-      const validation = validateTileRummyMeld(state, actor, tiles);
-      if (!validation.valid || !validation.kind) return null;
-      return {
-        id: `candidate-${index}`,
-        owner: actor,
-        kind: validation.kind,
-        tiles,
-        score: validation.score,
-      } satisfies TileRummyMeld;
-    })
-    .filter((meld): meld is TileRummyMeld => Boolean(meld));
+  return [...legalMelds(state, actor)];
 }
 
 export function playTileRummyMeld(
@@ -188,7 +223,7 @@ export function playTileRummyMeld(
     hands: { ...state.hands, [actor]: sortTiles(nextHand) },
     table: [
       {
-        id: `meld-${state.table.length + 1}-${Date.now()}`,
+        id: `meld-${state.table.length + 1}`,
         owner: actor,
         kind: validation.kind,
         tiles,
@@ -210,13 +245,17 @@ export function drawTileRummyTile(state: TileRummyGameState, actor: string): Til
   if (canPlayAnyMeld(state, actor)) return state;
   const [drawn, ...deck] = state.deck;
   if (!drawn) {
+    const action: TileRummyAction = { actor, kind: "blocked" };
+    const next = nextActor(state, actor);
+    if (next !== actor && canPlayAnyMeld(state, next)) {
+      return { ...state, turn: next, lastAction: action, log: addLog(state, action) };
+    }
     const handScores = state.order.map((seat) => ({
       seat,
       score: state.hands[seat].reduce((total, tile) => total + (tile.value ?? 30), 0),
     }));
     handScores.sort((a, b) => a.score - b.score);
-    const winner = handScores[0].seat;
-    const action: TileRummyAction = { actor: winner, kind: "win", score: handScores[0].score };
+    const winner = handScores[0].score === handScores[1]?.score ? null : handScores[0].seat;
     return {
       ...state,
       turn: null,

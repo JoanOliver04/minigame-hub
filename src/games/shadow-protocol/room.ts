@@ -16,10 +16,8 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
 import { randomSeed } from "@/lib/rng";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import type { ShadowDifficulty } from "./types";
 
 export const SHADOW_ROOM_DIFFICULTY: ShadowDifficulty = "medium";
@@ -71,9 +69,8 @@ export async function submitShadowResult(
   uid: string,
   result: ShadowResult,
 ): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "shadow-protocol", {
     [`game.results.${uid}`]: result,
-    updatedAt: serverTimestamp(),
   });
 }
 
@@ -86,7 +83,7 @@ function decideWinner(uidA: string, a: ShadowResult, uidB: string, b: ShadowResu
 
 /** Called by both clients' listeners once both results are in; resolves once. */
 export async function resolveShadowIfReady(code: string): Promise<void> {
-  await runRoomUpdate<ShadowRoomGame>(code, (room) => {
+  await runRoomUpdate<ShadowRoomGame>(code, "shadow-protocol", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -106,7 +103,7 @@ export async function resolveShadowIfReady(code: string): Promise<void> {
 
 /** Fires once both seated players have voted rematch; idempotent otherwise. */
 export async function resetShadowRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ShadowRoomGame>(code, (room) => {
+  await runRoomUpdate<ShadowRoomGame>(code, "shadow-protocol", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

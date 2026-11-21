@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { normalizeRoomCode } from "@/lib/rooms/code";
 import { RoomClient } from "./RoomClient";
 
 /**
@@ -11,6 +13,7 @@ export default async function RoomPage({
 }: {
   params: Promise<{ code: string }>;
 }) {
-  const { code } = await params;
-  return <RoomClient code={code.toUpperCase()} />;
+  const code = normalizeRoomCode((await params).code);
+  if (!code) notFound();
+  return <RoomClient key={code} code={code} />;
 }

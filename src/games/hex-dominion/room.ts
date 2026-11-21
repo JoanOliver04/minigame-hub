@@ -55,7 +55,7 @@ export function seedHexRoomGame(
 }
 
 export async function submitHexMove(code: string, uid: string, index: number): Promise<void> {
-  await runRoomUpdate<HexRoomGame>(code, (room) => {
+  await runRoomUpdate<HexRoomGame>(code, "hex-dominion", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
     if (index < 0 || index >= g.board.length || g.board[index] !== null) return null;
@@ -81,7 +81,7 @@ export async function submitHexMove(code: string, uid: string, index: number): P
 }
 
 export async function resetHexRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<HexRoomGame>(code, (room) => {
+  await runRoomUpdate<HexRoomGame>(code, "hex-dominion", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

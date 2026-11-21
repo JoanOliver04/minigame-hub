@@ -1,4 +1,4 @@
-import { legalCardIndexes } from "./logic";
+import { isNumberCombo, isPlayable, legalCardIndexes } from "./logic";
 import type {
   PrismCard,
   PrismColor,
@@ -64,6 +64,12 @@ export function choosePrismAiMove(
       const after = hand.filter((_, index) => index !== cardIndex);
       const chosen = candidate.kind === "prism" ? bestColor(hand, cardIndex) : candidate.color;
       score += after.filter((card) => card.color === chosen).length * 3;
+      const playsAgain = candidate.kind === "freeze" || (!state.comboUsed && isNumberCombo(candidate, top));
+      if (playsAgain && chosen) {
+        const followUps = after.filter((card) => isPlayable(card, candidate, chosen)).length;
+        if (after.length === 1 && followUps === 1) score += 1_000;
+        else score += followUps * 7;
+      }
     }
     return { cardIndex, score };
   });

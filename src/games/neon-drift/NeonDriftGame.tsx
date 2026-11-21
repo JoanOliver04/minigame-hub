@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { DriftControls } from "./DriftControls";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -137,7 +138,7 @@ export function NeonDriftGame() {
 
       <div className="drift-hud">
         <span className="drift-hud-item">
-          {t.neonDrift.lapLabel(Math.min(game.player.lap || 1, game.totalLaps), game.totalLaps)}
+          {t.neonDrift.lapLabel(Math.min(game.player.lap + 1, game.totalLaps), game.totalLaps)}
         </span>
         <span className="drift-hud-item">{formatTime(game.raceTime)}</span>
         <span className={`drift-hud-item ${leading ? "lead" : "behind"}`}>
@@ -175,44 +176,7 @@ export function NeonDriftGame() {
         <div className="drift-boost-fill" style={{ width: `${game.player.boost}%` }} />
       </div>
 
-      <div className="drift-controls">
-        <button
-          className="btn drift-pad"
-          onPointerDown={() => game.setInput({ steer: -1 })}
-          onPointerUp={() => game.setInput({ steer: 0 })}
-          onPointerLeave={() => game.setInput({ steer: 0 })}
-          aria-label={t.neonDrift.steerLeft}
-        >
-          ◀
-        </button>
-        <button
-          className="btn drift-pad brake"
-          onPointerDown={() => game.setInput({ brake: 1 })}
-          onPointerUp={() => game.setInput({ brake: 0 })}
-          onPointerLeave={() => game.setInput({ brake: 0 })}
-          aria-label={t.neonDrift.brake}
-        >
-          {t.neonDrift.brakeShort}
-        </button>
-        <button
-          className="btn drift-pad boost"
-          onPointerDown={() => game.setInput({ boost: true })}
-          onPointerUp={() => game.setInput({ boost: false })}
-          onPointerLeave={() => game.setInput({ boost: false })}
-          aria-label={t.neonDrift.boost}
-        >
-          {t.neonDrift.boostShort}
-        </button>
-        <button
-          className="btn drift-pad"
-          onPointerDown={() => game.setInput({ steer: 1 })}
-          onPointerUp={() => game.setInput({ steer: 0 })}
-          onPointerLeave={() => game.setInput({ steer: 0 })}
-          aria-label={t.neonDrift.steerRight}
-        >
-          ▶
-        </button>
-      </div>
+      <DriftControls bindControl={game.bindControl} />
     </section>
   );
 }

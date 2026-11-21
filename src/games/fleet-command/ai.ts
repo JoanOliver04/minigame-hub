@@ -119,7 +119,11 @@ function lineExtensions(intel: FleetIntel, hits: number[]): number[] {
  */
 function placementHeatmap(intel: FleetIntel): number[] {
   const heat = new Array<number>(BOARD_SIZE * BOARD_SIZE).fill(0);
-  const hits = new Set(unresolvedHits(intel));
+  const hits = unresolvedHits(intel);
+  const hitSet = new Set(hits);
+  const adjacentToHits = hits.map((cell) => neighborhood(cell));
+  const sonar = intel.sonar;
+  const region = sonar ? new Set(neighborhood(sonar.center).concat(sonar.center)) : null;
   for (const length of intel.remainingShipLengths) {
     for (let origin = 0; origin < BOARD_SIZE * BOARD_SIZE; origin++) {
       for (const horizontal of [true, false]) {
@@ -128,15 +132,14 @@ function placementHeatmap(intel: FleetIntel): number[] {
         if (cells.some((c) => intel.cells[c] === "miss" || intel.cells[c] === "sunk-buffer")) {
           continue;
         }
-        const coveredHits = cells.filter((c) => hits.has(c)).length;
+        // A segment cannot touch a hit belonging to a separate ship.
+        if (hits.some((hit, index) => !cells.includes(hit) && adjacentToHits[index].some((cell) => cells.includes(cell)))) continue;
+        const coveredHits = cells.filter((c) => hitSet.has(c)).length;
         let weight = 1 + coveredHits * 60;
-        if (intel.sonar && intel.sonar.count > 0) {
-          const { x, y } = toXY(intel.sonar.center);
-          const inRegion = cells.some((c) => {
-            const p = toXY(c);
-            return Math.abs(p.x - x) <= SONAR_RADIUS && Math.abs(p.y - y) <= SONAR_RADIUS;
-          });
-          if (inRegion) weight *= 1 + intel.sonar.count;
+        if (sonar && region) {
+          const inRegion = cells.filter((cell) => region.has(cell)).length;
+          if (inRegion > sonar.count) continue;
+          if (inRegion) weight *= 1 + sonar.count;
         }
         for (const c of cells) {
           if (intel.cells[c] === "unknown") heat[c] += weight;

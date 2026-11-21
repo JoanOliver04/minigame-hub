@@ -15,6 +15,7 @@ import { isRoomExpired } from "@/lib/rooms/expiry";
 import { leaveRoom, subscribeRoom, voteRematch } from "@/lib/rooms/roomsApi";
 import type { RoomDoc } from "@/lib/rooms/types";
 import { initialCar, stepCar } from "./physics";
+import { useDriftControls } from "./useDriftControls";
 import { getTrack, type TrackDef } from "./tracks";
 import type { CarState, ControlInput } from "./types";
 import { FIXED_DT, MAX_FRAME_DELTA } from "./types";
@@ -49,7 +50,7 @@ export interface UseDriftRoomResult {
   countdown: number;
   track: TrackDef;
   start: () => void;
-  setInput: (partial: Partial<ControlInput>) => void;
+  bindControl: ReturnType<typeof useDriftControls>;
   playAgain: () => void;
   leave: () => void;
 }
@@ -210,31 +211,7 @@ export function useDriftRoom(code: string): UseDriftRoomResult {
     inputRef.current = { ...inputRef.current, ...partial };
   }, []);
 
-  // Keyboard: steer/brake/boost (throttle auto-held), same as solo.
-  useEffect(() => {
-    if (localRace !== "racing") return;
-    const down = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      if (k === "arrowleft" || k === "a") setInput({ steer: -1 });
-      else if (k === "arrowright" || k === "d") setInput({ steer: 1 });
-      else if (k === "arrowdown" || k === "s") setInput({ brake: 1 });
-      else if (k === " ") setInput({ boost: true });
-      else return;
-      e.preventDefault();
-    };
-    const up = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      if (k === "arrowleft" || k === "a" || k === "arrowright" || k === "d") setInput({ steer: 0 });
-      else if (k === "arrowdown" || k === "s") setInput({ brake: 0 });
-      else if (k === " ") setInput({ boost: false });
-    };
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
-    };
-  }, [localRace, setInput]);
+  const bindControl = useDriftControls(localRace === "racing", setInput);
 
   // Resolve once both finish times are in (idempotent for the loser).
   useEffect(() => {
@@ -271,7 +248,7 @@ export function useDriftRoom(code: string): UseDriftRoomResult {
     countdown,
     track,
     start,
-    setInput,
+    bindControl,
     playAgain,
     leave,
   };

@@ -39,9 +39,9 @@ export function useTileRummy() {
   useEffect(() => {
     if (!game?.finished || recordedRef.current) return;
     recordedRef.current = true;
-    const won = game.winner === PLAYER;
-    record("tile-rummy", won ? "win" : "loss");
-    playSound(won ? "win" : "lose");
+    const outcome = game.winner === null ? "tie" : game.winner === PLAYER ? "win" : "loss";
+    record("tile-rummy", outcome);
+    playSound(outcome === "tie" ? "blip" : outcome === "win" ? "win" : "lose");
     setPhase("end");
   }, [game, record]);
 

@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { PrismClashGame } from "./PrismClashGame";
 
-export const prismClashGame: GameDefinition = {
+export const prismClashGame = {
   id: "prism-clash",
   icon: "🔷",
+  category: "cards",
   hasTies: false,
-  Component: PrismClashGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

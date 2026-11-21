@@ -7,28 +7,21 @@
  * restore focus to the trigger).
  */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useId, useRef, type MouseEvent, type ReactNode } from "react";
 import { useLocale } from "@/context/LocaleContext";
 
 export function HowToPlay({ title, children }: { title: string; children: ReactNode }) {
   const { t } = useLocale();
-  const [open, setOpen] = useState(false);
+  const titleId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    closeRef.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  function close() {
-    setOpen(false);
-    triggerRef.current?.focus();
+  function closeFromBackdrop(event: MouseEvent<HTMLDialogElement>) {
+    if (event.target !== event.currentTarget) return;
+    const { left, top, right, bottom } = event.currentTarget.getBoundingClientRect();
+    if (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom) {
+      event.currentTarget.close();
+    }
   }
 
   return (
@@ -37,41 +30,32 @@ export function HowToPlay({ title, children }: { title: string; children: ReactN
         ref={triggerRef}
         type="button"
         className="htp-btn"
-        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        onClick={() => dialogRef.current?.showModal()}
       >
         <span aria-hidden="true">?</span> {t.common.howToPlay}
       </button>
 
-      {open && (
-        <div className="htp-overlay" role="presentation" onClick={close}>
-          <div
-            className="htp-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="htp-head">
-              <h2 className="htp-title">{title}</h2>
-              <button
-                ref={closeRef}
-                type="button"
-                className="htp-close"
-                aria-label={t.common.close}
-                onClick={close}
-              >
-                ×
-              </button>
-            </div>
-            <div className="htp-body">{children}</div>
-            <div className="btn-row">
-              <button className="btn primary" onClick={close}>
-                {t.common.close}
-              </button>
-            </div>
-          </div>
+      <dialog
+        ref={dialogRef}
+        className="htp-modal"
+        aria-labelledby={titleId}
+        onClose={() => triggerRef.current?.focus()}
+        onClick={closeFromBackdrop}
+      >
+        <div className="htp-head">
+          <h2 className="htp-title" id={titleId}>{title}</h2>
+          <button type="button" className="htp-close" aria-label={t.common.close} onClick={() => dialogRef.current?.close()}>
+            ×
+          </button>
         </div>
-      )}
+        <div className="htp-body">{children}</div>
+        <div className="btn-row">
+          <button type="button" className="btn primary" onClick={() => dialogRef.current?.close()}>
+            {t.common.close}
+          </button>
+        </div>
+      </dialog>
     </>
   );
 }

@@ -26,7 +26,7 @@ export function seedParchisRoomGame(
 }
 
 export async function rollParchisRoom(code: string, uid: string, roll: number): Promise<void> {
-  await runRoomUpdate<ParchisRoomGame>(code, (room) => {
+  await runRoomUpdate<ParchisRoomGame>(code, "parchis", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = rollParchisDie(room.game, uid, roll);
     return next === room.game ? null : { game: next };
@@ -34,7 +34,7 @@ export async function rollParchisRoom(code: string, uid: string, roll: number): 
 }
 
 export async function moveParchisRoom(code: string, uid: string, pieceId: number): Promise<void> {
-  await runRoomUpdate<ParchisRoomGame>(code, (room) => {
+  await runRoomUpdate<ParchisRoomGame>(code, "parchis", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = moveParchisPiece(room.game, uid, pieceId);
     if (next === room.game) return null;
@@ -43,7 +43,7 @@ export async function moveParchisRoom(code: string, uid: string, pieceId: number
 }
 
 export async function resetParchisRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ParchisRoomGame>(code, (room) => {
+  await runRoomUpdate<ParchisRoomGame>(code, "parchis", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

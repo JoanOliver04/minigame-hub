@@ -39,7 +39,9 @@ export default function RootLayout({
         <div className="app">
           <LocaleProvider>
             <AppHeader />
-            <ScoresProvider>{children}</ScoresProvider>
+            <main id="main-content" tabIndex={-1}>
+              <ScoresProvider>{children}</ScoresProvider>
+            </main>
           </LocaleProvider>
         </div>
         <Analytics />

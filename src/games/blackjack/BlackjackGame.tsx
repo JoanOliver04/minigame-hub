@@ -152,7 +152,7 @@ export function BlackjackGame() {
   );
 
   const hint =
-    showHint && dealerCards.length > 0 ? suggestAction(playerValue, dealerCards[0]) : null;
+    showHint && dealerCards.length > 0 ? suggestAction(playerCards, dealerCards[0]) : null;
 
   let feedback: React.ReactNode = t.blackjack.yourTurn;
   let feedbackClass = "";

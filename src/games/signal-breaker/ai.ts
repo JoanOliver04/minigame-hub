@@ -17,8 +17,8 @@
  */
 
 import type { Rng } from "@/lib/rng";
-import { allCodes, codeEqual, feedbackEqual, scoreGuess } from "./logic";
-import type { Code, GuessRow, SignalDifficulty } from "./types";
+import { allCodes, feedbackEqual, scoreGuess } from "./logic";
+import { CODE_LENGTH, type Code, type GuessRow, type SignalDifficulty } from "./types";
 
 /** Codes still consistent with every (guess, feedback) pair seen so far. */
 export function consistentCodes(
@@ -35,16 +35,22 @@ export function consistentCodes(
  * largest number of candidates that would survive any single feedback
  * response. Lower is better (Knuth minimax).
  */
-function worstCasePartition(guess: Code, remaining: Code[]): number {
-  const buckets = new Map<string, number>();
+const BUCKET_WIDTH = CODE_LENGTH + 1;
+const codeKey = (code: Code) => code.join(",");
+const outcome = (secret: Code, guess: Code) => {
+  const feedback = scoreGuess(secret, guess);
+  return feedback.exact * BUCKET_WIDTH + feedback.partial;
+};
+
+function partition(guess: Code, remaining: Code[]): { worst: number; expected: number } {
+  const buckets = Array<number>(BUCKET_WIDTH ** 2).fill(0);
   for (const code of remaining) {
-    const fb = scoreGuess(code, guess);
-    const key = `${fb.exact},${fb.partial}`;
-    buckets.set(key, (buckets.get(key) ?? 0) + 1);
+    buckets[outcome(code, guess)]++;
   }
-  let worst = 0;
-  for (const size of buckets.values()) if (size > worst) worst = size;
-  return worst;
+  return {
+    worst: Math.max(...buckets),
+    expected: buckets.reduce((sum, size) => sum + size * size, 0),
+  };
 }
 
 export function aiPickGuess(
@@ -66,18 +72,20 @@ export function aiPickGuess(
     return rng.pick(remaining);
   }
 
-  // Medium samples candidate guesses to stay cheap; Hard evaluates all.
-  const guessPool =
-    difficulty === "medium" && remaining.length > 60
-      ? sample(remaining, 60, rng)
-      : remaining;
+  const possible = new Set(remaining.map(codeKey));
+  const budget = 70_000;
+  const extra = Math.max(0, Math.floor(budget / remaining.length) - remaining.length);
+  const guessPool = difficulty === "medium" ? sample(remaining, 60, rng)
+    : [...remaining, ...sample(universe.filter((guess) => !possible.has(codeKey(guess))), extra, rng)];
 
   let best: Code = guessPool[0];
   let bestWorst = Infinity;
+  let bestExpected = Infinity;
   for (const guess of guessPool) {
-    const worst = worstCasePartition(guess, remaining);
-    if (worst < bestWorst) {
+    const { worst, expected } = partition(guess, remaining);
+    if (worst < bestWorst || (worst === bestWorst && expected < bestExpected)) {
       bestWorst = worst;
+      bestExpected = expected;
       best = guess;
     }
   }
@@ -105,25 +113,25 @@ export function aiPickSecret(
   if (difficulty !== "hard" || playerOpeningGuesses.length === 0) {
     return rng.pick(universe);
   }
-  // Score a sampled set of secrets to keep this affordable.
-  const secretPool = sample(universe, 120, rng);
-  let best: Code = secretPool[0];
-  let bestScore = -Infinity;
-  for (const secret of secretPool) {
-    let score = 0;
-    for (const opener of playerOpeningGuesses) {
-      const fb = scoreGuess(secret, opener);
-      // Candidates left after applying this opener's feedback to the secret.
-      const left = universe.filter((code) => feedbackEqual(scoreGuess(code, opener), fb)).length;
-      score += left;
-    }
-    // Prefer secrets the player's openers don't immediately narrow, but not
-    // one the opener already solves (that would be an instant loss).
-    const solvedByOpener = playerOpeningGuesses.some((o) => codeEqual(o, secret));
-    if (!solvedByOpener && score > bestScore) {
-      bestScore = score;
-      best = secret;
-    }
+  // Build each feedback histogram once and reuse it for every candidate.
+  const openers = playerOpeningGuesses.slice(-12);
+  const openerKeys = new Set(openers.map(codeKey));
+  const scores = Array<number>(universe.length).fill(0);
+  for (const opener of openers) {
+    const feedback = universe.map((secret) => outcome(secret, opener));
+    const buckets = Array<number>(BUCKET_WIDTH ** 2).fill(0);
+    for (const key of feedback) buckets[key]++;
+    feedback.forEach((key, index) => { scores[index] += buckets[key]; });
   }
-  return best;
+  let best: Code[] = [];
+  let bestScore = -Infinity;
+  universe.forEach((secret, index) => {
+    if (openerKeys.has(codeKey(secret))) return;
+    if (scores[index] > bestScore) {
+      bestScore = scores[index];
+      best = [];
+    }
+    if (scores[index] === bestScore) best.push(secret);
+  });
+  return rng.pick(best.length ? best : universe);
 }

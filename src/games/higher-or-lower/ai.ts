@@ -40,10 +40,6 @@ export function calculateRemainingProbabilities(
   return counts;
 }
 
-function randomHigherOrLower(): Prediction {
-  return randomInt(0, 1) === 0 ? "higher" : "lower";
-}
-
 function chooseMaximum(
   counts: RankProbabilities,
   allowSame: boolean,
@@ -57,8 +53,8 @@ function chooseMaximum(
 }
 
 /**
- * Medium knows the standard rank distribution but does not remember dealt
- * cards. Only the visible card is removed from its nominal 52-card deck.
+ * Nominal counts with the visible card removed. This gives Easy a legal
+ * guess at either end of the rank range and Medium a starting prior.
  */
 function nominalProbabilities(currentCard: Card, aceHigh: boolean): RankProbabilities {
   const currentValue = cardValue(currentCard, aceHigh);
@@ -76,16 +72,27 @@ export function aiPickPrediction(
   remainingDeck: Deck,
   config: HigherOrLowerConfig,
 ): Prediction {
-  if (config.difficulty === "easy") return randomHigherOrLower();
-
-  if (config.difficulty === "medium") {
-    // Medium deliberately chooses only Higher/Lower, as specified.
-    return chooseMaximum(nominalProbabilities(currentCard, config.aceHigh), false);
+  const nominal = nominalProbabilities(currentCard, config.aceHigh);
+  if (config.difficulty === "easy") {
+    const plausible = (["higher", "lower"] as const).filter((prediction) => nominal[prediction] > 0);
+    return plausible[randomInt(0, plausible.length - 1)];
   }
 
-  return chooseMaximum(
-    calculateRemainingProbabilities(currentCard, remainingDeck, config.aceHigh),
-    config.allowSame,
-  );
+  const counted = calculateRemainingProbabilities(currentCard, remainingDeck, config.aceHigh);
+
+  if (config.difficulty === "medium") {
+    // Learn from card counts as public draws accumulate. A retained prior
+    // keeps Medium less exact than the complete count on Hard.
+    const evidence = Math.min(0.7, Math.max(0, (nominal.total - counted.total) / 30));
+    const prior = (counted.total / nominal.total) * (1 - evidence);
+    return chooseMaximum({
+      higher: counted.higher ? evidence * counted.higher + prior * nominal.higher : 0,
+      lower: counted.lower ? evidence * counted.lower + prior * nominal.lower : 0,
+      same: counted.same ? evidence * counted.same + prior * nominal.same : 0,
+      total: counted.total,
+    }, config.allowSame);
+  }
+
+  return chooseMaximum(counted, config.allowSame);
 }
 

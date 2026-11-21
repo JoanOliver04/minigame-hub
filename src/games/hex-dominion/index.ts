@@ -1,1 +1,9 @@
-import type{GameDefinition}from"../types";import{HexDominionGame}from"./HexDominionGame";export const hexDominionGame:GameDefinition={id:"hex-dominion",icon:"⬡",hasTies:false,Component:HexDominionGame,supportsMultiplayer:true};
+import type { GameDefinition } from "../types";
+
+export const hexDominionGame = {
+  id: "hex-dominion",
+  icon: "⬡",
+  category: "strategy",
+  hasTies: false,
+  supportsMultiplayer: true,
+} as const satisfies GameDefinition;

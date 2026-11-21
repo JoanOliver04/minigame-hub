@@ -125,7 +125,7 @@ export async function submitWordGuess(
   kind: GuessKind,
   rawValue: string,
 ): Promise<void> {
-  await runRoomUpdate<WordRoomGame>(code, (room) => {
+  await runRoomUpdate<WordRoomGame>(code, "word-guess", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
 
@@ -164,7 +164,7 @@ export async function submitWordGuess(
 }
 
 export async function resetWordRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<WordRoomGame>(code, (room) => {
+  await runRoomUpdate<WordRoomGame>(code, "word-guess", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

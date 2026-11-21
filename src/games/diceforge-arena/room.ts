@@ -94,7 +94,19 @@ function dealGame(order: string[]): ForgeRoomGame {
 
 /** Host-only placeholder while the room is still "waiting" — see seedForgeRoomGame. */
 export function createInitialForgeRoomGame(): ForgeRoomGame {
-  return dealGame(["", ""]);
+  return {
+    round: 1,
+    stage: "lock",
+    fighters: {},
+    rolls: {},
+    locked: {},
+    results: {},
+    shop: [],
+    shopDone: {},
+    order: [],
+    finished: false,
+    winnerUid: null,
+  };
 }
 
 /** Real seed, once both uids are known (called by joinRoom). */
@@ -132,7 +144,8 @@ function advanceRound(g: ForgeRoomGame): Partial<ForgeRoomGame> {
 }
 
 export async function lockAndReroll(code: string, uid: string, lock: number): Promise<void> {
-  await runRoomUpdate<ForgeRoomGame>(code, (room) => {
+  if (!Number.isInteger(lock) || lock < 0 || lock >= DICE_COUNT) return;
+  await runRoomUpdate<ForgeRoomGame>(code, "diceforge-arena", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.stage !== "lock" || g.locked[uid] !== null) {
       return null;
@@ -177,7 +190,7 @@ async function finishShop(
   uid: string,
   purchase: ((f: Fighter) => Fighter | null) | null,
 ): Promise<void> {
-  await runRoomUpdate<ForgeRoomGame>(code, (room) => {
+  await runRoomUpdate<ForgeRoomGame>(code, "diceforge-arena", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.stage !== "shop" || g.shopDone[uid]) return null;
 
@@ -216,7 +229,7 @@ export async function skipForgeShop(code: string, uid: string): Promise<void> {
 }
 
 export async function resetForgeRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ForgeRoomGame>(code, (room) => {
+  await runRoomUpdate<ForgeRoomGame>(code, "diceforge-arena", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

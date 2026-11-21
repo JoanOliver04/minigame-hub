@@ -7,20 +7,20 @@
  * or asks for one if this is the first time on this device.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import { ensureSignedIn } from "@/lib/firebase/anonAuth";
 import { isRoomExpired } from "@/lib/rooms/expiry";
 import { joinRoom, subscribeRoom, switchRoomGame } from "@/lib/rooms/roomsApi";
 import type { RoomDoc } from "@/lib/rooms/types";
-import { usePlayerName } from "@/lib/rooms/usePlayerName";
+import { MAX_PLAYER_NAME_LENGTH, usePlayerName } from "@/lib/rooms/usePlayerName";
 import { GAMES } from "@/games/registry";
 import { getRoomGame } from "@/games/roomRegistry";
 import type { RoomGameSettings } from "@/games/roomTypes";
 
 type ClientPhase = "connecting" | "not-found" | "error" | "ready";
+const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
 
 export function RoomClient({ code }: { code: string }) {
   const { t } = useLocale();
@@ -30,11 +30,7 @@ export function RoomClient({ code }: { code: string }) {
   const [room, setRoom] = useState<RoomDoc | null>(null);
   const [phase, setPhase] = useState<ClientPhase>("connecting");
   const [joining, setJoining] = useState(false);
-  const [draftGameId, setDraftGameId] = useState("");
-  const [draftSettings, setDraftSettings] = useState<RoomGameSettings>({});
-  const [switching, setSwitching] = useState(false);
   const autoJoinedRef = useRef(false);
-  const lastSyncedRoomRef = useRef("");
 
   useEffect(() => {
     let cancelled = false;
@@ -53,7 +49,9 @@ export function RoomClient({ code }: { code: string }) {
           () => setPhase("error"),
         );
       })
-      .catch(() => setPhase("error"));
+      .catch(() => {
+        if (!cancelled) setPhase("error");
+      });
 
     return () => {
       cancelled = true;
@@ -61,19 +59,7 @@ export function RoomClient({ code }: { code: string }) {
     };
   }, [code]);
 
-  useEffect(() => {
-    if (!room) return;
-    const syncKey = `${room.gameId}:${JSON.stringify(room.gameSettings ?? {})}`;
-    if (lastSyncedRoomRef.current === syncKey) return;
-    lastSyncedRoomRef.current = syncKey;
-    const timer = setTimeout(() => {
-      setDraftGameId(room.gameId);
-      setDraftSettings(room.gameSettings ?? {});
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [room]);
-
-  const alreadySeated = Boolean(uid && room?.players[uid]);
+  const alreadySeated = Boolean(uid && room && Object.hasOwn(room.players, uid));
   const isHost = Boolean(uid && room?.hostUid === uid);
   const expired = Boolean(room && isRoomExpired(room));
   const roomIsJoinable =
@@ -83,46 +69,49 @@ export function RoomClient({ code }: { code: string }) {
     !expired;
   const needsToJoin = Boolean(uid && room && !alreadySeated && roomIsJoinable);
 
-  async function handleJoin(joinName: string) {
-    if (!uid || !room || joining) return;
-    const roomGame = getRoomGame(room.gameId);
-    if (!roomGame) return;
+  const joinInFlight = useRef(false);
+  const handleJoin = useCallback(async (joinName: string) => {
+    if (!uid || joinInFlight.current) return;
+    joinInFlight.current = true;
     setJoining(true);
     try {
-      await joinRoom(code, uid, joinName, roomGame.seedGame);
+      await joinRoom(code, uid, joinName, async (gameId) => (await getRoomGame(gameId)?.loadLogic())?.seedGame);
       if (joinName !== name) setName(joinName);
     } catch {
       setPhase("error");
     } finally {
+      joinInFlight.current = false;
       setJoining(false);
     }
-  }
+  }, [code, name, setName, uid]);
 
   useEffect(() => {
     if (needsToJoin && name.trim() && !autoJoinedRef.current) {
       autoJoinedRef.current = true;
       void handleJoin(name.trim());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsToJoin, name]);
-
-  if (phase === "connecting" || !uid) {
-    return (
-      <section className="card screen">
-        <p>{t.rooms.connecting}</p>
-      </section>
-    );
-  }
+  }, [handleJoin, needsToJoin, name]);
 
   if (phase === "error") {
     return (
       <section className="card screen">
-        <p>{t.rooms.errorGeneric}</p>
+        <p role="alert">{t.rooms.errorGeneric}</p>
+        <div className="btn-row">
+          <Link href="/rooms" className="btn">{t.rooms.backToRooms}</Link>
+        </div>
       </section>
     );
   }
 
-  if (phase === "not-found" || !room || (!alreadySeated && !roomIsJoinable)) {
+  if (phase === "connecting" || !uid) {
+    return (
+      <section className="card screen">
+        <p role="status">{t.rooms.connecting}</p>
+      </section>
+    );
+  }
+
+  if (phase === "not-found" || !room || expired || (!alreadySeated && !roomIsJoinable)) {
     const message = expired ? t.rooms.roomExpired : t.rooms.roomNotFound;
     return (
       <section className="card screen">
@@ -139,22 +128,20 @@ export function RoomClient({ code }: { code: string }) {
   if (needsToJoin && !name.trim()) {
     return (
       <section className="card screen">
-        <span className="field-label">{t.rooms.yourNameLabel}</span>
-        <input
-          className="text-input"
-          value={nameDraft}
-          onChange={(event) => setNameDraft(event.target.value.slice(0, 24))}
-          placeholder={t.rooms.namePlaceholder}
-        />
-        <div className="btn-row" style={{ marginTop: 22 }}>
-          <button
-            className="btn primary"
-            disabled={joining || !nameDraft.trim()}
-            onClick={() => void handleJoin(nameDraft.trim())}
-          >
-            {t.rooms.joinButton}
-          </button>
-        </div>
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          if (nameDraft.trim()) void handleJoin(nameDraft.trim());
+        }}>
+          <label htmlFor="invite-player-name" className="field-label">{t.rooms.yourNameLabel}</label>
+          <input id="invite-player-name" className="text-input" value={nameDraft}
+            onChange={(event) => setNameDraft(event.target.value)} maxLength={MAX_PLAYER_NAME_LENGTH}
+            placeholder={t.rooms.namePlaceholder} />
+          <div className="btn-row room-form-actions">
+            <button type="submit" className="btn primary" disabled={joining || !nameDraft.trim()}>
+              {t.rooms.joinButton}
+            </button>
+          </div>
+        </form>
       </section>
     );
   }
@@ -171,16 +158,47 @@ export function RoomClient({ code }: { code: string }) {
   if (!roomGame) {
     return (
       <section className="card screen">
-        <p>{t.rooms.errorGeneric}</p>
+        <p role="alert">{t.rooms.errorGeneric}</p>
+        <Link href="/rooms" className="btn">{t.rooms.backToRooms}</Link>
       </section>
     );
   }
 
-  const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
-  const selectedGameId = draftGameId || room.gameId;
+  const revision = room.gameRevision ?? 0;
+  const currentGameName = t.gamesMeta[room.gameId]?.name ?? room.gameId;
+  const RoomComponent = roomGame.RoomComponent;
+  const selectionKey = `${room.gameId}:${revision}:${JSON.stringify(room.gameSettings ?? {})}`;
+
+  return (
+    <>
+      <section className="card room-control-panel">
+        <div className="room-control-heading">
+          <div>
+            <span className="field-label">{t.rooms.roomCodeLabel}</span>
+            <div className="end-number">{room.code}</div>
+          </div>
+          <div>
+            <span className="field-label">{t.rooms.currentGameLabel}</span>
+            <strong aria-live="polite">{currentGameName}</strong>
+          </div>
+        </div>
+        {isHost ? (
+          <RoomSettings key={selectionKey} room={room} uid={uid} />
+        ) : <p>{t.rooms.guestSettingsHint}</p>}
+      </section>
+      <RoomComponent key={selectionKey} code={code} />
+    </>
+  );
+}
+
+function RoomSettings({ room, uid }: { room: RoomDoc; uid: string }) {
+  const { t } = useLocale();
+  const [selectedGameId, setSelectedGameId] = useState(room.gameId);
+  const [draftSettings, setDraftSettings] = useState<RoomGameSettings>(room.gameSettings ?? {});
+  const [switching, setSwitching] = useState(false);
+  const [failed, setFailed] = useState(false);
   const selectedRoomGame = getRoomGame(selectedGameId);
   const selectedSettings = selectedRoomGame?.settings ?? [];
-  const currentGameName = t.gamesMeta[room.gameId]?.name ?? room.gameId;
 
   function translatedSettingLabel(key: string, fallback: string) {
     return t.rooms.settingLabels[key] ?? fallback;
@@ -192,86 +210,67 @@ export function RoomClient({ code }: { code: string }) {
 
   function changeDraftGame(nextGameId: string) {
     const nextRoomGame = getRoomGame(nextGameId);
-    setDraftGameId(nextGameId);
+    setSelectedGameId(nextGameId);
     setDraftSettings(nextRoomGame?.defaultSettings ?? {});
   }
 
   async function applyRoomSelection() {
-    if (!uid || !selectedRoomGame || switching || !isHost) return;
+    if (!selectedRoomGame || switching) return;
     setSwitching(true);
+    setFailed(false);
     try {
+      const { createInitialGame, seedGame } = await selectedRoomGame.loadLogic();
       await switchRoomGame(
-        code,
+        room.code,
         uid,
         selectedGameId,
         draftSettings,
-        selectedRoomGame.createInitialGame,
-        selectedRoomGame.seedGame,
+        createInitialGame,
+        seedGame,
       );
     } catch {
-      setPhase("error");
+      setFailed(true);
     } finally {
       setSwitching(false);
     }
   }
 
-  const RoomComponent = roomGame.RoomComponent;
   return (
-    <>
-      <section className="card room-control-panel">
-        <div className="room-control-heading">
-          <div>
-            <span className="field-label">{t.rooms.roomCodeLabel}</span>
-            <div className="end-number">{room.code}</div>
-          </div>
-          <div>
-            <span className="field-label">{t.rooms.currentGameLabel}</span>
-            <strong>{currentGameName}</strong>
-          </div>
-        </div>
-
-        <h2>{t.rooms.roomSettingsTitle}</h2>
-        <p>{isHost ? t.rooms.hostSettingsHint : t.rooms.guestSettingsHint}</p>
-
-        {isHost && (
-          <>
-            <span className="field-label">{t.rooms.chooseGameLabel}</span>
-            <SegPicker
-              options={multiplayerGames.map((game) => ({
-                value: game.id,
-                label: `${game.icon} ${t.gamesMeta[game.id]?.name ?? game.id}`,
-              }))}
-              value={selectedGameId}
-              onChange={changeDraftGame}
-            />
-
-            {selectedSettings.map((setting) => (
-              <div key={setting.key}>
-                <span className="field-label">
-                  {translatedSettingLabel(setting.key, setting.label)}
-                </span>
-                <SegPicker
-                  options={setting.options.map((option) => ({
-                    value: option.value,
-                    label: translatedOptionLabel(setting.key, option.value, option.label),
-                  }))}
-                  value={draftSettings[setting.key] ?? selectedRoomGame?.defaultSettings?.[setting.key] ?? setting.options[0]?.value ?? ""}
-                  onChange={(value) =>
-                    setDraftSettings((current) => ({ ...current, [setting.key]: value }))
-                  }
-                />
-              </div>
+    <details className="room-settings">
+      <summary>{t.rooms.roomSettingsTitle}</summary>
+      <p>{t.rooms.hostSettingsHint}</p>
+      <label className="field-label" htmlFor="active-room-game">{t.rooms.chooseGameLabel}</label>
+      <select id="active-room-game" className="text-input" value={selectedGameId}
+        disabled={switching} onChange={(event) => changeDraftGame(event.target.value)}>
+        {multiplayerGames.map((game) => (
+          <option key={game.id} value={game.id}>{game.icon} {t.gamesMeta[game.id].name}</option>
+        ))}
+      </select>
+      {selectedSettings.map((setting) => (
+        <div key={setting.key}>
+          <label className="field-label" htmlFor={`room-setting-${setting.key}`}>
+            {translatedSettingLabel(setting.key, setting.label)}
+          </label>
+          <select id={`room-setting-${setting.key}`} className="text-input" disabled={switching}
+            value={draftSettings[setting.key] ?? selectedRoomGame?.defaultSettings?.[setting.key] ?? setting.options[0]?.value ?? ""}
+            onChange={(event) => {
+              const value = event.target.value;
+              setDraftSettings((current) => ({ ...current, [setting.key]: value }));
+            }}>
+            {setting.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {translatedOptionLabel(setting.key, option.value, option.label)}
+              </option>
             ))}
-
-            <div className="btn-row" style={{ marginTop: 14 }}>
-              <button className="btn primary" disabled={switching} onClick={applyRoomSelection}>
-                {switching ? t.rooms.changingGame : t.rooms.applyRoomSettings}
-              </button>
-            </div>
-          </>
-        )}
-      </section>
-      <RoomComponent key={`${room.gameId}:${JSON.stringify(room.gameSettings ?? {})}`} code={code} />
-    </>
+          </select>
+        </div>
+      ))}
+      <div className="btn-row room-form-actions">
+        <button type="button" className="btn primary" disabled={switching} onClick={applyRoomSelection}>
+          {switching ? t.rooms.changingGame : t.rooms.applyRoomSettings}
+        </button>
+      </div>
+      {failed && <p role="alert">{t.rooms.errorGeneric}</p>}
+    </details>
   );
 }

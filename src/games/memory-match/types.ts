@@ -18,6 +18,8 @@ export interface MemoryConfig {
 export interface AIMemoryStore {
   /** Board index -> symbol observed and retained by the AI. */
   knownTiles: Record<number, string>;
+  /** Number of public reveals seen before a tile was retained. */
+  exposures?: Record<number, number>;
 }
 
 export type MemoryFeedback =

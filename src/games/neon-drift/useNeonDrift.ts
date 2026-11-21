@@ -20,6 +20,7 @@ import { playSound } from "@/lib/sound";
 import { aiControl, createAiMemory, type AiMemory } from "./ai";
 import { boostEfficiency, raceResult, type RaceOutcome } from "./logic";
 import { initialCar, stepCar } from "./physics";
+import { useDriftControls } from "./useDriftControls";
 import { getTrack, type TrackDef } from "./tracks";
 import type { CarState, ControlInput, DriftDifficulty } from "./types";
 import { FIXED_DT, MAX_FRAME_DELTA, TOTAL_LAPS } from "./types";
@@ -189,33 +190,7 @@ export function useNeonDrift() {
     inputRef.current = { ...inputRef.current, ...partial };
   }, []);
 
-  // Keyboard controls. Throttle is auto-held (blueprint §5.3: held
-  // automatically on mobile, and an always-on throttle keeps desktop and
-  // touch identical); the player steers, brakes, and boosts.
-  useEffect(() => {
-    if (phase !== "racing") return;
-    const down = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      if (k === "arrowleft" || k === "a") setInput({ steer: -1 });
-      else if (k === "arrowright" || k === "d") setInput({ steer: 1 });
-      else if (k === "arrowdown" || k === "s") setInput({ brake: 1 });
-      else if (k === " ") setInput({ boost: true });
-      else return;
-      e.preventDefault();
-    };
-    const up = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      if (k === "arrowleft" || k === "a" || k === "arrowright" || k === "d") setInput({ steer: 0 });
-      else if (k === "arrowdown" || k === "s") setInput({ brake: 0 });
-      else if (k === " ") setInput({ boost: false });
-    };
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    return () => {
-      window.removeEventListener("keydown", down);
-      window.removeEventListener("keyup", up);
-    };
-  }, [phase, setInput]);
+  const bindControl = useDriftControls(phase === "racing", setInput);
 
   const playAgain = useCallback(() => startRace(), [startRace]);
 
@@ -239,7 +214,7 @@ export function useNeonDrift() {
     track: activeTrack,
     reducedMotion,
     startRace,
-    setInput,
+    bindControl,
     playAgain,
     toSetup,
     boostEfficiency,

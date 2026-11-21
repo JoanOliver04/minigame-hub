@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { ShadowProtocolGame } from "./ShadowProtocolGame";
 
-export const shadowProtocolGame: GameDefinition = {
+export const shadowProtocolGame = {
   id: "shadow-protocol",
   icon: "🕶️",
+  category: "strategy",
   hasTies: false,
-  Component: ShadowProtocolGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

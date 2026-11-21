@@ -79,7 +79,7 @@ function decideWinner(g: SignalRoomGame, uids: string[]): string | null {
 }
 
 export async function submitSignalGuess(code: string, uid: string, guess: Code): Promise<void> {
-  await runRoomUpdate<SignalRoomGame>(code, (room) => {
+  await runRoomUpdate<SignalRoomGame>(code, "signal-breaker", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.done[uid]) return null;
 
@@ -108,7 +108,7 @@ export async function submitSignalGuess(code: string, uid: string, guess: Code):
 }
 
 export async function resetSignalRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<SignalRoomGame>(code, (room) => {
+  await runRoomUpdate<SignalRoomGame>(code, "signal-breaker", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

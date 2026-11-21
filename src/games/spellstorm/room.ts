@@ -17,10 +17,9 @@
 
 "use client";
 
-import { arrayUnion, doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
+import { arrayUnion } from "firebase/firestore";
 import { randomSeed } from "@/lib/rng";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import { createMage } from "./logic";
 import type { Element, Mage } from "./types";
 import { MATCH_SECONDS } from "./types";
@@ -74,9 +73,8 @@ export function seedStormRoomGame(
 
 /** Mirror this client's own mage into the doc (for the opponent's HUD). */
 export async function pushMage(code: string, uid: string, mage: Mage): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "spellstorm", {
     [`game.mages.${uid}`]: mage,
-    updatedAt: serverTimestamp(),
   });
 }
 
@@ -87,25 +85,23 @@ export async function pushCast(
   mage: Mage,
   event: StormSpellEvent,
 ): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "spellstorm", {
     [`game.mages.${uid}`]: mage,
     [`game.spells.${uid}`]: arrayUnion(event),
-    updatedAt: serverTimestamp(),
   });
 }
 
 /** Finish this client's bout (timer up or knocked out); resolves once both are done. */
 export async function finishStorm(code: string, uid: string, mage: Mage): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "spellstorm", {
     [`game.mages.${uid}`]: mage,
     [`game.done.${uid}`]: true,
-    updatedAt: serverTimestamp(),
   });
 }
 
 /** Called by both clients once both bouts are done; decides the winner once. */
 export async function resolveStormIfReady(code: string): Promise<void> {
-  await runRoomUpdate<StormRoomGame>(code, (room) => {
+  await runRoomUpdate<StormRoomGame>(code, "spellstorm", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -121,7 +117,7 @@ export async function resolveStormIfReady(code: string): Promise<void> {
 }
 
 export async function resetStormRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<StormRoomGame>(code, (room) => {
+  await runRoomUpdate<StormRoomGame>(code, "spellstorm", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

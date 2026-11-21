@@ -1,12 +1,6 @@
 /**
- * Mini-game registry — adding a game touches exactly three places:
- *   1. Create src/games/<id>/ with logic.ts, ai.ts, use<Name>.ts, <Name>.tsx, index.ts
- *   2. Import its GameDefinition here and append it to GAMES.
- *   3. Add its display name/description under `gamesMeta.<id>` in
- *      src/lib/i18n/dictionaries.tsx (both locales) — the hub card and
- *      stats row read it and require it to exist.
- * The hub cards, the /games/[gameId] route, and the scoreboard all
- * derive from this list automatically.
+ * Catalogue for the hub, static routes and scoreboard. Keep each index
+ * free of gameplay imports. GameScreen loads the selected game on its route.
  */
 
 import type { GameDefinition } from "./types";
@@ -40,7 +34,7 @@ import { tileRummyGame } from "./tile-rummy";
 import { windlineArcheryGame } from "./windline-archery";
 import { wordGuessGame } from "./word-guess";
 
-export const GAMES: GameDefinition[] = [
+export const GAMES = [
   guessGame,
   rpsGame,
   tttGame,
@@ -70,8 +64,11 @@ export const GAMES: GameDefinition[] = [
   diceforgeArenaGame,
   hexDominionGame,
   spellstormGame,
-];
+] as const satisfies readonly GameDefinition[];
 
-export function getGame(id: string): GameDefinition | undefined {
+export type ListedGame = (typeof GAMES)[number];
+export type GameId = ListedGame["id"];
+
+export function getGame(id: string): ListedGame | undefined {
   return GAMES.find((game) => game.id === id);
 }

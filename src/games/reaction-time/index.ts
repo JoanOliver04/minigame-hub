@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { ReactionTimeGame } from "./ReactionTimeGame";
 
-export const reactionTimeGame: GameDefinition = {
+export const reactionTimeGame = {
   id: "reaction-time",
   icon: "⚡",
+  category: "action",
   hasTies: true,
-  Component: ReactionTimeGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

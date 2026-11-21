@@ -17,9 +17,7 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import { createRound, resolveTick } from "./logic";
 import { ROUND_TARGET } from "./types";
 import type { CycleState, TurnAction } from "./types";
@@ -97,15 +95,14 @@ export async function submitBreakerAction(
   uid: string,
   action: TurnAction,
 ): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "circuit-breaker", {
     [`game.pending.${uid}`]: action,
-    updatedAt: serverTimestamp(),
   });
 }
 
 /** Called by both clients' listeners once both turns are in; resolves the tick once. */
 export async function resolveBreakerTickIfReady(code: string): Promise<void> {
-  await runRoomUpdate<BreakerRoomGame>(code, (room) => {
+  await runRoomUpdate<BreakerRoomGame>(code, "circuit-breaker", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -187,7 +184,7 @@ export async function resolveBreakerTickIfReady(code: string): Promise<void> {
 }
 
 export async function resetBreakerRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<BreakerRoomGame>(code, (room) => {
+  await runRoomUpdate<BreakerRoomGame>(code, "circuit-breaker", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

@@ -1,11 +1,9 @@
 import type { GameDefinition } from "../types";
-import { PenaltyKickGame } from "./PenaltyKickGame";
 
-export const penaltyKickGame: GameDefinition = {
+export const penaltyKickGame = {
   id: "penalty-kick",
   icon: "⚽",
+  category: "action",
   hasTies: false,
-  Component: PenaltyKickGame,
   supportsMultiplayer: true,
-};
-
+} as const satisfies GameDefinition;

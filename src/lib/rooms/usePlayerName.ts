@@ -1,40 +1,14 @@
 "use client";
 
-/**
- * Display name for the rooms feature, persisted in localStorage. Same
- * post-mount hydration pattern as ScoresContext/LocaleContext (default
- * empty string during SSR, load once on mount, persist after that) — but
- * scoped as a local hook rather than a global context, since only /rooms/*
- * screens need it.
- */
-
-import { useEffect, useRef, useState } from "react";
+import { useStoredPreference } from "@/lib/useStoredPreference";
 
 const STORAGE_KEY = "miniHubPlayerName_v1";
+export const MAX_PLAYER_NAME_LENGTH = 24;
 
-export function usePlayerName(): [string, (name: string) => void] {
-  const [name, setName] = useState("");
-  const loaded = useRef(false);
+function parseName(value: string | null) {
+  return value?.slice(0, MAX_PLAYER_NAME_LENGTH) ?? null;
+}
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (raw) setName(raw);
-    } catch {
-      /* corrupt or blocked storage — start fresh */
-    }
-    loaded.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (!loaded.current) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, name);
-    } catch {
-      /* storage blocked — ignore */
-    }
-  }, [name]);
-
-  return [name, setName];
+export function usePlayerName() {
+  return useStoredPreference<string>(STORAGE_KEY, "", parseName);
 }

@@ -21,7 +21,7 @@ export async function playDominoRoomTile(
   tileId: string,
   side: DominoSide,
 ): Promise<void> {
-  await runRoomUpdate<DominoRoomGame>(code, (room) => {
+  await runRoomUpdate<DominoRoomGame>(code, "domino", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = playDominoTile(room.game, uid, tileId, side);
     if (next === room.game) return null;
@@ -30,7 +30,7 @@ export async function playDominoRoomTile(
 }
 
 export async function drawDominoRoomTile(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<DominoRoomGame>(code, (room) => {
+  await runRoomUpdate<DominoRoomGame>(code, "domino", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = drawDominoTile(room.game, uid);
     if (next === room.game) return null;
@@ -39,7 +39,7 @@ export async function drawDominoRoomTile(code: string, uid: string): Promise<voi
 }
 
 export async function passDominoRoomTurn(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<DominoRoomGame>(code, (room) => {
+  await runRoomUpdate<DominoRoomGame>(code, "domino", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = passDominoTurn(room.game, uid);
     if (next === room.game) return null;
@@ -48,7 +48,7 @@ export async function passDominoRoomTurn(code: string, uid: string): Promise<voi
 }
 
 export async function resetDominoRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<DominoRoomGame>(code, (room) => {
+  await runRoomUpdate<DominoRoomGame>(code, "domino", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

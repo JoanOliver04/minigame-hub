@@ -37,7 +37,7 @@ export async function playPrismRoomCard(
   cardIndex: number,
   chosenColor?: PrismColor,
 ): Promise<void> {
-  await runRoomUpdate<PrismRoomGame>(code, (room) => {
+  await runRoomUpdate<PrismRoomGame>(code, "prism-clash", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished || game.turn !== uid) return null;
     const next = playPrismCard(game, uid, cardIndex, chosenColor);
@@ -47,7 +47,7 @@ export async function playPrismRoomCard(
 }
 
 export async function drawPrismRoomCard(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<PrismRoomGame>(code, (room) => {
+  await runRoomUpdate<PrismRoomGame>(code, "prism-clash", (room) => {
     const game = room.game;
     if (
       room.status !== "playing" ||
@@ -63,7 +63,7 @@ export async function drawPrismRoomCard(code: string, uid: string): Promise<void
 }
 
 export async function resetPrismRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<PrismRoomGame>(code, (room) => {
+  await runRoomUpdate<PrismRoomGame>(code, "prism-clash", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

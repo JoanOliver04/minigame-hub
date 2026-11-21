@@ -1,1 +1,9 @@
-import type{GameDefinition}from"../types";import{DiceforgeArenaGame}from"./DiceforgeArenaGame";export const diceforgeArenaGame:GameDefinition={id:"diceforge-arena",icon:"🎲",hasTies:true,Component:DiceforgeArenaGame,supportsMultiplayer:true};
+import type { GameDefinition } from "../types";
+
+export const diceforgeArenaGame = {
+  id: "diceforge-arena",
+  icon: "🎲",
+  category: "cards",
+  hasTies: true,
+  supportsMultiplayer: true,
+} as const satisfies GameDefinition;

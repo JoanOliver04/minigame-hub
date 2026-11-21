@@ -6,27 +6,23 @@
  * known at runtime, unlike /games/[gameId]'s static solo-game routes.
  */
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BackLink } from "@/components/ui/BackLink";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { ensureSignedIn } from "@/lib/firebase/anonAuth";
-import { createRoom } from "@/lib/rooms/roomsApi";
-import { usePlayerName } from "@/lib/rooms/usePlayerName";
+import { normalizeRoomCode, ROOM_CODE_LENGTH } from "@/lib/rooms/code";
+import { MAX_PLAYER_NAME_LENGTH, usePlayerName } from "@/lib/rooms/usePlayerName";
 import { GAMES } from "@/games/registry";
-import { getRoomGame } from "@/games/roomRegistry";
 
-const NAME_MAX = 24;
-const CODE_LENGTH = 6;
+const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
 
 export default function RoomsPage() {
   const { t } = useLocale();
   const router = useRouter();
   const [name, setName] = usePlayerName();
   const [tab, setTab] = useState<"create" | "join">("create");
-  const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
-  const [gameId, setGameId] = useState(multiplayerGames[0]?.id ?? "");
+  const [gameId, setGameId] = useState<string>(multiplayerGames[0]?.id ?? "");
   const [codeInput, setCodeInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,18 +33,22 @@ export default function RoomsPage() {
       setError(t.rooms.nameRequired);
       return;
     }
-    const roomGame = getRoomGame(gameId);
-    if (!roomGame) return;
-
     setBusy(true);
     setError(null);
     try {
-      const user = await ensureSignedIn();
+      const [{ ensureSignedIn }, { createRoom }, { getRoomGame }] = await Promise.all([
+        import("@/lib/firebase/anonAuth"),
+        import("@/lib/rooms/roomsApi"),
+        import("@/games/roomRegistry"),
+      ]);
+      const roomGame = getRoomGame(gameId);
+      if (!roomGame) throw new Error("Unknown room game");
+      const [user, logic] = await Promise.all([ensureSignedIn(), roomGame.loadLogic()]);
       const code = await createRoom(
         gameId,
         user.uid,
         trimmed,
-        () => roomGame.createInitialGame(roomGame.defaultSettings),
+        () => logic.createInitialGame(roomGame.defaultSettings),
         roomGame.defaultSettings ?? {},
       );
       router.push(`/rooms/${code}`);
@@ -64,13 +64,20 @@ export default function RoomsPage() {
       setError(t.rooms.nameRequired);
       return;
     }
-    const code = codeInput.trim().toUpperCase();
-    if (!code) {
-      setError(t.rooms.codeRequired);
+    const code = normalizeRoomCode(codeInput);
+    if (code === null) {
+      setError(codeInput.trim() ? t.rooms.invalidCode : t.rooms.codeRequired);
       return;
     }
     setError(null);
     router.push(`/rooms/${code}`);
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+    if (tab === "create") void handleCreate();
+    else handleJoin();
   }
 
   return (
@@ -80,60 +87,58 @@ export default function RoomsPage() {
       <h1>{t.rooms.title}</h1>
       <p>{t.rooms.tagline}</p>
 
-      <span className="field-label">{t.rooms.yourNameLabel}</span>
-      <input
-        className="text-input"
-        value={name}
-        onChange={(event) => setName(event.target.value.slice(0, NAME_MAX))}
-        placeholder={t.rooms.namePlaceholder}
-        maxLength={NAME_MAX}
-      />
-
-      <SegPicker
-        options={[
-          { value: "create", label: t.rooms.createTab },
-          { value: "join", label: t.rooms.joinTab },
-        ]}
-        value={tab}
-        onChange={(value) => setTab(value as "create" | "join")}
-      />
-
-      {tab === "create" ? (
-        <>
-          <span className="field-label">{t.rooms.chooseGameLabel}</span>
-          <SegPicker
-            options={multiplayerGames.map((game) => ({
-              value: game.id,
-              label: `${game.icon} ${t.gamesMeta[game.id]?.name ?? game.id}`,
-            }))}
-            value={gameId}
-            onChange={setGameId}
-          />
-          <div className="btn-row" style={{ marginTop: 22 }}>
-            <button className="btn primary" disabled={busy} onClick={handleCreate}>
-              {t.rooms.createButton}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <span className="field-label">{t.rooms.roomCodeLabel}</span>
-          <input
-            className="text-input"
-            value={codeInput}
-            onChange={(event) => setCodeInput(event.target.value.toUpperCase().slice(0, CODE_LENGTH))}
-            placeholder={t.rooms.codePlaceholder}
-            maxLength={CODE_LENGTH}
-          />
-          <div className="btn-row" style={{ marginTop: 22 }}>
-            <button className="btn primary" onClick={handleJoin}>
-              {t.rooms.joinButton}
-            </button>
-          </div>
-        </>
-      )}
-
-      {error && <div className="feedback lose">{error}</div>}
+      <form className="room-form" onSubmit={submit} aria-busy={busy}>
+        <label className="field-label" htmlFor="room-player-name">{t.rooms.yourNameLabel}</label>
+        <input
+          id="room-player-name"
+          className="text-input"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder={t.rooms.namePlaceholder}
+          maxLength={MAX_PLAYER_NAME_LENGTH}
+        />
+        <SegPicker
+          options={[
+            { value: "create", label: t.rooms.createTab },
+            { value: "join", label: t.rooms.joinTab },
+          ]}
+          value={tab}
+          onChange={(value) => {
+            setTab(value === "join" ? "join" : "create");
+            setError(null);
+          }}
+        />
+        {tab === "create" ? (
+          <>
+            <label className="field-label" htmlFor="room-game">{t.rooms.chooseGameLabel}</label>
+            <select id="room-game" className="text-input" value={gameId} onChange={(event) => setGameId(event.target.value)}>
+              {multiplayerGames.map((game) => (
+                <option key={game.id} value={game.id}>{game.icon} {t.gamesMeta[game.id].name}</option>
+              ))}
+            </select>
+          </>
+        ) : (
+          <>
+            <label className="field-label" htmlFor="join-room-code">{t.rooms.roomCodeLabel}</label>
+            <input
+              id="join-room-code"
+              className="text-input"
+              value={codeInput}
+              onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
+              placeholder={t.rooms.codePlaceholder}
+              maxLength={ROOM_CODE_LENGTH}
+              autoCapitalize="characters"
+              autoComplete="off"
+            />
+          </>
+        )}
+        <div className="btn-row room-form-actions">
+          <button className="btn primary" type="submit" disabled={busy}>
+            {tab === "create" ? t.rooms.createButton : t.rooms.joinButton}
+          </button>
+        </div>
+        {error && <div className="feedback lose" role="alert">{error}</div>}
+      </form>
     </section>
   );
 }

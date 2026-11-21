@@ -83,7 +83,7 @@ export function seedFleetRoomGame(
 
 /** Reshuffle this seat's fleet during placement (client passes a fresh legal fleet). */
 export async function placeFleet(code: string, uid: string, ships: Ship[]): Promise<void> {
-  await runRoomUpdate<FleetRoomGame>(code, (room) => {
+  await runRoomUpdate<FleetRoomGame>(code, "fleet-command", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.phase !== "placing" || g.ready[uid]) return null;
     return { game: { ...g, fleets: { ...g.fleets, [uid]: ships } } };
@@ -92,7 +92,7 @@ export async function placeFleet(code: string, uid: string, ships: Ship[]): Prom
 
 /** Lock in this seat's fleet; when both are ready the firing phase begins. */
 export async function readyFleet(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<FleetRoomGame>(code, (room) => {
+  await runRoomUpdate<FleetRoomGame>(code, "fleet-command", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.phase !== "placing") return null;
     const ready = { ...g.ready, [uid]: true };
@@ -109,7 +109,7 @@ export async function readyFleet(code: string, uid: string): Promise<void> {
 }
 
 export async function fireShot(code: string, uid: string, index: number): Promise<void> {
-  await runRoomUpdate<FleetRoomGame>(code, (room) => {
+  await runRoomUpdate<FleetRoomGame>(code, "fleet-command", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.phase !== "firing" || g.finished || g.turn !== uid) {
       return null;
@@ -139,7 +139,7 @@ export async function fireShot(code: string, uid: string, index: number): Promis
 }
 
 export async function resetFleetRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<FleetRoomGame>(code, (room) => {
+  await runRoomUpdate<FleetRoomGame>(code, "fleet-command", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

@@ -118,13 +118,13 @@ export function resolveTick(
 }
 
 /**
- * BFS reachable free-space size from `from`, capped to bound search cost.
+ * BFS reachable space from a live cycle's head, which is marked in the trail.
  * Index-based queue (not `Array.shift()`, which is O(n) per call) keeps
  * this O(cap) so Hard-mode search can afford many calls per decision.
  */
 export function reachableSpace(grid: Uint8Array, from: Position, cap: number): number {
+  if (!inBounds(from.x, from.y)) return 0;
   const startIdx = indexOf(from.x, from.y);
-  if (grid[startIdx] === 1) return 0;
   const visited = new Uint8Array(grid.length);
   visited[startIdx] = 1;
   // Bounded by grid.length: `visited` guarantees each cell is enqueued at

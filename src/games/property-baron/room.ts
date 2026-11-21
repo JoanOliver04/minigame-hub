@@ -26,7 +26,7 @@ export function seedPropertyBaronRoomGame(
 }
 
 export async function rollPropertyBaronRoom(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<PropertyBaronRoomGame>(code, (room) => {
+  await runRoomUpdate<PropertyBaronRoomGame>(code, "property-baron", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished || game.turn !== uid || game.phase !== "roll") return null;
     const next = rollBaronTurn(game, uid);
@@ -35,7 +35,7 @@ export async function rollPropertyBaronRoom(code: string, uid: string): Promise<
 }
 
 export async function buyPropertyBaronRoom(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<PropertyBaronRoomGame>(code, (room) => {
+  await runRoomUpdate<PropertyBaronRoomGame>(code, "property-baron", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished || game.turn !== uid || game.phase !== "decision") return null;
     const next = buyProperty(game, uid);
@@ -44,7 +44,7 @@ export async function buyPropertyBaronRoom(code: string, uid: string): Promise<v
 }
 
 export async function upgradePropertyBaronRoom(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<PropertyBaronRoomGame>(code, (room) => {
+  await runRoomUpdate<PropertyBaronRoomGame>(code, "property-baron", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished || game.turn !== uid || game.phase !== "decision") return null;
     const next = upgradeProperty(game, uid);
@@ -53,7 +53,7 @@ export async function upgradePropertyBaronRoom(code: string, uid: string): Promi
 }
 
 export async function passPropertyBaronRoom(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<PropertyBaronRoomGame>(code, (room) => {
+  await runRoomUpdate<PropertyBaronRoomGame>(code, "property-baron", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished || game.turn !== uid || game.phase !== "decision") return null;
     const next = passDecision(game, uid);
@@ -62,7 +62,7 @@ export async function passPropertyBaronRoom(code: string, uid: string): Promise<
 }
 
 export async function resetPropertyBaronRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<PropertyBaronRoomGame>(code, (room) => {
+  await runRoomUpdate<PropertyBaronRoomGame>(code, "property-baron", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

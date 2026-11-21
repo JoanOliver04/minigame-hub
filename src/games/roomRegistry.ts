@@ -1,59 +1,4 @@
-import { BasketRoomGame } from "./basket-shot/BasketRoomGame";
-import { createInitialBasketRoomGame, seedBasketRoomGame } from "./basket-shot/room";
-import { BeatReactorRoomGame } from "./beat-reactor/BeatReactorRoomGame";
-import { createInitialReactorRoomGame, seedReactorRoomGame } from "./beat-reactor/room";
-import { BlackjackRoomGame } from "./blackjack/BlackjackRoomGame";
-import { createInitialBlackjackRoomGame, seedBlackjackRoomGame } from "./blackjack/room";
-import { CircuitBreakerRoomGame } from "./circuit-breaker/CircuitBreakerRoomGame";
-import { createInitialBreakerRoomGame, seedBreakerRoomGame } from "./circuit-breaker/room";
-import { NeonDriftRoomGame } from "./neon-drift/NeonDriftRoomGame";
-import { createInitialDriftRoomGame, seedDriftRoomGame } from "./neon-drift/room";
-import { ArcheryRoomGame } from "./windline-archery/ArcheryRoomGame";
-import { createInitialArcheryRoomGame, seedArcheryRoomGame } from "./windline-archery/room";
-import { ConnectRoomGame } from "./connect-four/ConnectRoomGame";
-import { createInitialConnectRoomGame, seedConnectRoomGame } from "./connect-four/room";
-import { DiceforgeRoomGame } from "./diceforge-arena/DiceforgeRoomGame";
-import { createInitialForgeRoomGame, seedForgeRoomGame } from "./diceforge-arena/room";
-import { DominoRoomGame } from "./domino/DominoRoomGame";
-import { createInitialDominoRoomGame, seedDominoRoomGame } from "./domino/room";
-import { HexRoomGame } from "./hex-dominion/HexRoomGame";
-import { createInitialHexRoomGame, seedHexRoomGame } from "./hex-dominion/room";
-import { SpellstormRoomGame } from "./spellstorm/SpellstormRoomGame";
-import { createInitialStormRoomGame, seedStormRoomGame } from "./spellstorm/room";
-import { SignalRoomGame } from "./signal-breaker/SignalRoomGame";
-import { createInitialSignalRoomGame, seedSignalRoomGame } from "./signal-breaker/room";
-import { FleetRoomGame } from "./fleet-command/FleetRoomGame";
-import { createInitialFleetRoomGame, seedFleetRoomGame } from "./fleet-command/room";
-import { GuessRoomGame } from "./guess/GuessRoomGame";
-import { createInitialGuessRoomGame, seedGuessRoomGame } from "./guess/room";
-import { GooseRoomGame } from "./goose-game/GooseRoomGame";
-import { createInitialGooseRoomGame, seedGooseRoomGame } from "./goose-game/room";
-import { HolRoomGame } from "./higher-or-lower/HolRoomGame";
-import { createInitialHolRoomGame, seedHolRoomGame } from "./higher-or-lower/room";
-import { MemoryRoomGame } from "./memory-match/MemoryRoomGame";
-import { createInitialMemoryRoomGame, seedMemoryRoomGame } from "./memory-match/room";
-import { ParchisRoomGame } from "./parchis/ParchisRoomGame";
-import { createInitialParchisRoomGame, seedParchisRoomGame } from "./parchis/room";
-import { NimRoomGame } from "./nim/NimRoomGame";
-import { createInitialNimRoomGame, seedNimRoomGame } from "./nim/room";
-import { ReactionRoomGame } from "./reaction-time/ReactionRoomGame";
-import { createInitialReactionRoomGame, seedReactionRoomGame } from "./reaction-time/room";
-import { ShadowRoomGame } from "./shadow-protocol/ShadowRoomGame";
-import { createInitialShadowRoomGame, seedShadowRoomGame } from "./shadow-protocol/room";
-import { PenaltyRoomGame } from "./penalty-kick/PenaltyRoomGame";
-import { createInitialPenaltyRoomGame, seedPenaltyRoomGame } from "./penalty-kick/room";
-import { PrismRoomGame } from "./prism-clash/PrismRoomGame";
-import { createInitialPrismRoomGame, seedPrismRoomGame } from "./prism-clash/room";
-import { PropertyBaronRoomGame } from "./property-baron/PropertyBaronRoomGame";
-import { createInitialPropertyBaronRoomGame, seedPropertyBaronRoomGame } from "./property-baron/room";
-import { RpsRoomGame } from "./rps/RpsRoomGame";
-import { createInitialRpsRoomGame, seedRpsRoomGame } from "./rps/room";
-import { TttRoomGame } from "./ttt/TttRoomGame";
-import { createInitialTttRoomGame, seedTttRoomGame } from "./ttt/room";
-import { TileRummyRoomGame } from "./tile-rummy/TileRummyRoomGame";
-import { createInitialTileRummyRoomGame, seedTileRummyRoomGame } from "./tile-rummy/room";
-import { WordRoomGame } from "./word-guess/WordRoomGame";
-import { createInitialWordRoomGame, seedWordRoomGame } from "./word-guess/room";
+import dynamic from "next/dynamic";
 import type { RoomGameModule, RoomSettingDefinition } from "./roomTypes";
 
 const TARGET_SETTING: RoomSettingDefinition = {
@@ -93,37 +38,49 @@ const TARGET_BOARD_SETTING: RoomSettingDefinition = {
  */
 export const ROOM_GAMES: Record<string, RoomGameModule> = {
   rps: {
-    createInitialGame: createInitialRpsRoomGame,
-    seedGame: seedRpsRoomGame,
+    loadLogic: () => import("./rps/room").then((logic) => ({
+      createInitialGame: logic.createInitialRpsRoomGame,
+      seedGame: logic.seedRpsRoomGame,
+    })),
     defaultSettings: { target: "3" },
     settings: [TARGET_SHORT_SETTING],
-    RoomComponent: RpsRoomGame,
+    RoomComponent: dynamic(() => import("./rps/RpsRoomGame").then((module) => module.RpsRoomGame)),
   },
   ttt: {
-    createInitialGame: createInitialTttRoomGame,
-    seedGame: seedTttRoomGame,
+    loadLogic: () => import("./ttt/room").then((logic) => ({
+      createInitialGame: logic.createInitialTttRoomGame,
+      seedGame: logic.seedTttRoomGame,
+    })),
     defaultSettings: { target: "3" },
     settings: [TARGET_BOARD_SETTING],
-    RoomComponent: TttRoomGame,
+    RoomComponent: dynamic(() => import("./ttt/TttRoomGame").then((module) => module.TttRoomGame)),
   },
   "penalty-kick": {
-    createInitialGame: createInitialPenaltyRoomGame,
-    seedGame: seedPenaltyRoomGame,
-    RoomComponent: PenaltyRoomGame,
+    loadLogic: () => import("./penalty-kick/room").then((logic) => ({
+      createInitialGame: logic.createInitialPenaltyRoomGame,
+      seedGame: logic.seedPenaltyRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./penalty-kick/PenaltyRoomGame").then((module) => module.PenaltyRoomGame)),
   },
   "basket-shot": {
-    createInitialGame: createInitialBasketRoomGame,
-    seedGame: seedBasketRoomGame,
-    RoomComponent: BasketRoomGame,
+    loadLogic: () => import("./basket-shot/room").then((logic) => ({
+      createInitialGame: logic.createInitialBasketRoomGame,
+      seedGame: logic.seedBasketRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./basket-shot/BasketRoomGame").then((module) => module.BasketRoomGame)),
   },
   guess: {
-    createInitialGame: createInitialGuessRoomGame,
-    seedGame: seedGuessRoomGame,
-    RoomComponent: GuessRoomGame,
+    loadLogic: () => import("./guess/room").then((logic) => ({
+      createInitialGame: logic.createInitialGuessRoomGame,
+      seedGame: logic.seedGuessRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./guess/GuessRoomGame").then((module) => module.GuessRoomGame)),
   },
   "higher-or-lower": {
-    createInitialGame: createInitialHolRoomGame,
-    seedGame: seedHolRoomGame,
+    loadLogic: () => import("./higher-or-lower/room").then((logic) => ({
+      createInitialGame: logic.createInitialHolRoomGame,
+      seedGame: logic.seedHolRoomGame,
+    })),
     defaultSettings: { target: "5", aceHigh: "true" },
     settings: [
       TARGET_SETTING,
@@ -136,18 +93,22 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: HolRoomGame,
+    RoomComponent: dynamic(() => import("./higher-or-lower/HolRoomGame").then((module) => module.HolRoomGame)),
   },
   "connect-four": {
-    createInitialGame: createInitialConnectRoomGame,
-    seedGame: seedConnectRoomGame,
+    loadLogic: () => import("./connect-four/room").then((logic) => ({
+      createInitialGame: logic.createInitialConnectRoomGame,
+      seedGame: logic.seedConnectRoomGame,
+    })),
     defaultSettings: { target: "3" },
     settings: [TARGET_BOARD_SETTING],
-    RoomComponent: ConnectRoomGame,
+    RoomComponent: dynamic(() => import("./connect-four/ConnectRoomGame").then((module) => module.ConnectRoomGame)),
   },
   "memory-match": {
-    createInitialGame: createInitialMemoryRoomGame,
-    seedGame: seedMemoryRoomGame,
+    loadLogic: () => import("./memory-match/room").then((logic) => ({
+      createInitialGame: logic.createInitialMemoryRoomGame,
+      seedGame: logic.seedMemoryRoomGame,
+    })),
     defaultSettings: { size: "4" },
     settings: [
       {
@@ -159,11 +120,13 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: MemoryRoomGame,
+    RoomComponent: dynamic(() => import("./memory-match/MemoryRoomGame").then((module) => module.MemoryRoomGame)),
   },
   nim: {
-    createInitialGame: createInitialNimRoomGame,
-    seedGame: seedNimRoomGame,
+    loadLogic: () => import("./nim/room").then((logic) => ({
+      createInitialGame: logic.createInitialNimRoomGame,
+      seedGame: logic.seedNimRoomGame,
+    })),
     defaultSettings: { rule: "normal" },
     settings: [
       {
@@ -175,23 +138,29 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: NimRoomGame,
+    RoomComponent: dynamic(() => import("./nim/NimRoomGame").then((module) => module.NimRoomGame)),
   },
   "word-guess": {
-    createInitialGame: createInitialWordRoomGame,
-    seedGame: seedWordRoomGame,
-    RoomComponent: WordRoomGame,
+    loadLogic: () => import("./word-guess/room").then((logic) => ({
+      createInitialGame: logic.createInitialWordRoomGame,
+      seedGame: logic.seedWordRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./word-guess/WordRoomGame").then((module) => module.WordRoomGame)),
   },
   blackjack: {
-    createInitialGame: createInitialBlackjackRoomGame,
-    seedGame: seedBlackjackRoomGame,
+    loadLogic: () => import("./blackjack/room").then((logic) => ({
+      createInitialGame: logic.createInitialBlackjackRoomGame,
+      seedGame: logic.seedBlackjackRoomGame,
+    })),
     defaultSettings: { target: "5" },
     settings: [TARGET_SETTING],
-    RoomComponent: BlackjackRoomGame,
+    RoomComponent: dynamic(() => import("./blackjack/BlackjackRoomGame").then((module) => module.BlackjackRoomGame)),
   },
   "prism-clash": {
-    createInitialGame: createInitialPrismRoomGame,
-    seedGame: seedPrismRoomGame,
+    loadLogic: () => import("./prism-clash/room").then((logic) => ({
+      createInitialGame: logic.createInitialPrismRoomGame,
+      seedGame: logic.seedPrismRoomGame,
+    })),
     defaultSettings: { target: "2" },
     settings: [
       {
@@ -203,11 +172,13 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: PrismRoomGame,
+    RoomComponent: dynamic(() => import("./prism-clash/PrismRoomGame").then((module) => module.PrismRoomGame)),
   },
   "property-baron": {
-    createInitialGame: createInitialPropertyBaronRoomGame,
-    seedGame: seedPropertyBaronRoomGame,
+    loadLogic: () => import("./property-baron/room").then((logic) => ({
+      createInitialGame: logic.createInitialPropertyBaronRoomGame,
+      seedGame: logic.seedPropertyBaronRoomGame,
+    })),
     defaultSettings: { maxRounds: "20" },
     settings: [
       {
@@ -219,11 +190,13 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: PropertyBaronRoomGame,
+    RoomComponent: dynamic(() => import("./property-baron/PropertyBaronRoomGame").then((module) => module.PropertyBaronRoomGame)),
   },
   parchis: {
-    createInitialGame: createInitialParchisRoomGame,
-    seedGame: seedParchisRoomGame,
+    loadLogic: () => import("./parchis/room").then((logic) => ({
+      createInitialGame: logic.createInitialParchisRoomGame,
+      seedGame: logic.seedParchisRoomGame,
+    })),
     defaultSettings: { pieceCount: "2" },
     settings: [
       {
@@ -235,48 +208,64 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: ParchisRoomGame,
+    RoomComponent: dynamic(() => import("./parchis/ParchisRoomGame").then((module) => module.ParchisRoomGame)),
   },
   "goose-game": {
-    createInitialGame: createInitialGooseRoomGame,
-    seedGame: seedGooseRoomGame,
-    RoomComponent: GooseRoomGame,
+    loadLogic: () => import("./goose-game/room").then((logic) => ({
+      createInitialGame: logic.createInitialGooseRoomGame,
+      seedGame: logic.seedGooseRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./goose-game/GooseRoomGame").then((module) => module.GooseRoomGame)),
   },
   "tile-rummy": {
-    createInitialGame: createInitialTileRummyRoomGame,
-    seedGame: seedTileRummyRoomGame,
-    RoomComponent: TileRummyRoomGame,
+    loadLogic: () => import("./tile-rummy/room").then((logic) => ({
+      createInitialGame: logic.createInitialTileRummyRoomGame,
+      seedGame: logic.seedTileRummyRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./tile-rummy/TileRummyRoomGame").then((module) => module.TileRummyRoomGame)),
   },
   domino: {
-    createInitialGame: createInitialDominoRoomGame,
-    seedGame: seedDominoRoomGame,
-    RoomComponent: DominoRoomGame,
+    loadLogic: () => import("./domino/room").then((logic) => ({
+      createInitialGame: logic.createInitialDominoRoomGame,
+      seedGame: logic.seedDominoRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./domino/DominoRoomGame").then((module) => module.DominoRoomGame)),
   },
   "reaction-time": {
-    createInitialGame: createInitialReactionRoomGame,
-    seedGame: seedReactionRoomGame,
+    loadLogic: () => import("./reaction-time/room").then((logic) => ({
+      createInitialGame: logic.createInitialReactionRoomGame,
+      seedGame: logic.seedReactionRoomGame,
+    })),
     defaultSettings: { target: "3" },
     settings: [TARGET_SHORT_SETTING],
-    RoomComponent: ReactionRoomGame,
+    RoomComponent: dynamic(() => import("./reaction-time/ReactionRoomGame").then((module) => module.ReactionRoomGame)),
   },
   "fleet-command": {
-    createInitialGame: createInitialFleetRoomGame,
-    seedGame: seedFleetRoomGame,
-    RoomComponent: FleetRoomGame,
+    loadLogic: () => import("./fleet-command/room").then((logic) => ({
+      createInitialGame: logic.createInitialFleetRoomGame,
+      seedGame: logic.seedFleetRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./fleet-command/FleetRoomGame").then((module) => module.FleetRoomGame)),
   },
   "shadow-protocol": {
-    createInitialGame: createInitialShadowRoomGame,
-    seedGame: seedShadowRoomGame,
-    RoomComponent: ShadowRoomGame,
+    loadLogic: () => import("./shadow-protocol/room").then((logic) => ({
+      createInitialGame: logic.createInitialShadowRoomGame,
+      seedGame: logic.seedShadowRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./shadow-protocol/ShadowRoomGame").then((module) => module.ShadowRoomGame)),
   },
   "windline-archery": {
-    createInitialGame: createInitialArcheryRoomGame,
-    seedGame: seedArcheryRoomGame,
-    RoomComponent: ArcheryRoomGame,
+    loadLogic: () => import("./windline-archery/room").then((logic) => ({
+      createInitialGame: logic.createInitialArcheryRoomGame,
+      seedGame: logic.seedArcheryRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./windline-archery/ArcheryRoomGame").then((module) => module.ArcheryRoomGame)),
   },
   "beat-reactor": {
-    createInitialGame: createInitialReactorRoomGame,
-    seedGame: seedReactorRoomGame,
+    loadLogic: () => import("./beat-reactor/room").then((logic) => ({
+      createInitialGame: logic.createInitialReactorRoomGame,
+      seedGame: logic.seedReactorRoomGame,
+    })),
     defaultSettings: { bpm: "110", bars: "12", density: "normal" },
     settings: [
       {
@@ -307,40 +296,52 @@ export const ROOM_GAMES: Record<string, RoomGameModule> = {
         ],
       },
     ],
-    RoomComponent: BeatReactorRoomGame,
+    RoomComponent: dynamic(() => import("./beat-reactor/BeatReactorRoomGame").then((module) => module.BeatReactorRoomGame)),
   },
   "circuit-breaker": {
-    createInitialGame: createInitialBreakerRoomGame,
-    seedGame: seedBreakerRoomGame,
-    RoomComponent: CircuitBreakerRoomGame,
+    loadLogic: () => import("./circuit-breaker/room").then((logic) => ({
+      createInitialGame: logic.createInitialBreakerRoomGame,
+      seedGame: logic.seedBreakerRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./circuit-breaker/CircuitBreakerRoomGame").then((module) => module.CircuitBreakerRoomGame)),
   },
   "neon-drift": {
-    createInitialGame: createInitialDriftRoomGame,
-    seedGame: seedDriftRoomGame,
-    RoomComponent: NeonDriftRoomGame,
+    loadLogic: () => import("./neon-drift/room").then((logic) => ({
+      createInitialGame: logic.createInitialDriftRoomGame,
+      seedGame: logic.seedDriftRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./neon-drift/NeonDriftRoomGame").then((module) => module.NeonDriftRoomGame)),
   },
   "signal-breaker": {
-    createInitialGame: createInitialSignalRoomGame,
-    seedGame: seedSignalRoomGame,
-    RoomComponent: SignalRoomGame,
+    loadLogic: () => import("./signal-breaker/room").then((logic) => ({
+      createInitialGame: logic.createInitialSignalRoomGame,
+      seedGame: logic.seedSignalRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./signal-breaker/SignalRoomGame").then((module) => module.SignalRoomGame)),
   },
   "diceforge-arena": {
-    createInitialGame: createInitialForgeRoomGame,
-    seedGame: seedForgeRoomGame,
-    RoomComponent: DiceforgeRoomGame,
+    loadLogic: () => import("./diceforge-arena/room").then((logic) => ({
+      createInitialGame: logic.createInitialForgeRoomGame,
+      seedGame: logic.seedForgeRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./diceforge-arena/DiceforgeRoomGame").then((module) => module.DiceforgeRoomGame)),
   },
   "hex-dominion": {
-    createInitialGame: createInitialHexRoomGame,
-    seedGame: seedHexRoomGame,
-    RoomComponent: HexRoomGame,
+    loadLogic: () => import("./hex-dominion/room").then((logic) => ({
+      createInitialGame: logic.createInitialHexRoomGame,
+      seedGame: logic.seedHexRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./hex-dominion/HexRoomGame").then((module) => module.HexRoomGame)),
   },
   spellstorm: {
-    createInitialGame: createInitialStormRoomGame,
-    seedGame: seedStormRoomGame,
-    RoomComponent: SpellstormRoomGame,
+    loadLogic: () => import("./spellstorm/room").then((logic) => ({
+      createInitialGame: logic.createInitialStormRoomGame,
+      seedGame: logic.seedStormRoomGame,
+    })),
+    RoomComponent: dynamic(() => import("./spellstorm/SpellstormRoomGame").then((module) => module.SpellstormRoomGame)),
   },
 };
 
 export function getRoomGame(gameId: string): RoomGameModule | undefined {
-  return ROOM_GAMES[gameId];
+  return Object.prototype.hasOwnProperty.call(ROOM_GAMES, gameId) ? ROOM_GAMES[gameId] : undefined;
 }

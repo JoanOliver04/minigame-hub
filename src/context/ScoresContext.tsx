@@ -14,22 +14,14 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
 
-export type Outcome = "win" | "loss" | "tie";
+import { mergeScores, migrateLegacyScores, recordScore, sanitizeScores, type AllScores, type Outcome } from "@/lib/scoreStore";
 
-export interface GameScores {
-  win: number;
-  loss: number;
-  tie: number;
-}
-
-export type AllScores = Record<string, GameScores>;
-
-export const EMPTY_SCORES: GameScores = { win: 0, loss: 0, tie: 0 };
+export { EMPTY_SCORES } from "@/lib/scoreStore";
+export type { AllScores, GameScores, Outcome } from "@/lib/scoreStore";
 
 const STORAGE_KEY = "miniHubScores_v1";
 const LEGACY_KEY = "numberDuelScores"; // original single-game app
@@ -41,77 +33,44 @@ interface ScoresApi {
 
 const ScoresContext = createContext<ScoresApi | null>(null);
 
-/** Keep only well-formed integer tallies from whatever was stored. */
-function sanitize(raw: unknown): AllScores {
-  const out: AllScores = {};
-  if (raw && typeof raw === "object") {
-    for (const [id, val] of Object.entries(raw as Record<string, unknown>)) {
-      if (val && typeof val === "object") {
-        const v = val as Record<string, unknown>;
-        out[id] = {
-          win: Number.isInteger(v.win) ? (v.win as number) : 0,
-          loss: Number.isInteger(v.loss) ? (v.loss as number) : 0,
-          tie: Number.isInteger(v.tie) ? (v.tie as number) : 0,
-        };
-      }
-    }
+function loadScores(): AllScores {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored !== null) return sanitizeScores(JSON.parse(stored));
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    return legacy === null ? {} : migrateLegacyScores(JSON.parse(legacy));
+  } catch {
+    return {};
   }
-  return out;
 }
 
 export function ScoresProvider({ children }: { children: ReactNode }) {
-  const [scores, setScores] = useState<AllScores>({});
-  const loaded = useRef(false);
+  const [state, setState] = useState<{ scores: AllScores; ready: boolean }>({
+    scores: {},
+    ready: false,
+  });
 
-  // Load once on the client. localStorage cannot be read in the useState
-  // initializer: it runs during SSR/prerender too, and diverging from the
-  // server-rendered zeros would cause a hydration mismatch. A one-shot
-  // post-hydration setState is the intended pattern here.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setScores(sanitize(JSON.parse(raw)));
-      } else {
-        // One-time migration from the original standalone scoreboard
-        const legacy = localStorage.getItem(LEGACY_KEY);
-        if (legacy) {
-          const old = JSON.parse(legacy) as { player?: number; ai?: number };
-          setScores({
-            guess: {
-              win: Number.isInteger(old.player) ? old.player! : 0,
-              loss: Number.isInteger(old.ai) ? old.ai! : 0,
-              tie: 0,
-            },
-          });
-        }
-      }
-    } catch {
-      /* corrupt or blocked storage — start fresh */
-    }
-    loaded.current = true;
+    const saved = loadScores();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is client-only
+    setState((current) => current.ready ? current : { scores: mergeScores(saved, current.scores), ready: true });
   }, []);
 
-  // Persist on every change (after the initial load).
   useEffect(() => {
-    if (!loaded.current) return;
+    if (!state.ready) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.scores));
     } catch {
       /* storage blocked — ignore */
     }
-  }, [scores]);
+  }, [state]);
 
   const record = useCallback((gameId: string, outcome: Outcome) => {
-    setScores((prev) => {
-      const current = prev[gameId] ?? EMPTY_SCORES;
-      return { ...prev, [gameId]: { ...current, [outcome]: current[outcome] + 1 } };
-    });
+    setState((current) => ({ ...current, scores: recordScore(current.scores, gameId, outcome) }));
   }, []);
 
   return (
-    <ScoresContext.Provider value={{ scores, record }}>
+    <ScoresContext.Provider value={{ scores: state.scores, record }}>
       {children}
     </ScoresContext.Provider>
   );

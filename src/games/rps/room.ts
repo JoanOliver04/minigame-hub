@@ -9,9 +9,7 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import type { RoomGameSettings } from "@/games/roomTypes";
 import { judge, type Move, type RoundResult } from "./logic";
 
@@ -65,9 +63,8 @@ export function seedRpsRoomGame(
 
 /** Always conflict-free: a client only ever writes its own pending move. */
 export async function submitRpsMove(code: string, uid: string, move: Move): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "rps", {
     [`game.pendingMoves.${uid}`]: move,
-    updatedAt: serverTimestamp(),
   });
 }
 
@@ -77,7 +74,7 @@ export async function submitRpsMove(code: string, uid: string, move: Move): Prom
  * safe without designating either client as authoritative.
  */
 export async function resolveRpsRoundIfReady(code: string): Promise<void> {
-  await runRoomUpdate<RpsRoomGame>(code, (room) => {
+  await runRoomUpdate<RpsRoomGame>(code, "rps", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -118,7 +115,7 @@ export async function resolveRpsRoundIfReady(code: string): Promise<void> {
 
 /** Fires once both seated players have voted rematch; idempotent otherwise. */
 export async function resetRpsRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<RpsRoomGame>(code, (room) => {
+  await runRoomUpdate<RpsRoomGame>(code, "rps", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

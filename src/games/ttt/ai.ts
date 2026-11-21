@@ -19,6 +19,8 @@ import {
   type TttMove,
 } from "./logic";
 
+const WIN_SCORE = 10_000;
+
 function randomMove(board: Board): TttMove {
   const moves = legalMoves(board, AI_MARK);
   return moves[randomInt(0, moves.length - 1)];
@@ -29,6 +31,16 @@ function winningMove(board: Board, mark: Mark): TttMove | null {
     if (checkOutcome(applyMove(board, move, mark))?.winner === mark) return move;
   }
   return null;
+}
+
+/** A line with two marks and one hole can be won on the next turn. If all
+ * three marks are down, the third is outside that line and can move into it. */
+function canWinNext(board: Board, mark: Mark): boolean {
+  for (const [a, b, c] of WIN_LINES) {
+    const marks = Number(board[a] === mark) + Number(board[b] === mark) + Number(board[c] === mark);
+    if (marks === 2 && (board[a] === null || board[b] === null || board[c] === null)) return true;
+  }
+  return false;
 }
 
 function heuristic(board: Board): number {
@@ -60,7 +72,12 @@ function minimax(
 ): number {
   const outcome = checkOutcome(board);
   if (outcome) {
-    return outcome.winner === AI_MARK ? 10_000 + depth : -10_000 - depth;
+    if (outcome.winner === null) return 0;
+    return outcome.winner === AI_MARK ? WIN_SCORE + depth : -WIN_SCORE - depth;
+  }
+  if (canWinNext(board, turn)) {
+    const value = WIN_SCORE + depth - 1;
+    return turn === AI_MARK ? value : -value;
   }
   if (depth === 0) return heuristic(board);
 
@@ -70,7 +87,8 @@ function minimax(
 
   const maximizing = turn === AI_MARK;
   let best = maximizing ? -Infinity : Infinity;
-  let pruned = false;
+  const originalAlpha = alpha;
+  const originalBeta = beta;
 
   for (const move of legalMoves(board, turn)) {
     const nextBoard = applyMove(board, move, turn);
@@ -85,13 +103,11 @@ function minimax(
     best = maximizing ? Math.max(best, score) : Math.min(best, score);
     if (maximizing) alpha = Math.max(alpha, best);
     else beta = Math.min(beta, best);
-    if (beta <= alpha) {
-      pruned = true;
-      break;
-    }
+    if (beta <= alpha) break;
   }
 
-  if (!pruned) cache.set(key, best);
+  // Values outside the original search window can be bounds returned by descendants.
+  if (best > originalAlpha && best < originalBeta) cache.set(key, best);
   return best;
 }
 
@@ -107,7 +123,7 @@ function bestMove(board: Board, depth: number): TttMove {
       nextBoard,
       depth - 1,
       PLAYER_MARK,
-      -Infinity,
+      bestScore,
       Infinity,
       cache,
     );

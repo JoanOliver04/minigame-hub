@@ -26,6 +26,8 @@ export interface RoomDoc<TGame = unknown> {
   code: string;
   gameId: string;
   gameSettings?: Record<string, string>;
+  /** Incremented when the host intentionally replaces the current game. */
+  gameRevision?: number;
   status: RoomStatus;
   hostUid: string;
   players: Record<string, RoomPlayer>;

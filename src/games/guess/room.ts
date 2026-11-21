@@ -109,7 +109,7 @@ export function seedGuessRoomGame(
 }
 
 export async function submitGuess(code: string, uid: string, value: number): Promise<void> {
-  await runRoomUpdate<GuessRoomGame>(code, (room) => {
+  await runRoomUpdate<GuessRoomGame>(code, "guess", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
     if (!Number.isInteger(value) || value < g.low || value > g.high) return null;
@@ -174,7 +174,7 @@ export async function submitGuess(code: string, uid: string, value: number): Pro
 
 /** Fires once both seated players have voted rematch; idempotent otherwise. */
 export async function resetGuessRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<GuessRoomGame>(code, (room) => {
+  await runRoomUpdate<GuessRoomGame>(code, "guess", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

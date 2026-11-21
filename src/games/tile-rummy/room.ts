@@ -24,7 +24,7 @@ export async function playTileRummyRoomMeld(
   uid: string,
   tileIds: string[],
 ): Promise<void> {
-  await runRoomUpdate<TileRummyRoomGame>(code, (room) => {
+  await runRoomUpdate<TileRummyRoomGame>(code, "tile-rummy", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = playTileRummyMeld(room.game, uid, tileIds);
     if (next === room.game) return null;
@@ -33,7 +33,7 @@ export async function playTileRummyRoomMeld(
 }
 
 export async function drawTileRummyRoomTile(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<TileRummyRoomGame>(code, (room) => {
+  await runRoomUpdate<TileRummyRoomGame>(code, "tile-rummy", (room) => {
     if (room.status !== "playing" || room.game.finished || room.game.turn !== uid) return null;
     const next = drawTileRummyTile(room.game, uid);
     if (next === room.game) return null;
@@ -42,7 +42,7 @@ export async function drawTileRummyRoomTile(code: string, uid: string): Promise<
 }
 
 export async function resetTileRummyRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<TileRummyRoomGame>(code, (room) => {
+  await runRoomUpdate<TileRummyRoomGame>(code, "tile-rummy", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

@@ -94,7 +94,7 @@ export async function submitNimMove(
   pileIndex: number,
   tokensRemoved: number,
 ): Promise<void> {
-  await runRoomUpdate<NimRoomGame>(code, (room) => {
+  await runRoomUpdate<NimRoomGame>(code, "nim", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
     if (!isValidMove(g.piles, pileIndex, tokensRemoved)) return null;
@@ -166,7 +166,7 @@ export async function submitNimMove(
 }
 
 export async function resetNimRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<NimRoomGame>(code, (room) => {
+  await runRoomUpdate<NimRoomGame>(code, "nim", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

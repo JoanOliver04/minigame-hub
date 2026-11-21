@@ -1,8 +1,6 @@
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import type { BasketRound } from "./types";
 
 export interface BasketRoomResult {
@@ -41,14 +39,13 @@ export async function submitBasketRoomResult(
   uid: string,
   result: BasketRoomResult,
 ): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "basket-shot", {
     [`game.results.${uid}`]: result,
-    updatedAt: serverTimestamp(),
   });
 }
 
 export async function resolveBasketRoomIfReady(code: string): Promise<void> {
-  await runRoomUpdate<BasketRoomGame>(code, (room) => {
+  await runRoomUpdate<BasketRoomGame>(code, "basket-shot", (room) => {
     const game = room.game;
     if (room.status !== "playing" || game.finished) return null;
     const uids = Object.keys(game.results);
@@ -66,7 +63,7 @@ export async function resolveBasketRoomIfReady(code: string): Promise<void> {
 }
 
 export async function resetBasketRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<BasketRoomGame>(code, (room) => {
+  await runRoomUpdate<BasketRoomGame>(code, "basket-shot", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

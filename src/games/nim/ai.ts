@@ -12,7 +12,7 @@
  *  - hard:   always plays optimally when a winning move exists. If the
  *            position is already lost (nim-sum already zero against a
  *            perfect opponent), no move can save it, so it just plays
- *            any legal move.
+ *            a legal move that leaves as few winning replies as possible.
  */
 
 import { randomInt } from "@/lib/random";
@@ -138,20 +138,54 @@ export function findOptimalMove(piles: Pile[], rule: NimRule): OptimalMove | nul
 }
 
 function randomMove(piles: Pile[]): OptimalMove {
-  const nonEmptyPileIndexes = piles
-    .map((pile, index) => index)
-    .filter((index) => piles[index] > 0);
-  const pileIndex = nonEmptyPileIndexes[randomInt(0, nonEmptyPileIndexes.length - 1)];
-  const newSize = randomInt(0, piles[pileIndex] - 1); // always removes >= 1 token
-  return { pileIndex, newSize };
+  // A pile of size N contributes exactly N distinct legal choices.
+  let choice = randomInt(0, piles.reduce((sum, count) => sum + count, 0) - 1);
+  for (let pileIndex = 0; pileIndex < piles.length; pileIndex++) {
+    if (choice < piles[pileIndex]) return { pileIndex, newSize: choice };
+    choice -= piles[pileIndex];
+  }
+  return { pileIndex: 0, newSize: 0 };
+}
+
+function winningReplies(piles: Pile[], rule: NimRule): number {
+  if (rule === "misere") {
+    const large = piles.filter((pile) => pile > 1).length;
+    if (large === 1) return 1;
+    if (large === 0) {
+      const ones = piles.filter((pile) => pile === 1).length;
+      return ones % 2 === 0 ? ones : 0;
+    }
+  }
+  const total = nimSum(piles);
+  return piles.filter((pile) => (pile ^ total) < pile).length;
+}
+
+function mostResilientMove(piles: Pile[], rule: NimRule): OptimalMove {
+  let best: OptimalMove = { pileIndex: 0, newSize: 0 };
+  let bestRate = Infinity;
+  const next = [...piles];
+  const total = piles.reduce((sum, pile) => sum + pile, 0);
+  for (let pileIndex = 0; pileIndex < piles.length; pileIndex++) {
+    for (let newSize = 0; newSize < piles[pileIndex]; newSize++) {
+      next[pileIndex] = newSize;
+      const movesLeft = total - piles[pileIndex] + newSize;
+      const rate = movesLeft === 0 ? 1 : winningReplies(next, rule) / movesLeft;
+      if (rate < bestRate) {
+        best = { pileIndex, newSize };
+        bestRate = rate;
+      }
+    }
+    next[pileIndex] = piles[pileIndex];
+  }
+  return best;
 }
 
 /**
  * Pick the AI's move for the given difficulty.
  *  - easy: fully random, no awareness of nim-sum.
  *  - medium: optimal most of the time, random otherwise (beatable).
- *  - hard: always optimal when a winning move exists; any legal move
- *          otherwise, since a truly lost position cannot be saved.
+ *  - hard: always optimal when a winning move exists; otherwise reduces
+ *          the share of winning replies among the opponent's legal moves.
  */
 export function aiPickMove(
   piles: Pile[],
@@ -167,5 +201,5 @@ export function aiPickMove(
     return randomMove(piles);
   }
 
-  return optimal ?? randomMove(piles);
+  return optimal ?? mostResilientMove(piles, rule);
 }

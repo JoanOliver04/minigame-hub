@@ -1,14 +1,8 @@
 "use client";
 
-/**
- * Global language switch: English/Spanish, persisted in localStorage.
- * Same one-shot post-hydration load pattern as ScoresContext — reading
- * localStorage during the initializer would diverge from the server-
- * rendered default and cause a hydration mismatch.
- */
-
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { dictionaries, type Dictionary, type Locale } from "@/lib/i18n/dictionaries";
+import { useStoredPreference } from "@/lib/useStoredPreference";
 
 const STORAGE_KEY = "miniHubLocale_v1";
 
@@ -20,26 +14,12 @@ interface LocaleApi {
 
 const LocaleContext = createContext<LocaleApi | null>(null);
 
-function isLocale(value: unknown): value is Locale {
-  return value === "en" || value === "es";
+function parseLocale(value: string | null): Locale | null {
+  return value === "en" || value === "es" ? value : null;
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("en");
-  const loaded = useRef(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (isLocale(raw)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLocale(raw);
-      }
-    } catch {
-      /* corrupt or blocked storage — start with default */
-    }
-    loaded.current = true;
-  }, []);
+  const [locale, setLocale] = useStoredPreference<Locale>(STORAGE_KEY, "en", parseLocale);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -47,12 +27,6 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       locale === "es"
         ? `${dictionaries.es.app.title} — ${dictionaries.es.app.vsLine}`
         : `${dictionaries.en.app.title} — ${dictionaries.en.app.vsLine}`;
-    if (!loaded.current) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, locale);
-    } catch {
-      /* storage blocked — ignore */
-    }
   }, [locale]);
 
   return (

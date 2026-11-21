@@ -1,47 +1,25 @@
-/**
- * Invisible identity for room players: Firebase Anonymous Auth, no signup UI.
- * The resulting uid is persisted by the SDK itself (IndexedDB) and survives
- * a page refresh on the same browser/device.
- */
+/** Anonymous room identity, persisted by Firebase across browser sessions. */
 
 "use client";
 
-import {
-  onAuthStateChanged,
-  signInAnonymously,
-  type User,
-} from "firebase/auth";
+import { signInAnonymously, type User } from "firebase/auth";
 import { getFirebaseAuth } from "./client";
 
 let signedInPromise: Promise<User> | null = null;
 
-/**
- * Resolves once an anonymous (or pre-existing) user is signed in. Safe to
- * call multiple times concurrently — the underlying sign-in only happens
- * once per page load.
- */
+/** Wait for a restored session before signing in and share concurrent attempts. */
 export function ensureSignedIn(): Promise<User> {
   if (signedInPromise) return signedInPromise;
 
-  const auth = getFirebaseAuth();
-  signedInPromise = new Promise<User>((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (user) {
-          unsubscribe();
-          resolve(user);
-        }
-      },
-      (error) => {
-        unsubscribe();
-        reject(error);
-      },
-    );
-    signInAnonymously(auth).catch((error) => {
-      unsubscribe();
-      reject(error);
+  signedInPromise = Promise.resolve()
+    .then(async () => {
+      const auth = getFirebaseAuth();
+      await auth.authStateReady();
+      return auth.currentUser ?? (await signInAnonymously(auth)).user;
+    })
+    .finally(() => {
+      signedInPromise = null;
     });
-  });
+
   return signedInPromise;
 }

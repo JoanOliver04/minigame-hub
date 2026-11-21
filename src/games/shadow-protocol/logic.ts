@@ -182,7 +182,7 @@ function guardTarget(state: ShadowState, guard: GuardState): Position | null {
           state.height,
           guard.pos,
           guard.evidence,
-          guard.unseenTurns,
+          Math.max(0, guard.unseenTurns - 1),
           objective,
         );
       }

@@ -15,10 +15,8 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
 import type { RoomGameSettings } from "@/games/roomTypes";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import { randomSignalDelay } from "./logic";
 
 export const REACTION_ROOM_TARGET = 3;
@@ -88,9 +86,8 @@ export async function submitReaction(
   uid: string,
   result: ReactionResult,
 ): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "reaction-time", {
     [`game.pending.${uid}`]: result,
-    updatedAt: serverTimestamp(),
   });
 }
 
@@ -106,7 +103,7 @@ function decideWinner(uidA: string, a: ReactionResult, uidB: string, b: Reaction
 
 /** Called by both clients' listeners once both results are in; resolves once. */
 export async function resolveReactionRoundIfReady(code: string): Promise<void> {
-  await runRoomUpdate<ReactionRoomGame>(code, (room) => {
+  await runRoomUpdate<ReactionRoomGame>(code, "reaction-time", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -143,7 +140,7 @@ export async function resolveReactionRoundIfReady(code: string): Promise<void> {
 
 /** Fires once both seated players have voted rematch; idempotent otherwise. */
 export async function resetReactionRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ReactionRoomGame>(code, (room) => {
+  await runRoomUpdate<ReactionRoomGame>(code, "reaction-time", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

@@ -8,10 +8,11 @@
  */
 
 import Link from "next/link";
+import { DriftControls } from "./DriftControls";
 import { useLocale } from "@/context/LocaleContext";
 import { formatTime } from "./logic";
 import { centerlinePath } from "./tracks";
-import type { CarState } from "./types";
+import { TOTAL_LAPS, type CarState } from "./types";
 import { useDriftRoom } from "./useDriftRoom";
 
 function Car({ car, className }: { car: CarState; className: string }) {
@@ -26,7 +27,7 @@ function Car({ car, className }: { car: CarState; className: string }) {
 
 export function NeonDriftRoomGame({ code }: { code: string }) {
   const { t } = useLocale();
-  const { uid, room, stage, localRace, car, raceTime, countdown, track, start, setInput, playAgain, leave } =
+  const { uid, room, stage, localRace, car, raceTime, countdown, track, start, bindControl, playAgain, leave } =
     useDriftRoom(code);
 
   if (stage === "connecting") {
@@ -142,7 +143,7 @@ export function NeonDriftRoomGame({ code }: { code: string }) {
   return (
     <section className="card screen drift-screen">
       <div className="drift-hud">
-        <span className="drift-hud-item">{t.neonDrift.lapLabel(Math.min(car.lap || 1, 3), 3)}</span>
+        <span className="drift-hud-item">{t.neonDrift.lapLabel(Math.min(car.lap + 1, TOTAL_LAPS), TOTAL_LAPS)}</span>
         <span className="drift-hud-item">{formatTime(raceTime)}</span>
         <span className="drift-hud-item">{opponentName}</span>
       </div>
@@ -171,44 +172,7 @@ export function NeonDriftRoomGame({ code }: { code: string }) {
         <div className="drift-boost-fill" style={{ width: `${car.boost}%` }} />
       </div>
 
-      <div className="drift-controls">
-        <button
-          className="btn drift-pad"
-          onPointerDown={() => setInput({ steer: -1 })}
-          onPointerUp={() => setInput({ steer: 0 })}
-          onPointerLeave={() => setInput({ steer: 0 })}
-          aria-label={t.neonDrift.steerLeft}
-        >
-          ◀
-        </button>
-        <button
-          className="btn drift-pad brake"
-          onPointerDown={() => setInput({ brake: 1 })}
-          onPointerUp={() => setInput({ brake: 0 })}
-          onPointerLeave={() => setInput({ brake: 0 })}
-          aria-label={t.neonDrift.brake}
-        >
-          {t.neonDrift.brakeShort}
-        </button>
-        <button
-          className="btn drift-pad boost"
-          onPointerDown={() => setInput({ boost: true })}
-          onPointerUp={() => setInput({ boost: false })}
-          onPointerLeave={() => setInput({ boost: false })}
-          aria-label={t.neonDrift.boost}
-        >
-          {t.neonDrift.boostShort}
-        </button>
-        <button
-          className="btn drift-pad"
-          onPointerDown={() => setInput({ steer: 1 })}
-          onPointerUp={() => setInput({ steer: 0 })}
-          onPointerLeave={() => setInput({ steer: 0 })}
-          aria-label={t.neonDrift.steerRight}
-        >
-          ▶
-        </button>
-      </div>
+      <DriftControls bindControl={bindControl} />
 
       <div className="btn-row">
         <button className="btn" onClick={leave}>

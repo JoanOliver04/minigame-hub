@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { RpsGame } from "./RpsGame";
 
-export const rpsGame: GameDefinition = {
+export const rpsGame = {
   id: "rps",
   icon: "✊",
+  category: "strategy",
   hasTies: true,
-  Component: RpsGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

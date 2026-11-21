@@ -68,7 +68,7 @@ export function aiControl(
 
   // Look-ahead scales with speed; Hard extends it further into corners.
   let lookAhead = profile.lookAheadBase + Math.floor(speed / 40);
-  if (profile.curvatureLookAhead) lookAhead += Math.floor(nodes[nearest].curvature * 10);
+  if (profile.curvatureLookAhead) lookAhead += Math.floor(nodes[nearest].curvature * 3);
   const targetIdx = (nearest + lookAhead) % nodes.length;
   const target = nodes[targetIdx];
 
@@ -77,11 +77,25 @@ export function aiControl(
   let err = desired - car.heading;
   while (err > Math.PI) err -= 2 * Math.PI;
   while (err < -Math.PI) err += 2 * Math.PI;
-  let steer = Math.max(-1, Math.min(1, err * 1.6));
+  const steeringGain = profile.curvatureLookAhead ? 2.2 : 1.6;
+  let steer = Math.max(-1, Math.min(1, err * steeringGain));
 
   // --- speed control: brake when overspeed for the upcoming target ---
   const upcoming = nodes[(nearest + Math.max(3, lookAhead - 2)) % nodes.length];
-  const targetSpeed = upcoming.targetSpeed * profile.speedFactor;
+  let targetSpeed = upcoming.targetSpeed * profile.speedFactor;
+  if (profile.curvatureLookAhead) {
+    // Cap approach speed using the speed a future bend can take and the road
+    // distance available to brake. The AI uses the same braking as the player.
+    let distance = 0;
+    let previous = nodes[nearest];
+    for (let offset = 1; offset <= lookAhead; offset++) {
+      const next = nodes[(nearest + offset) % nodes.length];
+      distance += Math.hypot(next.position.x - previous.position.x, next.position.y - previous.position.y);
+      const approachSpeed = Math.sqrt(next.targetSpeed ** 2 + 2 * 720 * distance) + 35;
+      targetSpeed = Math.min(targetSpeed, approachSpeed);
+      previous = next;
+    }
+  }
   let throttle = 1;
   let brake = 0;
   if (speed > targetSpeed * 1.05) {
@@ -99,9 +113,10 @@ export function aiControl(
   }
 
   // --- boost only on near-straight segments with meter to spare ---
-  const boost = profile.curvatureLookAhead
+  const straightBoost = profile.curvatureLookAhead
     ? nodes[nearest].curvature < 0.05 && car.boost > 15
     : nodes[nearest].curvature < 0.03 && car.boost > 40 && difficulty === "medium";
+  const boost = straightBoost && brake === 0 && speed < targetSpeed * 1.04;
 
   // --- difficulty input noise ---
   if (profile.inputNoise > 0) {

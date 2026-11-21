@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { FleetCommandGame } from "./FleetCommandGame";
 
-export const fleetCommandGame: GameDefinition = {
+export const fleetCommandGame = {
   id: "fleet-command",
   icon: "⚓",
+  category: "strategy",
   hasTies: false,
-  Component: FleetCommandGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

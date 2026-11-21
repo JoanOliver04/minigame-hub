@@ -1,11 +1,9 @@
 import type { GameDefinition } from "../types";
-import { BasketShotGame } from "./BasketShotGame";
 
-export const basketShotGame: GameDefinition = {
+export const basketShotGame = {
   id: "basket-shot",
   icon: "🏀",
+  category: "action",
   hasTies: true,
-  Component: BasketShotGame,
   supportsMultiplayer: true,
-};
-
+} as const satisfies GameDefinition;

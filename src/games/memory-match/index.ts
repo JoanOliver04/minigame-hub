@@ -1,11 +1,9 @@
 import type { GameDefinition } from "../types";
-import { MemoryMatchGame } from "./MemoryMatchGame";
 
-export const memoryMatchGame: GameDefinition = {
+export const memoryMatchGame = {
   id: "memory-match",
   icon: "🧠",
+  category: "logic",
   hasTies: true,
-  Component: MemoryMatchGame,
   supportsMultiplayer: true,
-};
-
+} as const satisfies GameDefinition;

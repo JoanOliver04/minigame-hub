@@ -12,15 +12,14 @@ import {
   Timestamp,
   deleteDoc,
   doc,
-  getDoc,
   onSnapshot,
   runTransaction,
   serverTimestamp,
-  setDoc,
   updateDoc,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
+import type { GameId } from "@/games/registry";
 import { generateRoomCode } from "./code";
 import { isRoomExpired } from "./expiry";
 import type { RoomDoc, RoomStatus } from "./types";
@@ -48,17 +47,17 @@ export async function createRoom<TGame>(
   createInitialGame: () => TGame,
   gameSettings: Record<string, string> = {},
 ): Promise<string> {
+  const db = getDb();
   for (let attempt = 0; attempt < CREATE_ATTEMPTS; attempt++) {
     const code = generateRoomCode();
     const ref = roomRef(code);
-    const existing = await getDoc(ref);
-    if (existing.exists()) continue;
 
     const now = Date.now();
     const room: RoomDoc<TGame> = {
       code,
       gameId,
       gameSettings,
+      gameRevision: 0,
       status: "waiting",
       hostUid,
       players: {
@@ -75,8 +74,12 @@ export async function createRoom<TGame>(
       expiresAt: Timestamp.fromMillis(now + ROOM_TTL_MS),
       game: createInitialGame(),
     };
-    await setDoc(ref, room);
-    return code;
+    const created = await runTransaction(db, async (tx) => {
+      if ((await tx.get(ref)).exists()) return false;
+      tx.set(ref, room);
+      return true;
+    });
+    if (created) return code;
   }
   throw new RoomError("Could not allocate a free room code, please try again.");
 }
@@ -87,28 +90,27 @@ export async function createRoom<TGame>(
  * players will actually play with (e.g. assigning marks/turn order once
  * both uids are known).
  */
-export async function joinRoom<TGame>(
+type SeedGame = (hostGame: unknown, hostUid: string, guestUid: string, settings?: Record<string, string>) => unknown;
+
+export async function joinRoom(
   code: string,
   guestUid: string,
   guestName: string,
-  seedGame: (
-    hostGame: TGame,
-    hostUid: string,
-    guestUid: string,
-    settings?: Record<string, string>,
-  ) => TGame,
+  getSeedGame: (gameId: string) => SeedGame | undefined | Promise<SeedGame | undefined>,
 ): Promise<void> {
   const ref = roomRef(code);
   await runTransaction(getDb(), async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new RoomError("Room not found.");
-    const room = snap.data() as RoomDoc<TGame>;
+    const room = snap.data() as RoomDoc;
 
     if (isRoomExpired(room)) throw new RoomError("This room has expired.");
+    if (Object.prototype.hasOwnProperty.call(room.players, guestUid)) return;
     if (room.status !== "waiting" || Object.keys(room.players).length !== 1) {
       throw new RoomError("This room is no longer joinable.");
     }
-    if (room.players[guestUid]) return; // already seated (e.g. rejoined tab)
+    const seedGame = await getSeedGame(room.gameId);
+    if (!seedGame) throw new RoomError("This room has an unknown game.");
 
     tx.update(ref, {
       status: "playing" satisfies RoomStatus,
@@ -156,6 +158,7 @@ export async function switchRoomGame<TGame>(
     tx.update(ref, {
       gameId: nextGameId,
       gameSettings,
+      gameRevision: (room.gameRevision ?? 0) + 1,
       game: nextGame,
       status: uids.length >= 2 ? ("playing" satisfies RoomStatus) : ("waiting" satisfies RoomStatus),
       rematchVotes: {},
@@ -187,6 +190,17 @@ export async function voteRematch(code: string, uid: string): Promise<void> {
   });
 }
 
+type GameFieldPatch = Record<`game.${string}`, unknown>;
+
+/** Validate the active game in the same transaction as the field updates. */
+export async function updateRoomGameFields(
+  code: string,
+  gameId: GameId,
+  fields: GameFieldPatch,
+): Promise<void> {
+  await runRoomUpdate(code, gameId, (room) => room.status === "playing" ? fields : null);
+}
+
 /**
  * Generic, idempotent-by-construction mutation primitive: re-reads the room
  * inside a transaction and lets the caller decide, from fresh server state,
@@ -203,14 +217,15 @@ export async function voteRematch(code: string, uid: string): Promise<void> {
  */
 export async function runRoomUpdate<TGame>(
   code: string,
-  mutate: (room: RoomDoc<TGame>) => Partial<RoomDoc<TGame>> | null,
+  gameId: GameId,
+  mutate: (room: RoomDoc<TGame>) => Partial<RoomDoc<TGame>> | GameFieldPatch | null,
 ): Promise<void> {
   const ref = roomRef(code);
   await runTransaction(getDb(), async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) return;
     const room = snap.data() as RoomDoc<TGame>;
-    if (isRoomExpired(room)) return;
+    if (room.gameId !== gameId || isRoomExpired(room)) return;
     const patch = mutate(room);
     if (!patch) return;
     tx.update(ref, { ...patch, updatedAt: serverTimestamp() });

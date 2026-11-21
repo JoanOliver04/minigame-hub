@@ -3,7 +3,7 @@
  *
  * Picks the next guess from the public interval [knownLow, knownHigh].
  * This interval includes every revealed clue, including the player's guesses:
- *  - hard:   exact midpoint  -> perfect binary search, ~log2(range) guesses
+ *  - hard:   near-midpoint split that maximizes winning chances in alternating play
  *  - medium: midpoint +/- up to 10% of the interval width (clamped)
  *  - easy:   uniform random inside the interval, avoiding repeats
  */
@@ -28,11 +28,18 @@ function randomUntried(low: number, high: number, guessed: number[]): number {
   return Math.floor((low + high) / 2);
 }
 
-export function aiPickGuess(state: RoundState): number {
+type PublicClues = Pick<RoundState, "knownLow" | "knownHigh" | "aiGuessed" | "config">;
+
+export function aiPickGuess(state: PublicClues): number {
   const { knownLow, knownHigh, aiGuessed, config } = state;
   const mid = Math.floor((knownLow + knownHigh) / 2);
 
-  if (config.difficulty === "hard") return mid;
+  if (config.difficulty === "hard") {
+    const size = knownHigh - knownLow + 1;
+    // With an odd interval, two even branches give the opponent fewer
+    // winning secrets than two odd branches. Keep the split as central as possible.
+    return size % 2 === 1 && (mid - knownLow) % 2 === 1 ? mid - 1 : mid;
+  }
 
   if (config.difficulty === "medium") {
     const jitter = Math.max(1, Math.floor((knownHigh - knownLow) * 0.1));

@@ -61,13 +61,14 @@ export function TileRummyGame() {
 
   if (phase === "end") {
     const won = game.winner === PLAYER;
+    const tied = game.winner === null;
     return (
       <section className="card end-card screen tile-rummy-screen">
-        <div className="end-emoji">{won ? "🏆" : "🧩"}</div>
-        <div className={`end-title ${won ? "player-win" : "ai-win"}`}>
-          {won ? t.common.youWinMatch : t.common.aiWinsMatch}
+        <div className="end-emoji">{tied ? "🤝" : won ? "🏆" : "🧩"}</div>
+        <div className={`end-title ${tied ? "" : won ? "player-win" : "ai-win"}`}>
+          {tied ? t.tileRummy.tied : won ? t.common.youWinMatch : t.common.aiWinsMatch}
         </div>
-        <div className="end-number">{t.tileRummy.emptyRack}</div>
+        <div className="end-number">{game.lastAction?.kind === "blocked" ? t.tileRummy.blockedEnd : t.tileRummy.emptyRack}</div>
         <div className="btn-row">
           <button className="btn primary" onClick={playAgain}>{t.common.playAgain}</button>
           <button className="btn" onClick={toSetup}>{t.common.changeSettings}</button>
@@ -83,6 +84,7 @@ export function TileRummyGame() {
   const actor = game.lastAction?.actor === PLAYER ? t.common.you : t.common.ai;
   let feedback = myTurn ? t.tileRummy.yourTurn : t.tileRummy.aiTurn;
   if (game.lastAction?.kind === "draw") feedback = t.tileRummy.drew(actor);
+  if (game.lastAction?.kind === "blocked") feedback = t.tileRummy.passed(actor);
   if (game.lastAction?.kind === "meld") {
     feedback = t.tileRummy.played(actor, game.lastAction.count ?? 0, game.lastAction.score ?? 0);
   }
@@ -140,7 +142,7 @@ export function TileRummyGame() {
         <button className="btn primary" disabled={!canPlay} onClick={playSelected}>
           {validation?.valid ? t.tileRummy.playMeld(validation.score) : t.tileRummy.playSelection}
         </button>
-        <button className="btn" disabled={!canDraw} onClick={draw}>{t.tileRummy.drawTile}</button>
+        <button className="btn" disabled={!canDraw} onClick={draw}>{game.deck.length ? t.tileRummy.drawTile : t.tileRummy.passTurn}</button>
         <span>{t.tileRummy.selectedCount(selected.length)}</span>
       </div>
 

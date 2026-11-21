@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { PropertyBaronGame } from "./PropertyBaronGame";
 
-export const propertyBaronGame: GameDefinition = {
+export const propertyBaronGame = {
   id: "property-baron",
   icon: "🏙️",
+  category: "strategy",
   hasTies: false,
-  Component: PropertyBaronGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

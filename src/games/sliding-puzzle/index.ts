@@ -1,9 +1,9 @@
 import type { GameDefinition } from "../types";
-import { SlidingPuzzleGame } from "./SlidingPuzzleGame";
 
-export const slidingPuzzleGame: GameDefinition = {
+export const slidingPuzzleGame = {
   id: "sliding-puzzle",
   icon: "🧩",
+  category: "logic",
   hasTies: false,
-  Component: SlidingPuzzleGame,
-};
+  supportsMultiplayer: false,
+} as const satisfies GameDefinition;

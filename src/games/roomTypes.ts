@@ -18,7 +18,7 @@ export interface RoomSettingDefinition {
  * GameDefinition (types.ts) but kept separate: not every game will get a
  * multiplayer mode, and the two contracts evolve independently.
  */
-export interface RoomGameModule<TGame = unknown> {
+export interface RoomGameLogic<TGame = unknown> {
   /** Seeds the room's `game` payload while only the host is seated. */
   createInitialGame(settings?: RoomGameSettings): TGame;
   /**
@@ -26,6 +26,10 @@ export interface RoomGameModule<TGame = unknown> {
    * assigning marks/turn order. Called by `joinRoom` (see roomsApi.ts).
    */
   seedGame(hostGame: TGame, hostUid: string, guestUid: string, settings?: RoomGameSettings): TGame;
+}
+
+export interface RoomGameModule {
+  loadLogic: () => Promise<RoomGameLogic>;
   /** Optional room setup controls shown to the host inside an existing room. */
   settings?: RoomSettingDefinition[];
   defaultSettings?: RoomGameSettings;

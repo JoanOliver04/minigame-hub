@@ -86,7 +86,7 @@ export function seedTttRoomGame(
 }
 
 export async function submitTttMove(code: string, uid: string, move: TttMove): Promise<void> {
-  await runRoomUpdate<TttRoomGame>(code, (room) => {
+  await runRoomUpdate<TttRoomGame>(code, "ttt", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
 
@@ -148,7 +148,7 @@ export async function submitTttMove(code: string, uid: string, move: TttMove): P
 }
 
 export async function resetTttRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<TttRoomGame>(code, (room) => {
+  await runRoomUpdate<TttRoomGame>(code, "ttt", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

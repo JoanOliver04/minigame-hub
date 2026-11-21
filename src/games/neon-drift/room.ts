@@ -14,9 +14,7 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 
 export const DRIFT_ROOM_TRACK = "circuit";
 
@@ -53,15 +51,14 @@ export function seedDriftRoomGame(
 
 /** Always conflict-free: a client only ever writes its own finish time. */
 export async function submitDriftTime(code: string, uid: string, finishTime: number): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "neon-drift", {
     [`game.results.${uid}`]: { finishTime },
-    updatedAt: serverTimestamp(),
   });
 }
 
 /** Called by both clients' listeners once both times are in; resolves once. */
 export async function resolveDriftIfReady(code: string): Promise<void> {
-  await runRoomUpdate<DriftRoomGame>(code, (room) => {
+  await runRoomUpdate<DriftRoomGame>(code, "neon-drift", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -83,7 +80,7 @@ export async function resolveDriftIfReady(code: string): Promise<void> {
 }
 
 export async function resetDriftRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<DriftRoomGame>(code, (room) => {
+  await runRoomUpdate<DriftRoomGame>(code, "neon-drift", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

@@ -1,11 +1,9 @@
 import type { GameDefinition } from "../types";
-import { HigherOrLowerGame } from "./HigherOrLowerGame";
 
-export const higherOrLowerGame: GameDefinition = {
+export const higherOrLowerGame = {
   id: "higher-or-lower",
   icon: "🃏",
+  category: "cards",
   hasTies: true,
-  Component: HigherOrLowerGame,
   supportsMultiplayer: true,
-};
-
+} as const satisfies GameDefinition;

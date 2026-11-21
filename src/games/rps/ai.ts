@@ -12,11 +12,10 @@
  * calls aiPickMove() before this round's player move is learned.
  */
 
-import { randomInt } from "@/lib/random";
-import { COUNTER, MOVES, type MatchState, type Move } from "./logic";
+import { BEATS, COUNTER, MOVES, type MatchState, type Move } from "./logic";
 
-function randomMove(): Move {
-  return MOVES[randomInt(0, 2)];
+function pick(moves: Move[], random: () => number): Move {
+  return moves[Math.floor(random() * moves.length)];
 }
 
 function mostFrequentMove(freq: Record<Move, number>): Move | null {
@@ -38,7 +37,7 @@ function addScores(target: Record<Move, number>, source: Record<Move, number>, w
   for (const move of MOVES) target[move] += (source[move] / total) * weight;
 }
 
-function predictPlayer(state: MatchState): Move | null {
+function estimatePlayer(state: MatchState): Record<Move, number> {
   const scores: Record<Move, number> = { rock: 0, paper: 0, scissors: 0 };
   addScores(scores, state.freq, 1);
 
@@ -50,7 +49,7 @@ function predictPlayer(state: MatchState): Move | null {
   });
 
   // Detect a repeated two-move context (e.g. rock, paper, scissors cycles).
-  const chronological = [...state.history].reverse().map((entry) => entry.playerMove);
+  const chronological = state.history.slice(0, 24).reverse().map((entry) => entry.playerMove);
   if (chronological.length >= 4) {
     const a = chronological.at(-2);
     const b = chronological.at(-1);
@@ -61,23 +60,32 @@ function predictPlayer(state: MatchState): Move | null {
     }
   }
 
-  const total = MOVES.reduce((sum, move) => sum + scores[move], 0);
-  if (total === 0) return null;
-  return MOVES.reduce((best, move) => (scores[move] > scores[best] ? move : best));
+  // A player may repeat a winning move or react to a loss. Give this
+  // context extra weight only when it has appeared before.
+  const last = state.history[0];
+  if (last) {
+    for (let i = 1; i < Math.min(25, state.history.length); i++) {
+      const prior = state.history[i];
+      if (prior.result !== last.result) continue;
+      const weight = prior.aiMove === last.aiMove ? 1.6 : 0.55;
+      scores[state.history[i - 1].playerMove] += weight / (1 + i * 0.12);
+    }
+  }
+  return scores;
 }
 
-export function aiPickMove(state: MatchState): Move {
-  if (state.difficulty === "easy") return randomMove();
+export function aiPickMove(state: MatchState, random = Math.random): Move {
+  if (state.difficulty === "easy") return pick(MOVES, random);
 
   if (state.difficulty === "medium") {
     const fav = mostFrequentMove(state.freq);
-    if (fav && Math.random() < 0.7) return COUNTER[fav];
-    return randomMove();
+    if (fav && random() < 0.7) return COUNTER[fav];
+    return pick(MOVES, random);
   }
 
-  const predicted = predictPlayer(state);
-  // Small random component prevents the predictor itself becoming a simple,
-  // exploitable pattern when evidence is tied or the player adapts.
-  if (!predicted || Math.random() < 0.08) return randomMove();
-  return COUNTER[predicted];
+  if (!state.history.length || random() < 0.08) return pick(MOVES, random);
+  const scores = estimatePlayer(state);
+  const utility = (move: Move) => scores[BEATS[move]] - scores[COUNTER[move]];
+  const best = Math.max(...MOVES.map(utility));
+  return pick(MOVES.filter((move) => Math.abs(utility(move) - best) < 1e-9), random);
 }

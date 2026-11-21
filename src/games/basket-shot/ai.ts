@@ -1,28 +1,20 @@
+import { resolvePlayerShot } from "./logic";
 import type { BasketDifficulty, BasketShot } from "./types";
 
-const AI_ACCURACY: Record<BasketDifficulty, number> = {
-  easy: 0.42,
-  medium: 0.58,
-  hard: 0.74,
+const RELEASE_SPREAD: Record<BasketDifficulty, number> = {
+  easy: 32,
+  medium: 23,
+  hard: 16,
 };
 
 export function resolveAiShot(
   difficulty: BasketDifficulty,
   round: number,
   points: 2 | 3,
+  random = Math.random,
 ): BasketShot {
-  const makeChance = AI_ACCURACY[difficulty] - (points === 3 ? 0.11 : 0);
-  const made = Math.random() < makeChance;
-
-  return {
-    actor: "ai",
-    round,
-    points,
-    made,
-    scoredPoints: made ? points : 0,
-    accuracy: made
-      ? Math.round(68 + Math.random() * 30)
-      : Math.round(18 + Math.random() * 55),
-    releaseZone: made ? "green" : "miss",
-  };
+  const spread = RELEASE_SPREAD[difficulty] + (points === 3 ? 6 : 0);
+  // Two samples put more releases near the ideal timing than at either extreme.
+  const marker = 50 + spread * (random() + random() - 1);
+  return { ...resolvePlayerShot(marker, round, points), actor: "ai" };
 }

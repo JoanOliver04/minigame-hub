@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { GuessGame } from "./GuessGame";
 
-export const guessGame: GameDefinition = {
+export const guessGame = {
   id: "guess",
   icon: "🔢",
+  category: "logic",
   hasTies: false,
-  Component: GuessGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

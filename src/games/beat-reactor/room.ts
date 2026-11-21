@@ -15,10 +15,8 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/client";
 import { randomSeed } from "@/lib/rng";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import type { RoomGameSettings } from "../roomTypes";
 import type { Bars, Bpm, ChartDensity } from "./types";
 
@@ -82,15 +80,14 @@ export function seedReactorRoomGame(
 
 /** Always conflict-free: a client only ever writes its own score. */
 export async function submitReactorScore(code: string, uid: string, score: number): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "beat-reactor", {
     [`game.results.${uid}`]: { score },
-    updatedAt: serverTimestamp(),
   });
 }
 
 /** Called by both clients' listeners once both scores are in; resolves once. */
 export async function resolveReactorIfReady(code: string): Promise<void> {
-  await runRoomUpdate<ReactorRoomGame>(code, (room) => {
+  await runRoomUpdate<ReactorRoomGame>(code, "beat-reactor", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -110,7 +107,7 @@ export async function resolveReactorIfReady(code: string): Promise<void> {
 }
 
 export async function resetReactorRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ReactorRoomGame>(code, (room) => {
+  await runRoomUpdate<ReactorRoomGame>(code, "beat-reactor", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { SpellstormGame } from "./SpellstormGame";
 
-export const spellstormGame: GameDefinition = {
+export const spellstormGame = {
   id: "spellstorm",
   icon: "⚡",
+  category: "action",
   hasTies: true,
-  Component: SpellstormGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

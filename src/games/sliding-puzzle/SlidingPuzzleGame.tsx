@@ -6,8 +6,8 @@ import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { canMoveTile } from "./logic";
-import type { PuzzleSize } from "./types";
+import { canMoveTile, suggestSlidingTile } from "./logic";
+import type { PuzzleSize, SlidingPuzzleState } from "./types";
 import { useSlidingPuzzle } from "./useSlidingPuzzle";
 
 type PuzzleBoardStyle = CSSProperties & { "--puzzle-size": number };
@@ -16,6 +16,7 @@ export function SlidingPuzzleGame() {
   const { t } = useLocale();
   const { phase, game, seconds, start, move, playAgain, toSetup } = useSlidingPuzzle();
   const [size, setSize] = useState<PuzzleSize>(4);
+  const [hint, setHint] = useState<{ game: SlidingPuzzleState; index: number } | null>(null);
 
   if (phase === "setup") {
     return (
@@ -64,6 +65,7 @@ export function SlidingPuzzleGame() {
     );
   }
 
+  const hintIndex = hint?.game === game ? hint.index : null;
   return (
     <section className="card screen sliding-screen">
       <BackLink />
@@ -85,6 +87,7 @@ export function SlidingPuzzleGame() {
             <button
               key={`${tile}-${index}`}
               className={`sliding-tile${empty ? " empty" : ""}${movable ? " movable" : ""}`}
+              style={index === hintIndex ? { outline: "2px solid var(--accent)", outlineOffset: -3 } : undefined}
               disabled={empty || !movable}
               onClick={() => move(index)}
               aria-label={empty ? t.slidingPuzzle.emptyTile : t.slidingPuzzle.tileLabel(tile)}
@@ -95,6 +98,13 @@ export function SlidingPuzzleGame() {
         })}
       </div>
       <p className="sliding-hint">{t.slidingPuzzle.moveHint}</p>
+      <div className="btn-row">
+        <button type="button" className="btn" onClick={() => {
+          const index = suggestSlidingTile(game);
+          if (index !== null) setHint({ game, index });
+        }}>{t.slidingPuzzle.hintButton}</button>
+      </div>
+      <p role="status">{hintIndex === null ? "" : t.slidingPuzzle.suggestedTile(game.tiles[hintIndex])}</p>
     </section>
   );
 }

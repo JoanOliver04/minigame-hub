@@ -111,7 +111,7 @@ export function seedConnectRoomGame(
 }
 
 export async function submitConnectMove(code: string, uid: string, column: number): Promise<void> {
-  await runRoomUpdate<ConnectRoomGame>(code, (room) => {
+  await runRoomUpdate<ConnectRoomGame>(code, "connect-four", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
 
@@ -172,7 +172,7 @@ export async function submitConnectMove(code: string, uid: string, column: numbe
 }
 
 export async function resetConnectRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ConnectRoomGame>(code, (room) => {
+  await runRoomUpdate<ConnectRoomGame>(code, "connect-four", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

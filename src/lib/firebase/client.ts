@@ -5,8 +5,10 @@
  */
 
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore, type Firestore } from "firebase/firestore";
+
+const useEmulators = process.env.NEXT_PUBLIC_FIREBASE_EMULATORS === "1";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,8 +20,11 @@ const firebaseConfig = {
 };
 
 function getFirebaseApp(): FirebaseApp {
-  const existing = getApps();
-  return existing.length > 0 ? existing[0] : initializeApp(firebaseConfig);
+  const name = useEmulators ? "minigame-hub-demo" : "[DEFAULT]";
+  return getApps().find((app) => app.name === name) ?? initializeApp(
+    useEmulators ? { apiKey: "demo-key", projectId: "demo-minigame-hub" } : firebaseConfig,
+    name,
+  );
 }
 
 let cachedDb: Firestore | null = null;
@@ -27,12 +32,20 @@ let cachedAuth: Auth | null = null;
 
 /** Firestore instance. Only call from client components/effects — the app has no server backend. */
 export function getDb(): Firestore {
-  if (!cachedDb) cachedDb = getFirestore(getFirebaseApp());
+  if (!cachedDb) {
+    cachedDb = getFirestore(getFirebaseApp());
+    if (useEmulators) connectFirestoreEmulator(cachedDb, "127.0.0.1", 8080);
+  }
   return cachedDb;
 }
 
 /** Firebase Auth instance (Anonymous provider only — see anonAuth.ts). */
 export function getFirebaseAuth(): Auth {
-  if (!cachedAuth) cachedAuth = getAuth(getFirebaseApp());
+  if (!cachedAuth) {
+    cachedAuth = getAuth(getFirebaseApp());
+    if (useEmulators && !cachedAuth.emulatorConfig) {
+      connectAuthEmulator(cachedAuth, "http://127.0.0.1:9099", { disableWarnings: true });
+    }
+  }
   return cachedAuth;
 }

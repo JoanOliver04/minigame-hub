@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { BlackjackGame } from "./BlackjackGame";
 
-export const blackjackGame: GameDefinition = {
+export const blackjackGame = {
   id: "blackjack",
   icon: "🃏",
+  category: "cards",
   hasTies: true,
-  Component: BlackjackGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

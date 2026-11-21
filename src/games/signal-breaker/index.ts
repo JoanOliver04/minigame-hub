@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { SignalBreakerGame } from "./SignalBreakerGame";
 
-export const signalBreakerGame: GameDefinition = {
+export const signalBreakerGame = {
   id: "signal-breaker",
   icon: "🔓",
+  category: "logic",
   hasTies: true,
-  Component: SignalBreakerGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

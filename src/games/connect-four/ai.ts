@@ -17,41 +17,64 @@ import {
   availableColumns,
   checkBoardOutcome,
   dropPiece,
+  getDropRow,
 } from "./logic";
 import type { ConnectBoard, ConnectDifficulty, ConnectPiece } from "./types";
 
 const ORDERED_COLUMNS = [3, 2, 4, 1, 5, 0, 6];
 const WIN_SCORE = 1_000_000;
+const CENTER_WEIGHTS = [0, 1, 3, 6, 3, 1, 0];
+const AI_WINDOW_WEIGHTS = [0, 2, 16, 125, WIN_SCORE];
+const PLAYER_WINDOW_WEIGHTS = [0, 2, 20, 155, WIN_SCORE];
+const SIGNS = [-1, 1];
+const DIRECTIONS = [[0, 1], [1, 0], [1, 1], [1, -1]] as const;
+
+function inBounds(row: number, column: number): boolean {
+  return row >= 0 && row < ROWS && column >= 0 && column < COLUMNS;
+}
+
+const WINDOWS = Array.from({ length: ROWS }, (_, row) =>
+  Array.from({ length: COLUMNS }, (_, column) =>
+    DIRECTIONS.filter(([dy, dx]) => inBounds(row + 3 * dy, column + 3 * dx)).map(([dy, dx]) =>
+      Array.from({ length: 4 }, (_, offset) => [row + offset * dy, column + offset * dx] as const),
+    ),
+  ),
+).flat(2);
 
 function orderedAvailableColumns(board: ConnectBoard): number[] {
-  const available = new Set(availableColumns(board));
-  return ORDERED_COLUMNS.filter((column) => available.has(column));
+  return ORDERED_COLUMNS.filter((column) => board[0][column] === null);
+}
+
+/** Test only lines crossing the new piece. No board copy is needed. */
+function wouldWin(board: ConnectBoard, column: number, piece: ConnectPiece): boolean {
+  const row = getDropRow(board, column);
+  if (row === null) return false;
+  for (const [dy, dx] of DIRECTIONS) {
+    let count = 1;
+    for (const sign of SIGNS) {
+      for (let offset = 1; offset < 4; offset++) {
+        const y = row + sign * offset * dy;
+        const x = column + sign * offset * dx;
+        if (!inBounds(y, x) || board[y][x] !== piece) break;
+        count++;
+      }
+    }
+    if (count >= 4) return true;
+  }
+  return false;
 }
 
 function countImmediateWins(board: ConnectBoard, piece: ConnectPiece): number {
   let wins = 0;
   for (const column of orderedAvailableColumns(board)) {
-    const dropped = dropPiece(board, column, piece);
-    if (dropped && checkBoardOutcome(dropped.board)?.winner === piece) wins++;
+    if (wouldWin(board, column, piece)) wins++;
   }
   return wins;
 }
 
-function scoreWindow(window: (ConnectPiece | null)[]): number {
-  const ai = window.filter((cell) => cell === AI_PIECE).length;
-  const player = window.filter((cell) => cell === PLAYER_PIECE).length;
-  const empty = 4 - ai - player;
-
+function scoreWindow(ai: number, player: number): number {
   if (ai > 0 && player > 0) return 0;
-  if (ai === 4) return WIN_SCORE;
-  if (player === 4) return -WIN_SCORE;
-  if (ai === 3 && empty === 1) return 125;
-  if (ai === 2 && empty === 2) return 16;
-  if (ai === 1 && empty === 3) return 2;
-  if (player === 3 && empty === 1) return -155;
-  if (player === 2 && empty === 2) return -20;
-  if (player === 1 && empty === 3) return -2;
-  return 0;
+  return AI_WINDOW_WEIGHTS[ai] - PLAYER_WINDOW_WEIGHTS[player];
 }
 
 /**
@@ -68,36 +91,23 @@ export function evaluateBoard(board: ConnectBoard): number {
   if (outcome?.draw) return 0;
 
   let score = 0;
-  const centerWeights = [0, 1, 3, 6, 3, 1, 0];
   for (let row = 0; row < ROWS; row++) {
     for (let column = 0; column < COLUMNS; column++) {
-      if (board[row][column] === AI_PIECE) score += centerWeights[column];
-      if (board[row][column] === PLAYER_PIECE) score -= centerWeights[column];
+      if (board[row][column] === AI_PIECE) score += CENTER_WEIGHTS[column];
+      if (board[row][column] === PLAYER_PIECE) score -= CENTER_WEIGHTS[column];
     }
   }
 
-  const windows: (ConnectPiece | null)[][] = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let column = 0; column <= COLUMNS - 4; column++) {
-      windows.push(board[row].slice(column, column + 4));
+  for (const window of WINDOWS) {
+    let ai = 0;
+    let player = 0;
+    for (const [row, column] of window) {
+      const piece = board[row][column];
+      if (piece === AI_PIECE) ai++;
+      if (piece === PLAYER_PIECE) player++;
     }
+    score += scoreWindow(ai, player);
   }
-  for (let column = 0; column < COLUMNS; column++) {
-    for (let row = 0; row <= ROWS - 4; row++) {
-      windows.push(Array.from({ length: 4 }, (_, offset) => board[row + offset][column]));
-    }
-  }
-  for (let row = 0; row <= ROWS - 4; row++) {
-    for (let column = 0; column <= COLUMNS - 4; column++) {
-      windows.push(Array.from({ length: 4 }, (_, offset) => board[row + offset][column + offset]));
-    }
-  }
-  for (let row = 0; row <= ROWS - 4; row++) {
-    for (let column = 3; column < COLUMNS; column++) {
-      windows.push(Array.from({ length: 4 }, (_, offset) => board[row + offset][column - offset]));
-    }
-  }
-  score += windows.reduce((total, window) => total + scoreWindow(window), 0);
 
   const aiThreats = countImmediateWins(board, AI_PIECE);
   const playerThreats = countImmediateWins(board, PLAYER_PIECE);
@@ -119,18 +129,19 @@ function minimax(
   beta: number,
   cache: Map<string, number>,
 ): number {
+  if (depth === 0) return evaluateBoard(board);
   const outcome = checkBoardOutcome(board);
   if (outcome?.winner === AI_PIECE) return WIN_SCORE + depth;
   if (outcome?.winner === PLAYER_PIECE) return -WIN_SCORE - depth;
   if (outcome?.draw) return 0;
-  if (depth === 0) return evaluateBoard(board);
 
   const key = boardKey(board, depth, maximizing);
   const cached = cache.get(key);
   if (cached !== undefined) return cached;
 
   let best = maximizing ? -Infinity : Infinity;
-  let pruned = false;
+  const originalAlpha = alpha;
+  const originalBeta = beta;
   const piece = maximizing ? AI_PIECE : PLAYER_PIECE;
   for (const column of orderedAvailableColumns(board)) {
     const dropped = dropPiece(board, column, piece);
@@ -139,19 +150,15 @@ function minimax(
     best = maximizing ? Math.max(best, score) : Math.min(best, score);
     if (maximizing) alpha = Math.max(alpha, best);
     else beta = Math.min(beta, best);
-    if (beta <= alpha) {
-      pruned = true;
-      break;
-    }
+    if (beta <= alpha) break;
   }
-  if (!pruned) cache.set(key, best);
+  if (best > originalAlpha && best < originalBeta) cache.set(key, best);
   return best;
 }
 
 function immediateWinningColumn(board: ConnectBoard, piece: ConnectPiece): number | null {
   for (const column of orderedAvailableColumns(board)) {
-    const dropped = dropPiece(board, column, piece);
-    if (dropped && checkBoardOutcome(dropped.board)?.winner === piece) return column;
+    if (wouldWin(board, column, piece)) return column;
   }
   return null;
 }
@@ -168,7 +175,7 @@ function bestColumn(board: ConnectBoard, depth: number): number {
       dropped.board,
       depth - 1,
       false,
-      -Infinity,
+      bestScore,
       Infinity,
       cache,
     );

@@ -18,9 +18,22 @@ export interface Dictionary {
     title: string;
     vsLine: string;
     tagline: string;
+    skipToContent: string;
+    language: string;
   };
   hub: {
     scoreboard: string;
+    title: string;
+    intro: string;
+    search: string;
+    searchPlaceholder: string;
+    filters: string;
+    all: string;
+    multiplayer: string;
+    clear: string;
+    empty: string;
+    results: (count: number) => string;
+    categories: Record<"strategy" | "logic" | "cards" | "action", string>;
   };
   stats: {
     game: string;
@@ -460,6 +473,10 @@ export interface Dictionary {
     playMeld: (score: number) => string;
     playSelection: string;
     drawTile: string;
+    passTurn: string;
+    passed: (actor: string) => string;
+    blockedEnd: string;
+    tied: string;
     selectedCount: (count: number) => string;
     yourRack: string;
     drawHint: string;
@@ -510,6 +527,8 @@ export interface Dictionary {
     emptyTile: string;
     tileLabel: (tile: number) => string;
     moveHint: string;
+    hintButton: string;
+    suggestedTile: (tile: number) => string;
   };
   reactionTime: {
     rules: ReactNode;
@@ -880,6 +899,7 @@ export interface Dictionary {
     joinButton: string;
     nameRequired: string;
     codeRequired: string;
+    invalidCode: string;
     connecting: string;
     waitingTitle: string;
     shareCode: (code: string) => string;
@@ -1014,9 +1034,22 @@ const en: Dictionary = {
     title: "Mini-Game Hub",
     vsLine: "You vs AI",
     tagline: "Pick a game. Beat the machine.",
+    skipToContent: "Skip to content",
+    language: "Language",
   },
   hub: {
     scoreboard: "Session scoreboard",
+    title: "Pick your next game",
+    intro: "Play against the AI, tackle a solo challenge, or invite a friend to a room.",
+    search: "Search games",
+    searchPlaceholder: "Try cards, memory, or racing",
+    filters: "Filter games by category",
+    all: "All games",
+    multiplayer: "Multiplayer only",
+    clear: "Clear filters",
+    empty: "No games match these filters.",
+    results: (count) => `${count} ${count === 1 ? "game" : "games"}`,
+    categories: { strategy: "Strategy", logic: "Logic", cards: "Cards & tiles", action: "Action" },
   },
   stats: {
     game: "Game",
@@ -1187,8 +1220,8 @@ const en: Dictionary = {
     difficultyTip: (
       <>
         The AI tracks the interval where the secret number can still be using{" "}
-        <em>all visible clues</em>, including yours. On <strong>Hard</strong> it picks the midpoint
-        (binary search — optimal, ~log₂(range) guesses). On <strong>Medium</strong> it picks near
+        <em>all visible clues</em>, including yours. On <strong>Hard</strong> it chooses a central
+        split that improves its chances when guesses alternate. On <strong>Medium</strong> it picks near
         the midpoint with some noise. On <strong>Easy</strong> it picks a random number inside the
         remaining interval.
       </>
@@ -1323,8 +1356,8 @@ const en: Dictionary = {
     difficultyTipLabel: "How the Higher or Lower AI plays",
     difficultyTip: (
       <>
-        <strong>Easy</strong> randomly chooses Higher or Lower. <strong>Medium</strong> uses the
-        standard rank distribution without remembering dealt cards. <strong>Hard</strong> counts
+        <strong>Easy</strong> chooses a plausible direction. <strong>Medium</strong> blends the
+        standard deck distribution with cards already seen. <strong>Hard</strong> counts
         every remaining card and selects the outcome with the highest exact probability.
       </>
     ),
@@ -1528,9 +1561,8 @@ const en: Dictionary = {
     difficultyTip: (
       <>
         <strong>Easy</strong> picks unused letters randomly. <strong>Medium</strong> follows
-        English letter frequency and guesses a word when very few candidates remain.{" "}
-        <strong>Hard</strong> continuously filters the word list and chooses the letter that
-        most evenly splits the remaining candidates.
+        letter frequency in the selected language and guesses a word when few candidates remain.{" "}
+        <strong>Hard</strong> compares the full pattern of positions each letter can reveal.
       </>
     ),
     category: "Word category",
@@ -1592,8 +1624,8 @@ const en: Dictionary = {
     difficultyTip: (
       <>
         The dealer always follows the same fixed rule — hit on 16 or below, stand on 17 or
-        above — no matter what you pick. <strong>Easy</strong> shows a live basic-strategy
-        hint (Hit/Stand) plus your hand total. <strong>Medium</strong> shows your hand total
+        above — no matter what you pick. <strong>Easy</strong> estimates whether to hit or stand
+        from the visible cards and shows your hand total. <strong>Medium</strong> shows your hand total
         (soft/hard) with no hint. <strong>Hard</strong> hides your total entirely — you track
         your own hand, like at a real table.
       </>
@@ -1879,7 +1911,8 @@ const en: Dictionary = {
         <p>
           Each player starts with <strong>14 tiles</strong>. On your turn, select tiles from your
           rack and play one valid meld to the table, or draw one tile if you have no legal meld.
-          First player to empty their rack wins.
+          First player to empty their rack wins. If the pool is empty, pass when you have no
+          move. When both players are blocked, the lower rack total wins, or the game is tied.
         </p>
         <p>
           A <strong>group</strong> is 3 or 4 tiles with the same number and different colours. A{" "}
@@ -1930,6 +1963,10 @@ const en: Dictionary = {
     playMeld: (score) => `Play meld · ${score}`,
     playSelection: "Play selection",
     drawTile: "Draw tile",
+    passTurn: "Pass turn",
+    passed: (actor) => `${actor} passed.`,
+    blockedEnd: "Both players ran out of moves",
+    tied: "Tie",
     selectedCount: (count) => `${count} selected`,
     yourRack: "Your rack",
     drawHint: "No legal meld available: draw one tile.",
@@ -2014,6 +2051,8 @@ const en: Dictionary = {
     emptyTile: "Empty space",
     tileLabel: (tile) => `Tile ${tile}`,
     moveHint: "Only highlighted neighbours can move into the gap.",
+    hintButton: "Show hint",
+    suggestedTile: (tile) => `Try moving tile ${tile}.`,
   },
   reactionTime: {
     rules: (
@@ -2720,6 +2759,7 @@ const en: Dictionary = {
     joinButton: "Join room",
     nameRequired: "Enter your name first.",
     codeRequired: "Enter the room code.",
+    invalidCode: "Enter the six-character code your friend shared.",
     connecting: "Connecting…",
     waitingTitle: "Waiting for your friend",
     shareCode: (code) => `Share this code: ${code}`,
@@ -2867,9 +2907,22 @@ const es: Dictionary = {
     title: "Mini-Game Hub",
     vsLine: "Tú vs IA",
     tagline: "Elige un juego. Vence a la máquina.",
+    skipToContent: "Saltar al contenido",
+    language: "Idioma",
   },
   hub: {
     scoreboard: "Marcador de la sesión",
+    title: "Elige tu próxima partida",
+    intro: "Juega contra la IA, prueba un reto individual o invita a un amigo a una sala.",
+    search: "Buscar juegos",
+    searchPlaceholder: "Prueba con cartas, memoria o carreras",
+    filters: "Filtrar juegos por categoría",
+    all: "Todos",
+    multiplayer: "Solo multijugador",
+    clear: "Limpiar filtros",
+    empty: "No hay juegos que coincidan con estos filtros.",
+    results: (count) => `${count} ${count === 1 ? "juego" : "juegos"}`,
+    categories: { strategy: "Estrategia", logic: "Lógica", cards: "Cartas y fichas", action: "Acción" },
   },
   stats: {
     game: "Juego",
@@ -3041,8 +3094,7 @@ const es: Dictionary = {
       <>
         La IA sigue el intervalo donde aún puede estar el número secreto usando{" "}
         <em>todas las pistas visibles</em>, incluidas las tuyas. En <strong>Difícil</strong> elige
-        el punto medio
-        exacto (búsqueda binaria — óptimo, ~log₂(rango) intentos). En <strong>Media</strong> elige
+        una división central que mejora sus opciones cuando los intentos se alternan. En <strong>Media</strong> elige
         cerca del punto medio con algo de ruido. En <strong>Fácil</strong> elige un número
         aleatorio dentro del intervalo restante.
       </>
@@ -3177,8 +3229,8 @@ const es: Dictionary = {
     difficultyTipLabel: "Cómo juega la IA a Mayor o Menor",
     difficultyTip: (
       <>
-        <strong>Fácil</strong> elige Mayor o Menor al azar. <strong>Media</strong> usa la
-        distribución normal de rangos sin recordar las cartas jugadas. <strong>Difícil</strong>{" "}
+        <strong>Fácil</strong> elige una dirección plausible. <strong>Media</strong> combina la
+        distribución habitual con las cartas vistas. <strong>Difícil</strong>{" "}
         cuenta cada carta restante y elige el resultado con la probabilidad exacta más alta.
       </>
     ),
@@ -3385,9 +3437,8 @@ const es: Dictionary = {
     difficultyTip: (
       <>
         En <strong>Fácil</strong> elige letras disponibles al azar. En <strong>Media</strong>{" "}
-        sigue la frecuencia de letras en inglés e intenta la palabra cuando quedan muy pocas
-        candidatas. En <strong>Difícil</strong> filtra continuamente la lista y elige la letra
-        que divide de forma más equilibrada las candidatas restantes.
+        sigue la frecuencia de letras del idioma elegido e intenta la palabra cuando quedan pocas
+        candidatas. En <strong>Difícil</strong> compara el patrón completo que revelaría cada letra.
       </>
     ),
     category: "Categoría de palabras",
@@ -3449,8 +3500,8 @@ const es: Dictionary = {
     difficultyTip: (
       <>
         El crupier sigue siempre la misma regla fija — pide con 16 o menos, se planta con 17 o
-        más — elijas lo que elijas. <strong>Fácil</strong> muestra una sugerencia de estrategia
-        básica (Pedir/Plantarse) y tu total de mano. <strong>Media</strong> muestra tu total
+        más — elijas lo que elijas. <strong>Fácil</strong> recomienda pedir o plantarte según las
+        cartas visibles y muestra tu total de mano. <strong>Media</strong> muestra tu total
         (blando/duro) sin sugerencias. <strong>Difícil</strong> oculta tu total por completo —
         llevas la cuenta tú, como en una mesa real.
       </>
@@ -3739,7 +3790,9 @@ const es: Dictionary = {
         <p>
           Cada jugador empieza con <strong>14 fichas</strong>. En tu turno, selecciona fichas del
           atril y baja una combinación válida a la mesa, o roba una ficha si no tienes ninguna
-          jugada legal. Gana quien vacíe antes su atril.
+          jugada legal. Gana quien vacíe antes su atril. Si el montón está vacío, pasa cuando
+          no puedas jugar. Si ambos se quedan sin jugadas, gana el menor total del atril. Si los
+          totales son iguales, hay empate.
         </p>
         <p>
           Un <strong>grupo</strong> son 3 o 4 fichas del mismo número y colores distintos. Una{" "}
@@ -3790,6 +3843,10 @@ const es: Dictionary = {
     playMeld: (score) => `Bajar combinación · ${score}`,
     playSelection: "Bajar selección",
     drawTile: "Robar ficha",
+    passTurn: "Pasar turno",
+    passed: (actor) => `${actor} pasó el turno.`,
+    blockedEnd: "Ambos jugadores se quedaron sin jugadas",
+    tied: "Empate",
     selectedCount: (count) => `${count} seleccionadas`,
     yourRack: "Tu atril",
     drawHint: "No tienes jugada legal: roba una ficha.",
@@ -3876,6 +3933,8 @@ const es: Dictionary = {
     emptyTile: "Espacio vacío",
     tileLabel: (tile) => `Ficha ${tile}`,
     moveHint: "Solo las fichas resaltadas junto al hueco pueden moverse.",
+    hintButton: "Mostrar pista",
+    suggestedTile: (tile) => `Prueba a mover la ficha ${tile}.`,
   },
   reactionTime: {
     rules: (
@@ -4609,6 +4668,7 @@ const es: Dictionary = {
     joinButton: "Unirse",
     nameRequired: "Escribe tu nombre primero.",
     codeRequired: "Escribe el código de la sala.",
+    invalidCode: "Escribe el código de seis caracteres que te compartió tu amigo.",
     connecting: "Conectando…",
     waitingTitle: "Esperando a tu amigo",
     shareCode: (code) => `Comparte este código: ${code}`,

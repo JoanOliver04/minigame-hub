@@ -11,10 +11,8 @@
 
 "use client";
 
-import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { createRng, randomSeed } from "@/lib/rng";
-import { getDb } from "@/lib/firebase/client";
-import { runRoomUpdate } from "@/lib/rooms/roomsApi";
+import { runRoomUpdate, updateRoomGameFields } from "@/lib/rooms/roomsApi";
 import { resolveArrow, rollWind } from "./logic";
 import { TOTAL_ENDS } from "./types";
 import type { ArrowInput, ArrowResult, Wind } from "./types";
@@ -82,9 +80,8 @@ export function seedArcheryRoomGame(
 
 /** Always conflict-free: a client only ever writes its own pending shot. */
 export async function submitArrow(code: string, uid: string, input: ArrowInput): Promise<void> {
-  await updateDoc(doc(getDb(), "rooms", code), {
+  await updateRoomGameFields(code, "windline-archery", {
     [`game.pending.${uid}`]: input,
-    updatedAt: serverTimestamp(),
   });
 }
 
@@ -104,7 +101,7 @@ function decideWinner(
 
 /** Called by both clients' listeners once both arrows are in; resolves once. */
 export async function resolveArcheryEndIfReady(code: string): Promise<void> {
-  await runRoomUpdate<ArcheryRoomGame>(code, (room) => {
+  await runRoomUpdate<ArcheryRoomGame>(code, "windline-archery", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished) return null;
 
@@ -152,7 +149,7 @@ export async function resolveArcheryEndIfReady(code: string): Promise<void> {
 }
 
 export async function resetArcheryRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<ArcheryRoomGame>(code, (room) => {
+  await runRoomUpdate<ArcheryRoomGame>(code, "windline-archery", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

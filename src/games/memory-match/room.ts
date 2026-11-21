@@ -93,7 +93,7 @@ export function seedMemoryRoomGame(
 }
 
 export async function flipMemoryTile(code: string, uid: string, index: number): Promise<void> {
-  await runRoomUpdate<MemoryRoomGame>(code, (room) => {
+  await runRoomUpdate<MemoryRoomGame>(code, "memory-match", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid || g.phase !== "flipping") {
       return null;
@@ -152,7 +152,7 @@ export async function flipMemoryTile(code: string, uid: string, index: number): 
 
 /** Hides a missed pair and passes the turn. Idempotent — safe for both clients to call. */
 export async function resolveMemoryMiss(code: string): Promise<void> {
-  await runRoomUpdate<MemoryRoomGame>(code, (room) => {
+  await runRoomUpdate<MemoryRoomGame>(code, "memory-match", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.phase !== "evaluating") return null;
     if (g.flipped.length !== 2 || !g.turn) return null;
@@ -174,7 +174,7 @@ export async function resolveMemoryMiss(code: string): Promise<void> {
 }
 
 export async function resetMemoryRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<MemoryRoomGame>(code, (room) => {
+  await runRoomUpdate<MemoryRoomGame>(code, "memory-match", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;

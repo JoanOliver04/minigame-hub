@@ -30,8 +30,13 @@ export function observeTile(
   difficulty: MemoryDifficulty,
   random: () => number = Math.random,
 ): AIMemoryStore {
-  if (random() >= RETENTION[difficulty]) return store;
+  if (store.knownTiles[index] !== undefined) return store;
+  const count = (store.exposures?.[index] ?? 0) + 1;
+  const exposures = { ...store.exposures, [index]: count };
+  const retention = 1 - (1 - RETENTION[difficulty]) ** count;
+  if (random() >= retention) return { ...store, exposures };
   return {
+    exposures,
     knownTiles: {
       ...store.knownTiles,
       [index]: value,
@@ -47,6 +52,9 @@ export function removeSolvedFromMemory(
   return {
     knownTiles: Object.fromEntries(
       Object.entries(store.knownTiles).filter(([index]) => !removed.has(Number(index))),
+    ),
+    exposures: Object.fromEntries(
+      Object.entries(store.exposures ?? {}).filter(([index]) => !removed.has(Number(index))),
     ),
   };
 }

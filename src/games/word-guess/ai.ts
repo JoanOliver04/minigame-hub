@@ -46,24 +46,30 @@ function randomItem<T>(items: readonly T[]): T {
 }
 
 /**
- * Hard mode scores letters by how evenly they divide the remaining candidate
- * set. A 50/50 split removes the most uncertainty regardless of the outcome;
- * occurrence frequency is the deterministic secondary signal.
+ * Every revealed position is an observation. Score by the expected number
+ * of survivors after revealing the full pattern, then prefer fewer misses.
  */
 export function pickInformationLetter(
   candidates: readonly string[],
   availableLetters: readonly string[],
 ): string {
   let best = availableLetters[0];
-  let bestScore = -1;
+  let bestScore = Infinity;
+  let fewestMisses = Infinity;
+  const words = candidates.map(foldWord);
 
   for (const letter of availableLetters) {
-    const containing = candidates.filter((word) => foldWord(word).includes(letter)).length;
-    const split = Math.min(containing, candidates.length - containing);
-    const score = split * (candidates.length + 1) + containing;
-    if (score > bestScore) {
+    const buckets = new Map<string, number>();
+    for (const word of words) {
+      const pattern = [...word].map((value) => value === letter ? letter : "_").join("");
+      buckets.set(pattern, (buckets.get(pattern) ?? 0) + 1);
+    }
+    const misses = [...buckets].find(([pattern]) => !pattern.includes(letter))?.[1] ?? 0;
+    const score = [...buckets.values()].reduce((sum, amount) => sum + amount * amount, 0);
+    if (score < bestScore || (score === bestScore && misses < fewestMisses)) {
       best = letter;
       bestScore = score;
+      fewestMisses = misses;
     }
   }
   return best;
@@ -113,6 +119,7 @@ export function chooseAIGuess(
   }
   return {
     kind: "letter",
-    value: pickInformationLetter(candidates, available),
+    value: candidates.length ? pickInformationLetter(candidates, available)
+      : FREQUENCY_BY_LANG[knowledge.lang].find((letter) => available.includes(letter)) ?? available[0],
   };
 }

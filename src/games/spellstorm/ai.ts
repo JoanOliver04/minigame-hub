@@ -1,4 +1,5 @@
 import type { Rng } from "@/lib/rng";
+import { castSpell } from "./logic";
 import type { AiWordPlan, Mage, Spell, SpellDifficulty } from "./types";
 
 const SPEEDS = {
@@ -35,10 +36,15 @@ export function chooseAiSpell(
     if (ai.health < 30 && ai.shield < 10) return "shield";
     return rng.next() < 0.72 ? "fire" : "ice";
   }
+  const fire = castSpell(ai, player, "fire");
+  const damage = fire ? player.health - fire.target.health : 0;
+  if (fire?.target.health === 0) return "fire";
+  const canDefendLead = ai.health > player.health && remainingSeconds <= 5;
   const utilities: Record<Spell, number> = {
-    fire: Math.min(18, player.health + player.shield) * 1.25 + (player.health <= 18 ? 30 : 0),
-    ice: (remainingSeconds > 6 ? 13 : 2) + (player.combo >= 3 ? 5 : 0),
-    shield: Math.min(15, Math.max(0, 35 - ai.shield)) + (ai.health < 35 ? 12 : 0),
+    fire: 4 + damage * 1.25,
+    ice: player.slowed || remainingSeconds <= 3 ? 0 : 13 + Math.min(player.combo, 4),
+    shield: Math.min(15, Math.max(0, 25 - ai.shield)) + (ai.health < 35 ? 8 : 0)
+      + (canDefendLead && ai.shield < 18 ? 10 : 0),
   };
   return (Object.keys(utilities) as Spell[]).sort((a, b) => utilities[b] - utilities[a])[0];
 }

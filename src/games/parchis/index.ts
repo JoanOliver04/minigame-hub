@@ -1,10 +1,9 @@
 import type { GameDefinition } from "../types";
-import { ParchisGame } from "./ParchisGame";
 
-export const parchisGame: GameDefinition = {
+export const parchisGame = {
   id: "parchis",
   icon: "🎲",
+  category: "strategy",
   hasTies: false,
-  Component: ParchisGame,
   supportsMultiplayer: true,
-};
+} as const satisfies GameDefinition;

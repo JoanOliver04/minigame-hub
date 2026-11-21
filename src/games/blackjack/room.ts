@@ -116,7 +116,7 @@ function finishSeatRound(game: BlackjackRoomGame, uid: string, seat: BlackjackSe
 }
 
 export async function hitBlackjack(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<BlackjackRoomGame>(code, (room) => {
+  await runRoomUpdate<BlackjackRoomGame>(code, "blackjack", (room) => {
     const game = room.game;
     const seat = game.seats[uid];
     if (room.status !== "playing" || game.finished || !seat || seat.ready || seat.outcome || seat.deck.length === 0) {
@@ -131,7 +131,7 @@ export async function hitBlackjack(code: string, uid: string): Promise<void> {
 }
 
 export async function standBlackjack(code: string, uid: string): Promise<void> {
-  await runRoomUpdate<BlackjackRoomGame>(code, (room) => {
+  await runRoomUpdate<BlackjackRoomGame>(code, "blackjack", (room) => {
     const game = room.game;
     const seat = game.seats[uid];
     if (room.status !== "playing" || game.finished || !seat || seat.ready || seat.outcome) return null;
@@ -142,7 +142,7 @@ export async function standBlackjack(code: string, uid: string): Promise<void> {
 }
 
 export async function resetBlackjackRoomForRematch(code: string): Promise<void> {
-  await runRoomUpdate<BlackjackRoomGame>(code, (room) => {
+  await runRoomUpdate<BlackjackRoomGame>(code, "blackjack", (room) => {
     if (room.status !== "finished") return null;
     const uids = Object.keys(room.players);
     if (uids.length !== 2 || !uids.every((uid) => room.rematchVotes[uid])) return null;
