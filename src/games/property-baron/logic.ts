@@ -156,6 +156,7 @@ export function rollBaronTurn(game: BaronGameState, actor: BaronActor, dice = ro
     next = { ...next, players: { ...next.players, [actor]: { ...next.players[actor], money: next.players[actor].money + bonus } }, log: log(next, { kind: "market", actor, amount: bonus }) };
     return endTurn(next, actor);
   }
+  if (tile.kind === "start") return endTurn(next, actor);
   const prop = next.properties[position];
   if (!prop || prop.owner === null) return { ...next, phase: "decision", pendingTile: position };
   if (prop.owner === actor) return { ...next, phase: "decision", pendingTile: position };

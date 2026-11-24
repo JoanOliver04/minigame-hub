@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { timedPress } from "@/lib/press-timing";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -188,6 +189,9 @@ export function WindlineArcheryGame() {
         ))}
       </svg>
 
+      {game.currentEnd > 0 && game.ends[game.currentEnd - 1]?.player && (
+        <p className="arcade-readout">{t.play.previousArrow} · {game.ends[game.currentEnd - 1].player?.score}/10</p>
+      )}
       <div className="feedback" aria-live="polite">
         {game.stage === "aim" && t.windlineArchery.aimPrompt}
         {game.stage === "meter" && t.windlineArchery.releasePrompt}
@@ -214,7 +218,7 @@ export function WindlineArcheryGame() {
               style={{ left: `${50 + game.meterValue * 48}%` }}
             />
           </div>
-          <button className="btn primary archery-release" onClick={game.release}>
+          <button className="btn primary archery-release" {...timedPress(game.release)}>
             {t.windlineArchery.releaseButton}
           </button>
         </div>

@@ -7,6 +7,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { applyTurn } from "./types";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -126,7 +127,7 @@ export function CircuitBreakerGame() {
             : game.round.roundResult === "ai"
               ? t.circuitBreaker.loseRound
               : t.circuitBreaker.tieRound
-          : t.circuitBreaker.steer}
+          : game.round.tick === 0 ? t.play.firstTurn : t.circuitBreaker.steer}
       </div>
 
       <div
@@ -136,10 +137,11 @@ export function CircuitBreakerGame() {
         aria-label={t.circuitBreaker.arenaLabel}
       >
         {cellClasses.map((cls, i) => (
-          <div key={i} className={`breaker-cell ${cls}`} />
+          <div key={i} className={`breaker-cell ${cls}`}>{cls === "head player" ? ["↑", "→", "↓", "←"][applyTurn(game.round.player.heading, game.queuedTurn)] : ""}</div>
         ))}
       </div>
 
+      <p className="arcade-caption">{t.play.nextTurn} · {game.queuedTurn === "left" ? t.circuitBreaker.turnLeft : game.queuedTurn === "right" ? t.circuitBreaker.turnRight : t.circuitBreaker.straight}</p>
       <div className="breaker-controls">
         <button className="btn breaker-pad" onClick={() => game.setPendingAction("left")}>
           ↺ {t.circuitBreaker.turnLeft}

@@ -260,6 +260,9 @@ export function PenaltyKickGame() {
           aria-label={t.penaltyKick.goalLabel(targetName)}
         >
           <span className="penalty-net" aria-hidden="true" />
+          {stage === "aiming" && attempts > 0 && (
+            <span className="penalty-ghost" style={pointStyle(kicks[attempts - 1].ball)} title={t.play.previousKick}>◎</span>
+          )}
           <span className="penalty-goal-depth" aria-hidden="true" />
 
           <span
@@ -428,6 +431,7 @@ export function PenaltyKickGame() {
       </div>
 
       <div className="penalty-mini-stats">
+        {stage === "aiming" && attempts > 0 && <span>◎ {t.play.previousKick} · {t.penaltyKick.resultName[kicks[attempts - 1].kind]}</span>}
         <span>{t.penaltyKick.onTargetCount(onTarget)}</span>
         <span>{t.penaltyKick.missCount(misses)}</span>
       </div>

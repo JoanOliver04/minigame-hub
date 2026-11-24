@@ -94,8 +94,7 @@ export function useFleetCommand() {
 
   const startMatch = useCallback(() => {
     if (placedShips.length !== FLEET_LENGTHS.length) return;
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     rngRef.current = createRng(randomSeed());
     setPlayerShips(placedShips.map((ship) => ({ ...ship, hits: 0 })));
     setAiShips(randomFleet(rngRef.current));
@@ -206,8 +205,7 @@ export function useFleetCommand() {
   }, [startMatch]);
 
   const toSetup = useCallback(() => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     setPhase("setup");
     setStage("player");
     setSonarArmed(false);
@@ -224,6 +222,7 @@ export function useFleetCommand() {
     placeAt,
     shufflePlacement,
     clearPlacement,
+    undoPlacement: () => setPlacedShips((ships) => ships.slice(0, -1)),
     startMatch,
     playerShips,
     aiShips,

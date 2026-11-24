@@ -383,8 +383,7 @@ src/
         └── usePlayerName.ts    localStorage-backed display name
 
 firestore.rules                 Security Rules — seat membership, turn ownership, rematch/status guards, soft expiry (see §2)
-firebase.json                   Points the Firebase CLI at firestore.rules (rules are otherwise pasted
-                                 into the Firebase console manually — no CLI/Cloud Functions dependency)
+firebase.json                   Points the Firebase CLI at firestore.rules for emulation and deployment
 .env.example                    NEXT_PUBLIC_FIREBASE_* placeholders — see §9
 ```
 
@@ -432,9 +431,13 @@ npm run dev      # http://localhost:3000 (Turbopack)
 | `npm run lint` | ESLint over the whole project |
 | `npm test` | Tests for catalogue filtering, stored scores, room codes and game rules |
 | `npm run test:rooms` | Room lifecycle and access-control tests inside the Firebase emulators |
-| `npm run test:e2e` | Chromium tests for favorites, the daily challenge, midnight rollover and simultaneous finishes. Install the test browser once with `npx playwright install chromium`. |
+| `npm run test:e2e` | Chromium tests for all 29 solo games, PWA installation and recovery, favorites and daily challenges. Install the test browser once with `npx playwright install chromium`. |
 
 All twenty-nine solo games work immediately with no configuration — they have no dependency on the steps below.
+
+### Install on a phone or computer
+
+Open the production site and select **Install** (**Instalar** in Spanish). Chrome and Edge can install it from the address bar. On iPhone or iPad, open the site in Safari and use **Share → Add to Home Screen**. The installed app opens in its own window. Opening it offline shows a retry screen. The service worker runs on production builds served over HTTPS or localhost.
 
 ### Multiplayer setup (optional)
 
@@ -444,7 +447,7 @@ To play locally against real Firebase resources, configure a Firebase project. F
 2. Enable **Cloud Firestore** (production mode) and **Authentication → Anonymous** sign-in.
 3. Register a Web App in the project's settings and copy its config values.
 4. Copy `.env.example` to `.env.local` and fill in the six `NEXT_PUBLIC_FIREBASE_*` values from step 3. These are safe to expose client-side — Firestore Security Rules are the real access control, not hiding this config. **Never commit real values or any service-account/admin credentials** — `.env.local` is git-ignored.
-5. Paste the contents of `firestore.rules` into the Firebase console's Firestore → Rules tab and publish. This step is what actually enforces access control (see [§2](#2-multiplayer-rooms)) — the app will run without it, but every room read/write will be rejected.
+5. Sign in to the Firebase CLI with an account that can manage rules for your project. From the repository root, run `firebase deploy --only firestore:rules --project YOUR_PROJECT_ID` to publish `firestore.rules`.
 
 ### Test rooms locally
 

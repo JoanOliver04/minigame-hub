@@ -19,6 +19,7 @@ export function useSlidingPuzzle(dailyDay?: string) {
     ? loadDailyRun(dailyDay) ?? { game: dailyBoard(dailyDay), startedAt: null }
     : null);
   const [now, setNow] = useState(Date.now);
+  const [previousBoard, setPreviousBoard] = useState<SlidingPuzzleState | null>(null);
   const { record } = useScores();
   const game = match?.game;
   const startedAt = match?.startedAt ?? null;
@@ -38,6 +39,7 @@ export function useSlidingPuzzle(dailyDay?: string) {
   function start({ size }: SlidingPuzzleConfig) {
     const time = Date.now();
     setNow(time);
+    setPreviousBoard(null);
     setMatch(dailyDay
       ? { game: dailyBoard(dailyDay), startedAt: null }
       : { game: createSlidingPuzzle(size), startedAt: time });
@@ -47,6 +49,7 @@ export function useSlidingPuzzle(dailyDay?: string) {
     if (!match || match.game.solved) return;
     const next = moveSlidingTile(match.game, index);
     if (next === match.game) return;
+    if (!dailyDay) setPreviousBoard(match.game);
     const time = Date.now();
     const startTime = match.startedAt ?? time;
     setMatch({ game: next, startedAt: startTime });
@@ -60,7 +63,12 @@ export function useSlidingPuzzle(dailyDay?: string) {
   }
 
   return {
-    phase, game, seconds: elapsed(startedAt, now), start, move,
+    phase, game, seconds: elapsed(startedAt, now), start, move, canUndo: previousBoard !== null,
+    undo: () => {
+      if (dailyDay || !match || !previousBoard || match.game.solved) return;
+      setMatch({ ...match, game: previousBoard });
+      setPreviousBoard(null);
+    },
     playAgain: () => { if (game) start({ size: game.size }); },
     toSetup: () => setMatch(null),
   };

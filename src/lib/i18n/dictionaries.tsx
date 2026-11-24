@@ -14,6 +14,41 @@ export interface GameMeta {
 }
 
 export interface Dictionary {
+  play: {
+    midpoint: string;
+    scouting: string;
+    winningSquares: string;
+    winningMove: string;
+    cardOdds: string;
+    nimPreview: string;
+    nimWinning: string;
+    nimLosing: string;
+    playerToMove: string;
+    opponentToMove: string;
+    physicalLetters: string;
+    bustRisk: string;
+    balanceAfter: string;
+    rent: string;
+    destination: string;
+    suggestMeld: string;
+    undo: string;
+    previousKick: string;
+    previousRelease: string;
+    bestReaction: string;
+    undoPlacement: string;
+    previousArrow: string;
+    copyGuess: string;
+    repeatGuess: string;
+    winningPath: string;
+    raceSplit: string;
+    nextTurn: string;
+    firstTurn: string;
+    forgeDie: (n: number) => string;
+    faceNames: Record<"damage" | "shield" | "energy" | "wild", string>;
+    castKey: string;
+    noRepeat: string;
+    quickBoard: string;
+  };
   app: {
     title: string;
     vsLine: string;
@@ -827,7 +862,7 @@ export interface Dictionary {
     aiGoal: string;
     boardLabel: string;
     emptyCell: (row: number, col: number) => string;
-    ownedCell: (row: number, col: number, owner: "player" | "ai") => string;
+    namedCell: (row: number, col: number, owner: string) => string;
     youLegend: string;
     aiLegend: string;
     movesLabel: (moves: number) => string;
@@ -1053,6 +1088,41 @@ export interface Dictionary {
 }
 
 const en: Dictionary = {
+  play: {
+    midpoint: "Use midpoint",
+    scouting: "Scout the opponent’s last five throws",
+    winningSquares: "Mark winning destinations",
+    winningMove: "Winning move",
+    cardOdds: "Count the unseen cards",
+    nimPreview: "Analyse this position",
+    nimWinning: "The next player can force a win.",
+    nimLosing: "Perfect play by the other side wins.",
+    playerToMove: "Before your move",
+    opponentToMove: "After your selection",
+    physicalLetters: "You can also type a letter directly. Use the box for a whole word.",
+    bustRisk: "Chance of going bust on one hit",
+    balanceAfter: "Cash left",
+    rent: "Rent",
+    destination: "Destination",
+    suggestMeld: "Select a possible meld",
+    undo: "Undo the last slide",
+    previousKick: "Previous shot",
+    previousRelease: "Previous release",
+    bestReaction: "Best clean reaction",
+    undoPlacement: "Remove last ship",
+    previousArrow: "Previous arrow",
+    copyGuess: "Use this guess",
+    repeatGuess: "You already tested this code.",
+    winningPath: "Winning connection",
+    raceSplit: "Last lap",
+    nextTurn: "Queued turn",
+    firstTurn: "Queue your first turn…",
+    forgeDie: (n) => `Die ${n}`,
+    faceNames: { damage: "Damage", shield: "Shield", energy: "Energy", wild: "Wild" },
+    castKey: "Cast",
+    noRepeat: "Neither player can use the same hand twice in a row.",
+    quickBoard: "Quick board",
+  },
   app: {
     title: "Mini-Game Hub",
     vsLine: "You vs AI",
@@ -2064,7 +2134,7 @@ const en: Dictionary = {
     pass: "Pass",
     yourHand: "Your hand",
     drawHint: "No matching tile available: draw from the pool.",
-    playHint: "Select a domino, then choose the left or right end.",
+    playHint: "Tap a playable domino. If it fits both ends, choose where to place it.",
     tileLabel: (a, b) => `Domino ${a}-${b}`,
   },
   slidingPuzzle: {
@@ -2619,7 +2689,7 @@ const en: Dictionary = {
     yourTurn: "Your turn — connect blue from left to right.", aiThinking: "AI is mapping a route…",
     yourGoal: "Your path", aiGoal: "AI path", boardLabel: "Seven by seven Hex Dominion board",
     emptyCell: (row, col) => `Empty cell, row ${row}, column ${col}`,
-    ownedCell: (row, col, owner) => `${owner === "player" ? "Your" : "AI"} cell, row ${row}, column ${col}`,
+    namedCell: (row, col, owner) => `${owner}, row ${row}, column ${col}`,
     youLegend: "You: west → east", aiLegend: "AI: north → south",
     movesLabel: moves => `${moves} stones placed`,
     endTitle: winner => winner === "player" ? "Your path spans the dominion!" : "The AI completed its path.",
@@ -2685,7 +2755,7 @@ const en: Dictionary = {
         <p>
           After each guess: a filled dot means a symbol is right and in the
           right place; a hollow dot means a symbol is right but in the wrong
-          place. Fewest guesses wins; equal counts are decided by solve time.
+          place. Both sides get one attempt per turn. Cracking both codes on the same turn is a draw.
         </p>
       </>
     ),
@@ -2708,7 +2778,7 @@ const en: Dictionary = {
     slotLabel: (n) => `Code slot ${n} — tap to change`,
     submit: "Submit guess",
     clear: "Clear",
-    waitingForAi: "Code cracked — waiting for the AI to finish…",
+    waitingForAi: "Resolving the final guesses…",
     legend: "● filled = right symbol, right spot · ○ hollow = right symbol, wrong spot",
     endTitle: (outcome) =>
       outcome === "player"
@@ -2951,6 +3021,41 @@ const en: Dictionary = {
 };
 
 const es: Dictionary = {
+  play: {
+    midpoint: "Usar punto medio",
+    scouting: "Ver las cinco últimas tiradas de la IA",
+    winningSquares: "Marcar destinos ganadores",
+    winningMove: "Jugada ganadora",
+    cardOdds: "Contar las cartas que quedan",
+    nimPreview: "Analizar esta posición",
+    nimWinning: "Quien mueva ahora puede forzar la victoria.",
+    nimLosing: "Con juego perfecto, gana el otro lado.",
+    playerToMove: "Antes de mover",
+    opponentToMove: "Tras tu selección",
+    physicalLetters: "También puedes pulsar una letra en el teclado. Usa el campo para probar una palabra entera.",
+    bustRisk: "Probabilidad de pasarte al pedir una carta",
+    balanceAfter: "Saldo restante",
+    rent: "Alquiler",
+    destination: "Destino",
+    suggestMeld: "Seleccionar una combinación posible",
+    undo: "Deshacer el último movimiento",
+    previousKick: "Tiro anterior",
+    previousRelease: "Último lanzamiento",
+    bestReaction: "Mejor reacción válida",
+    undoPlacement: "Retirar último barco",
+    previousArrow: "Flecha anterior",
+    copyGuess: "Usar este intento",
+    repeatGuess: "Ya has probado este código.",
+    winningPath: "Conexión ganadora",
+    raceSplit: "Última vuelta",
+    nextTurn: "Giro preparado",
+    firstTurn: "Prepara tu primer giro…",
+    forgeDie: (n) => `Dado ${n}`,
+    faceNames: { damage: "Daño", shield: "Escudo", energy: "Energía", wild: "Comodín" },
+    castKey: "Lanzar",
+    noRepeat: "Ningún jugador puede repetir su última jugada.",
+    quickBoard: "Tablero rápido",
+  },
   app: {
     title: "Mini-Game Hub",
     vsLine: "Tú vs IA",
@@ -3970,7 +4075,7 @@ const es: Dictionary = {
     pass: "Pasar",
     yourHand: "Tu mano",
     drawHint: "No tienes una ficha que encaje: roba del pozo.",
-    playHint: "Selecciona una ficha y luego elige el extremo izquierdo o derecho.",
+    playHint: "Toca una ficha válida. Si encaja en ambos extremos, elige dónde colocarla.",
     tileLabel: (a, b) => `Ficha ${a}-${b}`,
   },
   slidingPuzzle: {
@@ -4552,7 +4657,7 @@ const es: Dictionary = {
     yourTurn: "Tu turno: conecta el azul de izquierda a derecha.", aiThinking: "La IA está trazando una ruta…",
     yourGoal: "Tu camino", aiGoal: "Camino IA", boardLabel: "Tablero de Dominio Hex de siete por siete",
     emptyCell: (row, col) => `Casilla vacía, fila ${row}, columna ${col}`,
-    ownedCell: (row, col, owner) => `Casilla de ${owner === "player" ? "jugador" : "IA"}, fila ${row}, columna ${col}`,
+    namedCell: (row, col, owner) => `${owner}, fila ${row}, columna ${col}`,
     youLegend: "Tú: oeste → este", aiLegend: "IA: norte → sur",
     movesLabel: moves => `${moves} piedras colocadas`,
     endTitle: winner => winner === "player" ? "¡Tu camino cruza el dominio!" : "La IA ha completado su camino.",
@@ -4618,7 +4723,7 @@ const es: Dictionary = {
         <p>
           Tras cada intento: un punto relleno significa símbolo correcto en la
           posición correcta; un punto hueco, símbolo correcto en posición
-          equivocada. Gana quien use menos intentos; a igualdad, decide el tiempo.
+          equivocada. Ambos tenéis un intento por turno. Si los dos acertáis en el mismo turno, empatáis.
         </p>
       </>
     ),
@@ -4642,7 +4747,7 @@ const es: Dictionary = {
     slotLabel: (n) => `Casilla ${n} — toca para cambiar`,
     submit: "Confirmar intento",
     clear: "Borrar",
-    waitingForAi: "Código descifrado — esperando a que la IA termine…",
+    waitingForAi: "Resolviendo los últimos intentos…",
     legend: "● relleno = símbolo y posición correctos · ○ hueco = símbolo correcto, posición incorrecta",
     endTitle: (outcome) =>
       outcome === "player"

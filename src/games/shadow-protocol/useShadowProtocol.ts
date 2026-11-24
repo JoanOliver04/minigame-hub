@@ -51,8 +51,7 @@ export function useShadowProtocol() {
   }, []);
 
   const startMatch = useCallback((difficulty: ShadowDifficulty) => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     setState(createShadowMatch(difficulty, createRng(randomSeed())));
     setArmed("none");
     setLastEvents([]);
@@ -163,8 +162,7 @@ export function useShadowProtocol() {
   }, [state, startMatch]);
 
   const toSetup = useCallback(() => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     setPhase("setup");
     setState(null);
     setArmed("none");

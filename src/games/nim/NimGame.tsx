@@ -18,6 +18,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { PLAYER } from "./logic";
 import type { NimConfig, NimDifficulty, NimRule } from "./types";
 import { useNim } from "./useNim";
+import { isMisereWinningPosition, nimSum } from "./ai";
 
 /** Pile A, B, C, D… — short, stable labels for the log and aria text. */
 function pileLabel(index: number): string {
@@ -181,6 +182,8 @@ export function NimGame() {
   const interactionsLocked = stage !== "player" || Boolean(animating) || match.finished;
 
   let feedback: React.ReactNode = t.nim.yourTurn;
+  const preview = piles.map((size, i) => pendingSelection?.pileIndex === i ? size - pendingSelection.tokensRemoved : size);
+  const winning = match.config.rule === "misere" ? isMisereWinningPosition(preview) : nimSum(preview) !== 0;
   let feedbackClass = "";
   if (stage === "ai") {
     feedback = (
@@ -221,6 +224,10 @@ export function NimGame() {
 
       <div className={`feedback${feedbackClass}`}>{feedback}</div>
 
+      {stage === "player" && !animating && <details className="arcade-insight">
+        <summary>{t.play.nimPreview}</summary>
+        <p>{pendingSelection ? t.play.opponentToMove : t.play.playerToMove} · {preview.join(" / ")} · {preview.every(pile => pile === 0) ? (match.config.rule === "misere" ? t.nim.loseRound : t.nim.winRound) : winning ? t.play.nimWinning : t.play.nimLosing}</p>
+      </details>}
       <div className="nim-board" role="group" aria-label={t.nim.boardLabel}>
         {piles.map((pileSize, pileIndex) => {
           const isAnimatingThisPile = animating?.pileIndex === pileIndex;

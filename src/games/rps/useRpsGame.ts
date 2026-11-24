@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useScores } from "@/context/ScoresContext";
+import { getUseDelay } from "@/lib/settings";
 import { playSound } from "@/lib/sound";
 import { aiPickMove } from "./ai";
 import {
@@ -47,10 +48,9 @@ export function useRpsGame() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  function startMatch(difficulty: RpsDifficulty, target: number) {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-    setMatch(createMatch(difficulty, target));
+  function startMatch(difficulty: RpsDifficulty, target: number, noRepeat = false) {
+    timersRef.current.splice(0).forEach(clearTimeout);
+    setMatch(createMatch(difficulty, target, noRepeat));
     setHand({ stage: "idle" });
     setPhase("playing");
   }
@@ -64,7 +64,10 @@ export function useRpsGame() {
     if (phase !== "playing" || !match || match.finished) return;
     if (hand.stage !== "idle") return;
 
+    const last = match.history[0];
+    if (match.noRepeat && last?.playerMove === move) return;
     const aiMove = aiPickMove(match);
+    const quick = !getUseDelay() || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const result = judge(move, aiMove);
     const next = applyRound(match, move, aiMove);
 
@@ -82,20 +85,19 @@ export function useRpsGame() {
         schedule(() => {
           record("rps", next.youScore > next.aiScore ? "win" : "loss");
           setPhase("end");
-        }, REVEAL_HOLD_MS);
+        }, quick ? 300 : REVEAL_HOLD_MS);
       } else {
-        schedule(() => setHand({ stage: "idle" }), REVEAL_HOLD_MS);
+        schedule(() => setHand({ stage: "idle" }), quick ? 180 : REVEAL_HOLD_MS);
       }
-    }, SHAKE_MS);
+    }, quick ? 80 : SHAKE_MS);
   }
 
   function playAgain() {
-    if (match) startMatch(match.difficulty, match.target);
+    if (match) startMatch(match.difficulty, match.target, match.noRepeat);
   }
 
   function toSetup() {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     setPhase("setup");
     setMatch(null);
     setHand({ stage: "idle" });

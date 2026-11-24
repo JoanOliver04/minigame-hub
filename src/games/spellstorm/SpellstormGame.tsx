@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
@@ -38,6 +39,7 @@ function MagePanel({
 }
 
 export function SpellstormGame() {
+  const wordInput = useRef<HTMLInputElement>(null);
   const game = useSpellstorm();
   const { t } = useLocale();
   const copy = t.spellstorm;
@@ -111,11 +113,19 @@ export function SpellstormGame() {
           </span>
           <strong>{game.playerWord?.display}</strong>
           <input
+            ref={wordInput}
             autoFocus
+            onKeyDown={(event) => {
+              if (event.ctrlKey || event.metaKey || event.altKey || event.nativeEvent.isComposing) return;
+              const spell = ({ "1": "fire", "2": "ice", "3": "shield" } as const)[event.key as "1" | "2" | "3"];
+              if (!spell) return;
+              event.preventDefault();
+              if (!event.repeat) game.playerCast(spell);
+            }}
             className={game.playerWord?.normalized.startsWith(game.input.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase()) ? "" : "invalid"}
             value={game.input}
             maxLength={8}
-            disabled={game.playerPaused}
+            readOnly={game.playerPaused}
             onChange={(event) => game.typeWord(event.target.value)}
             aria-label={copy.typeLabel}
             autoComplete="off"
@@ -135,15 +145,20 @@ export function SpellstormGame() {
       </div>
 
       <div className="storm-spells">
-        {spellButtons.map((spell) => (
+        {spellButtons.map((spell, index) => (
           <button
             key={spell}
             className={`storm-spell ${spell}`}
             disabled={game.player.energy < SPELL_COST}
-            onClick={() => game.playerCast(spell)}
+            aria-keyshortcuts={String(index + 1)}
+            title={`${t.play.castKey} · ${index + 1}`}
+            onClick={() => {
+              game.playerCast(spell);
+              wordInput.current?.focus({ preventScroll: true });
+            }}
           >
             <span>{ELEMENT_GLYPH[spell]}</span>
-            <b>{copy.spellLabels[spell]}</b>
+            <b><kbd>{index + 1}</kbd> {copy.spellLabels[spell]}</b>
             <small>{copy.spellEffects[spell]}</small>
           </button>
         ))}

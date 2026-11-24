@@ -37,6 +37,7 @@ type MarkovTable = Record<Move, Record<Move, number>>;
 
 export interface MatchState {
   difficulty: RpsDifficulty;
+  noRepeat: boolean;
   /** Round wins needed to take the match. */
   target: number;
   youScore: number;
@@ -55,9 +56,10 @@ export interface MatchState {
 
 const emptyRow = (): Record<Move, number> => ({ rock: 0, paper: 0, scissors: 0 });
 
-export function createMatch(difficulty: RpsDifficulty, target: number): MatchState {
+export function createMatch(difficulty: RpsDifficulty, target: number, noRepeat = false): MatchState {
   return {
     difficulty,
+    noRepeat,
     target,
     youScore: 0,
     aiScore: 0,
@@ -81,6 +83,7 @@ export function judge(playerMove: Move, aiMove: Move): RoundResult {
  * and update the AI's model of the player (frequency + Markov transition).
  */
 export function applyRound(state: MatchState, playerMove: Move, aiMove: Move): MatchState {
+  if (state.noRepeat && (state.history[0]?.playerMove === playerMove || state.history[0]?.aiMove === aiMove)) return state;
   const result = judge(playerMove, aiMove);
 
   const freq = { ...state.freq, [playerMove]: state.freq[playerMove] + 1 };

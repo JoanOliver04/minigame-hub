@@ -8,23 +8,8 @@
 
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
-import { coordinates } from "./logic";
+import { HexBoard } from "./HexBoard";
 import { useHexRoom } from "./useHexRoom";
-
-const R = 26;
-const W = Math.sqrt(3) * R;
-
-function center(i: number) {
-  const [r, c] = coordinates(i);
-  return { x: 42 + c * W + (r * W) / 2, y: 38 + r * R * 1.5 };
-}
-
-function pts(x: number, y: number) {
-  return Array.from({ length: 6 }, (_, i) => {
-    const a = (Math.PI / 180) * (60 * i - 30);
-    return `${x + R * Math.cos(a)},${y + R * Math.sin(a)}`;
-  }).join(" ");
-}
 
 export function HexRoomGame({ code }: { code: string }) {
   const { t } = useLocale();
@@ -94,6 +79,8 @@ export function HexRoomGame({ code }: { code: string }) {
           {iWon ? t.rooms.matchWinYou : t.rooms.matchWinOpponent(opponentName ?? "?")}
         </div>
         <div className="end-number">{c.movesLabel(game.moves)}</div>
+        <HexBoard board={game.board} viewer={myOwner} opponent={opponentName ?? "?"}
+          winner={game.winnerUid ? game.owners[game.winnerUid] : null} />
         <div className="btn-row">
           <button className="btn primary" onClick={playAgain} disabled={iVoted}>
             {iVoted ? t.rooms.rematchWaiting : t.rooms.rematchButton}
@@ -107,52 +94,12 @@ export function HexRoomGame({ code }: { code: string }) {
   }
 
   /* ================= PLAYING ================= */
-  const myGoal = myOwner === "player" ? c.yourGoal : c.aiGoal;
-  const oppGoal = myOwner === "player" ? c.aiGoal : c.yourGoal;
-
   return (
     <section className="card screen hex-screen">
       <div className="hex-status" aria-live="polite">
         {isMyTurn ? t.rooms.turnYours : t.rooms.turnOpponent(opponentName ?? "?")}
       </div>
-      <div className="hex-goal-row">
-        <span>← {myGoal} →</span>
-        <span>↕ {oppGoal} ↕</span>
-      </div>
-      <svg className="hex-board" viewBox="0 0 500 330" role="group" aria-label={c.boardLabel}>
-        <path className="hex-edge player top" d="M20 15 L355 15" />
-        <path className="hex-edge player bottom" d="M145 320 L480 320" />
-        <path className="hex-edge ai left" d="M20 20 L145 315" />
-        <path className="hex-edge ai right" d="M355 20 L480 315" />
-        {game.board.map((owner, i) => {
-          const { x, y } = center(i);
-          const [r, col] = coordinates(i);
-          const cls = owner ? (owner === myOwner ? "player" : "ai") : "empty";
-          const canPlay = isMyTurn && !owner;
-          return (
-            <polygon
-              key={i}
-              points={pts(x, y)}
-              className={`hex-cell ${cls}`}
-              role="button"
-              tabIndex={canPlay ? 0 : -1}
-              aria-disabled={!canPlay}
-              aria-label={owner ? c.ownedCell(r + 1, col + 1, owner) : c.emptyCell(r + 1, col + 1)}
-              onClick={() => play(i)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  play(i);
-                }
-              }}
-            />
-          );
-        })}
-      </svg>
-      <div className="hex-legend">
-        <span><i className="player" />{c.youLegend}</span>
-        <span><i className="ai" />{opponentName}</span>
-      </div>
+      <HexBoard board={game.board} viewer={myOwner} opponent={opponentName ?? "?"} onPlay={isMyTurn ? play : undefined} />
       <div className="btn-row">
         <button className="btn" onClick={leave}>
           {t.rooms.leaveButton}

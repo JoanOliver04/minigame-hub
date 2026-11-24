@@ -64,8 +64,7 @@ export function useWindlineArchery() {
   }, [stopMeter]);
 
   const startMatch = useCallback(() => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     stopMeter();
     rngRef.current = createRng(randomSeed());
     recordedRef.current = false;
@@ -83,8 +82,8 @@ export function useWindlineArchery() {
   const startMeter = useCallback(() => {
     if (phase !== "playing" || stage !== "aim") return;
     setStage("meter");
-    meterPhaseRef.current = 0;
-    setMeterValue(0);
+    meterPhaseRef.current = rngRef.current.next() < 0.5 ? Math.PI / 2 : -Math.PI / 2;
+    setMeterValue(Math.sin(meterPhaseRef.current));
     stopMeter();
     meterTimerRef.current = setInterval(() => {
       meterPhaseRef.current += METER_SPEED;
@@ -145,8 +144,7 @@ export function useWindlineArchery() {
   const playAgain = useCallback(() => startMatch(), [startMatch]);
 
   const toSetup = useCallback(() => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     stopMeter();
     setPhase("setup");
     setEnds([]);

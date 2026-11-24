@@ -33,6 +33,7 @@ export function useCircuitBreaker() {
   const [running, setRunning] = useState(false);
   const { record } = useScores();
 
+  const [queuedTurn, setQueuedTurn] = useState<TurnAction>("straight");
   const pendingActionRef = useRef<TurnAction>("straight");
   const rngRef = useRef<Rng>(createRng(randomSeed()));
   const tickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -61,6 +62,7 @@ export function useCircuitBreaker() {
       if (!runningRef.current) return;
       const current = roundRef.current;
       const playerAction = pendingActionRef.current;
+      setQueuedTurn("straight");
       pendingActionRef.current = "straight";
       const aiAction = aiPickAction(current, difficulty, rngRef.current);
       const next = resolveTick(current, playerAction, aiAction);
@@ -106,7 +108,7 @@ export function useCircuitBreaker() {
         return;
       }
       scheduleTickRef.current();
-    }, TICK_MS);
+    }, roundRef.current.tick === 0 ? ROUND_TRANSITION_MS : TICK_MS);
   }, [difficulty, record]);
 
   useEffect(() => {
@@ -117,6 +119,7 @@ export function useCircuitBreaker() {
     clearTimers();
     rngRef.current = createRng(randomSeed());
     matchRecordedRef.current = false;
+    setQueuedTurn("straight");
     winsRef.current = { player: 0, ai: 0 };
     pendingActionRef.current = "straight";
     setPlayerWins(0);
@@ -132,7 +135,9 @@ export function useCircuitBreaker() {
   }, [clearTimers, scheduleTick]);
 
   const setPendingAction = useCallback((action: TurnAction) => {
+    if (!runningRef.current) return;
     pendingActionRef.current = action;
+    setQueuedTurn(action);
   }, []);
 
   useEffect(() => {
@@ -174,6 +179,7 @@ export function useCircuitBreaker() {
     running,
     startMatch,
     setPendingAction,
+    queuedTurn,
     playAgain,
     toSetup,
   };

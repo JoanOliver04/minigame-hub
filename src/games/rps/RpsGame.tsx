@@ -21,6 +21,7 @@ export function RpsGame() {
 
   // --- setup screen state ---
   const [difficulty, setDifficulty] = useState<RpsDifficulty>("medium");
+  const [noRepeat, setNoRepeat] = useState(false);
   const [length, setLength] = useState("3");
 
   const DIFFICULTY_OPTIONS = [
@@ -54,6 +55,7 @@ export function RpsGame() {
           onChange={(v) => setDifficulty(v as RpsDifficulty)}
         />
 
+        <label className="arcade-check"><input type="checkbox" checked={noRepeat} onChange={e => setNoRepeat(e.target.checked)} /> {t.play.noRepeat}</label>
         <span className="field-label">{t.common.matchLength}</span>
         <SegPicker options={LENGTH_OPTIONS} value={length} onChange={setLength} />
 
@@ -61,7 +63,7 @@ export function RpsGame() {
           <button
             className="btn primary"
             style={{ minWidth: 180 }}
-            onClick={() => startMatch(difficulty, parseInt(length, 10))}
+            onClick={() => startMatch(difficulty, parseInt(length, 10), noRepeat)}
           >
             {t.common.startMatch}
           </button>
@@ -166,7 +168,7 @@ export function RpsGame() {
           <button
             key={move}
             className="rps-choice"
-            disabled={busy}
+            disabled={busy || (match.noRepeat && match.history[0]?.playerMove === move)}
             onClick={() => playMove(move)}
           >
             <span className="emoji">{MOVE_EMOJI[move]}</span>
@@ -175,6 +177,11 @@ export function RpsGame() {
         ))}
       </div>
 
+      {match.history.length > 0 && <details className="arcade-insight"><summary>{t.play.scouting}</summary>
+        <ol className="throw-strip">{match.history.slice(0, 5).reverse().map((round) => (
+          <li key={round.id} aria-label={MOVE_LABEL[round.aiMove]} title={MOVE_LABEL[round.aiMove]}>{MOVE_EMOJI[round.aiMove]}</li>
+        ))}</ol>
+      </details>}
       <div className="log-title">{t.rps.logTitle}</div>
       <ul className="log">
         {match.history.map((entry) => (

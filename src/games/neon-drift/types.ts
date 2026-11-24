@@ -23,6 +23,7 @@ export interface CarState {
   offTrackTime: number; // accumulated seconds off track
   bestLap: number | null;
   lastLapStart: number;
+  lastLap?: number;
 }
 
 export interface RacingNode {

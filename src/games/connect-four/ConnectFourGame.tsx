@@ -175,12 +175,20 @@ export function ConnectFourGame() {
 
       <div className="connect-board" role="group" aria-label={t.connectFour.boardLabel}>
         {Array.from({ length: COLUMNS }, (_, column) => {
-          const full = getDropRow(board, column) === null;
+          const landing = getDropRow(board, column);
+          const full = landing === null;
           return (
             <button
               key={column}
               className="connect-column"
               disabled={stage !== "player" || full}
+              onKeyDown={event => {
+                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                const columns = Array.from(event.currentTarget.parentElement!.querySelectorAll<HTMLButtonElement>("button:enabled"));
+                const next = columns.indexOf(event.currentTarget) + (event.key === "ArrowLeft" ? -1 : 1);
+                event.preventDefault();
+                columns[(next + columns.length) % columns.length]?.focus();
+              }}
               onClick={() => playColumn(column)}
               aria-label={t.connectFour.columnLabel(column + 1)}
             >
@@ -193,7 +201,7 @@ export function ConnectFourGame() {
                 return (
                   <span
                     key={`${row}-${column}`}
-                    className={`connect-slot${winning ? " winning" : ""}`}
+                    className={`connect-slot${winning ? " winning" : ""}${row === landing ? " landing" : ""}`}
                   >
                     {piece && (
                       <span

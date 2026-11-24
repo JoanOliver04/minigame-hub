@@ -148,7 +148,8 @@ export function SignalBreakerGame() {
 
   /* ================= PLAYING ================= */
   const draftComplete = game.draft.every((d) => d !== null);
-  const playerLocked = game.playerSolved !== null || game.playerRows.length >= game.maxGuesses;
+  const duplicate = draftComplete && game.playerRows.some((row) => row.guess.every((s, i) => s === game.draft[i]));
+  const playerLocked = game.outcome !== null || game.playerSolved !== null || game.playerRows.length >= game.maxGuesses;
 
   return (
     <section className="card screen signal-screen">
@@ -162,7 +163,10 @@ export function SignalBreakerGame() {
           </p>
           <div className="sig-rows">
             {game.playerRows.map((row, i) => (
-              <Row key={i} row={row} />
+              <div key={i} className="sig-recall">
+                <Row row={row} />
+                {!playerLocked && <button type="button" className="arcade-tool" onClick={() => game.copyGuess(row.guess)}>{t.play.copyGuess} {i + 1}</button>}
+              </div>
             ))}
           </div>
         </div>
@@ -194,6 +198,7 @@ export function SignalBreakerGame() {
               </button>
             ))}
           </div>
+          {duplicate && <small className="arcade-caption" role="status">{t.play.repeatGuess}</small>}
           <div className="sig-palette">
             {SYMBOLS.map((s, i) => (
               <button
@@ -210,7 +215,7 @@ export function SignalBreakerGame() {
             ))}
           </div>
           <div className="btn-row">
-            <button className="btn primary" disabled={!draftComplete} onClick={game.submitGuess}>
+            <button className="btn primary" disabled={!draftComplete || duplicate || game.playerRows.length !== game.aiRows.length} onClick={game.submitGuess}>
               {t.signalBreaker.submit}
             </button>
             <button className="btn" onClick={game.clearDraft}>

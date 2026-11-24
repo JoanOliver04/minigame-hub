@@ -41,6 +41,7 @@ const END_HOLD_MS = 1600;
 interface LaneFlashState {
   lane: Lane;
   judgement: Judgement;
+  errorMs: number;
   key: number;
 }
 
@@ -249,7 +250,7 @@ export function useBeatReactor() {
         { eventId: target.id, lane, judgement: j, timingErrorMs: errorMs, actor: "player" },
       ]);
       flashKeyRef.current += 1;
-      setFlash({ lane, judgement: j, key: flashKeyRef.current });
+      setFlash({ lane, judgement: j, errorMs: Math.round(errorMs), key: flashKeyRef.current });
       if (j === "miss") setReactorShake((s) => s + 1);
     },
     [phase, songDone, calibrationMs, muted],
@@ -258,6 +259,7 @@ export function useBeatReactor() {
   useEffect(() => {
     if (phase !== "playing") return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return;
       const idx = LANE_KEYS.indexOf(e.key.toLowerCase() as (typeof LANE_KEYS)[number]);
       if (idx !== -1) {
         e.preventDefault();

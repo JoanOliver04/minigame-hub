@@ -163,7 +163,7 @@ export function PrismClashGame() {
         <ColorPicker
           colors={PRISM_COLORS}
           label={t.prismClash.chooseColor}
-          colorLabel={(color: PrismColor) => t.prismClash.colors[color]}
+          colorLabel={(color: PrismColor) => `${t.prismClash.colors[color]} · ${t.prismClash.cardsCount(game.hands[PLAYER].filter((card) => card.color === color).length)}`}
           onPick={chooseColor}
         />
       )}

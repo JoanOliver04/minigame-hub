@@ -55,16 +55,20 @@ export function useDomino() {
 
   function toggle(tileId: string) {
     if (!game || game.turn !== PLAYER) return;
+    const tile = game.hands[PLAYER].find((candidate) => candidate.id === tileId);
+    if (!tile) return;
+    const sides = getPlayableSides(game, tile);
+    if (sides.length === 1) { play(sides[0], tileId); return; }
     setSelected((current) => (current === tileId ? null : tileId));
   }
 
-  function play(side?: DominoSide) {
-    if (!game || !selected) return;
-    const tile = game.hands[PLAYER].find((candidate) => candidate.id === selected);
+  function play(side?: DominoSide, tileId = selected) {
+    if (!game || !tileId) return;
+    const tile = game.hands[PLAYER].find((candidate) => candidate.id === tileId);
     if (!tile) return;
     const legalSide = side ?? getPlayableSides(game, tile)[0];
     if (!legalSide) return;
-    const next = playDominoTile(game, PLAYER, selected, legalSide);
+    const next = playDominoTile(game, PLAYER, tileId, legalSide);
     if (next !== game) {
       setGame(next);
       setSelected(null);

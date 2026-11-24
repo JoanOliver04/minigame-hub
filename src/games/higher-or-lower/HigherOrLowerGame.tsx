@@ -16,6 +16,7 @@ import type {
   Prediction,
 } from "./types";
 import { useHigherOrLower } from "./useHigherOrLower";
+import { calculateRemainingProbabilities } from "./ai";
 
 export function HigherOrLowerGame() {
   const { t } = useLocale();
@@ -154,6 +155,7 @@ export function HigherOrLowerGame() {
       ? " correct pop"
       : " high pop"
     : "";
+  const odds = calculateRemainingProbabilities(match.currentCard, match.deck, match.config.aceHigh);
   const feedback = reveal
     ? t.higherOrLower.revealFeedback(
         reveal.playerCorrect,
@@ -211,6 +213,11 @@ export function HigherOrLowerGame() {
         {feedback}
       </div>
 
+      {!busy && <details className="arcade-insight"><summary>{t.play.cardOdds}</summary>
+        <div className="arcade-readout">{(["higher", "lower", "same"] as const).map((choice) => (
+          <span key={choice}>{t.higherOrLower.predictions[choice]} <b>{odds[choice]} / {odds.total}</b></span>
+        ))}</div>
+      </details>}
       <div className="hol-choices">
         {predictions.map((prediction) => (
           <button

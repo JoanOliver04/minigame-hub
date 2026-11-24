@@ -12,7 +12,7 @@ import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { AI_MARK, PLAYER_MARK, type TttDifficulty } from "./logic";
+import { AI_MARK, PLAYER_MARK, applyMove, checkOutcome, legalMoves, type TttDifficulty } from "./logic";
 import { useTttGame } from "./useTttGame";
 
 export function TttGame() {
@@ -33,6 +33,7 @@ export function TttGame() {
   // --- setup screen state ---
   const [difficulty, setDifficulty] = useState<TttDifficulty>("medium");
   const [length, setLength] = useState("3");
+  const [coach, setCoach] = useState(false);
 
   const DIFFICULTY_OPTIONS = [
     { value: "easy", label: t.common.easy },
@@ -132,6 +133,9 @@ export function TttGame() {
       : selectedCell !== null
         ? t.ttt.chooseDestination
         : t.ttt.yourTurn;
+  const winningTargets = new Set(coach && stage === "player" ? legalMoves(board, PLAYER_MARK)
+    .filter((move) => move.from === selectedCell && checkOutcome(applyMove(board, move, PLAYER_MARK))?.winner === PLAYER_MARK)
+    .map((move) => move.to) : []);
   let feedbackCls = "";
   if (stage === "ai") {
     feedbackMsg = (
@@ -169,6 +173,7 @@ export function TttGame() {
 
       <div className={`feedback${feedbackCls}`}>{feedbackMsg}</div>
 
+      <label className="arcade-check"><input type="checkbox" checked={coach} onChange={(e) => setCoach(e.target.checked)} /> {t.play.winningSquares}</label>
       <div className="ttt-board">
         {board.map((cell, i) => {
           const isWinning = lastOutcome?.line?.includes(i) ?? false;
@@ -192,8 +197,9 @@ export function TttGame() {
               disabled={!canInteract}
               onClick={() => handleCell(i)}
               aria-pressed={isSelected}
-              aria-label={t.ttt.cellLabel(i + 1, cell)}
+              aria-label={[t.ttt.cellLabel(i + 1, cell), winningTargets.has(i) && t.play.winningMove].filter(Boolean).join(" · ")}
             >
+              {winningTargets.has(i) && <span className="winning-target" aria-hidden="true">◎</span>}
               {cell && <span className={`mark ${cell === "X" ? "x" : "o"}`}>{cell}</span>}
             </button>
           );

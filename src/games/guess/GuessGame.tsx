@@ -70,9 +70,9 @@ export function GuessGame() {
       min = parts[0];
       max = parts[1];
     } else {
-      const lo = parseInt(customMin, 10);
-      const hi = parseInt(customMax, 10);
-      if (Number.isNaN(lo) || Number.isNaN(hi)) {
+      const lo = Number(customMin);
+      const hi = Number(customMax);
+      if (!customMin.trim() || !customMax.trim() || !Number.isSafeInteger(lo) || !Number.isSafeInteger(hi)) {
         setStartError(t.guess.errorMinMax);
         return;
       }
@@ -113,8 +113,8 @@ export function GuessGame() {
       playSound("error");
       return;
     }
-    if (n < round.config.min || n > round.config.max) {
-      setGuessError(t.guess.errorStayBetween(round.config.min, round.config.max));
+    if (n < round.knownLow || n > round.knownHigh) {
+      setGuessError(t.guess.errorStayBetween(round.knownLow, round.knownHigh));
       playSound("error");
       return;
     }
@@ -295,6 +295,7 @@ export function GuessGame() {
           <input
             ref={inputRef}
             type="number"
+            aria-label={t.guess.guessPlaceholder} min={round.knownLow} max={round.knownHigh}
             placeholder={t.guess.guessPlaceholder}
             autoComplete="off"
             value={guessValue}
@@ -305,7 +306,12 @@ export function GuessGame() {
             {t.guess.guessButton}
           </button>
         </form>
-        <p className="error-msg">{guessError}</p>
+        <button type="button" className="arcade-tool" disabled={round.turn !== "player"} onClick={() => {
+          setGuessValue(String(round.knownLow + Math.floor((round.knownHigh - round.knownLow) / 2)));
+          setGuessError("");
+          inputRef.current?.focus();
+        }}>{t.play.midpoint}</button>
+        <p className="error-msg" role="status">{guessError}</p>
 
         {feedback ? (
           <div key={round.log.length} className={`feedback ${feedback.verdict} pop`}>

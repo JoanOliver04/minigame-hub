@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useScores } from "@/context/ScoresContext";
+import { getUseDelay } from "@/lib/settings";
 import { playSound } from "@/lib/sound";
 import { resolveAiShot } from "./ai";
 import {
@@ -37,6 +38,7 @@ export function useBasketShot() {
   const [lastShot, setLastShot] = useState<BasketShot | null>(null);
   const [history, setHistory] = useState<BasketRound[]>([]);
 
+  const [previousRelease, setPreviousRelease] = useState<number | null>(null);
   const meterRef = useRef(8);
   const directionRef = useRef(1);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -84,6 +86,7 @@ export function useBasketShot() {
     clearTimers();
     setDifficulty(nextDifficulty);
     setRoundIndex(0);
+    setPreviousRelease(null);
     setPlayerScore(0);
     setAiScore(0);
     setHistory([]);
@@ -98,11 +101,14 @@ export function useBasketShot() {
   function shoot() {
     if (phase !== "playing" || stage !== "player") return;
     const points = ROUND_POINTS[roundIndex];
+    const quick = !getUseDelay() || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const flightTime = quick ? 220 : 720;
     const playerShot = resolvePlayerShot(
       meterRef.current,
       roundIndex + 1,
       points,
     );
+    setPreviousRelease(meterRef.current);
     setLastShot(playerShot);
     setStage("player-flight");
     playSound("blip");
@@ -110,7 +116,7 @@ export function useBasketShot() {
     schedule(() => {
       setStage("player-result");
       playSound(playerShot.made ? "win" : "lose");
-    }, 720);
+    }, flightTime);
 
     schedule(() => {
       const aiShot = resolveAiShot(
@@ -159,9 +165,9 @@ export function useBasketShot() {
             setMeter(8);
             setStage("player");
           }
-        }, 1300);
-      }, 720);
-    }, 1900);
+        }, quick ? 420 : 1300);
+      }, flightTime);
+    }, quick ? 650 : 1900);
   }
 
   function toSetup() {
@@ -180,6 +186,7 @@ export function useBasketShot() {
     playerScore,
     aiScore,
     meter,
+    previousRelease,
     lastShot,
     history,
     startMatch,

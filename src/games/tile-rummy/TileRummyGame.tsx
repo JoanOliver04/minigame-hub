@@ -16,7 +16,7 @@ const AI = "ai";
 
 export function TileRummyGame() {
   const { t } = useLocale();
-  const { phase, game, selected, start, toggle, playSelected, draw, playAgain, toSetup } =
+  const { phase, game, selected, start, toggle, suggest, playSelected, draw, playAgain, toSetup } =
     useTileRummy();
   const [difficulty, setDifficulty] = useState<TileRummyDifficulty>("medium");
 
@@ -138,6 +138,7 @@ export function TileRummyGame() {
       </div>
 
       <div className="tile-rummy-actions">
+        <button className="btn" disabled={!myTurn || canDraw} onClick={suggest}>{t.play.suggestMeld}</button>
         <button className="btn primary" disabled={!canPlay} onClick={playSelected}>
           {validation?.valid ? t.tileRummy.playMeld(validation.score) : t.tileRummy.playSelection}
         </button>

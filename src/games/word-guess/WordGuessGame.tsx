@@ -1,13 +1,13 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { alphabetFor } from "./letters";
+import { alphabetFor, foldLetter } from "./letters";
 import { SHARED_MISTAKE_LIMIT, totalMistakes, wordPattern } from "./logic";
 import type { WordCategory, WordDifficulty, WordLang } from "./types";
 import { useWordGuess } from "./useWordGuess";
@@ -28,6 +28,7 @@ export function WordGuessGame() {
   // Default the word language to the interface language, so a player who
   // switched the app to Spanish gets Spanish words unless they choose otherwise.
   const [lang, setLang] = useState<WordLang>(locale === "es" ? "es" : "en");
+  const focusKeyboard = useCallback((node: HTMLDivElement | null) => node?.focus({ preventScroll: true }), []);
   const [wordInput, setWordInput] = useState("");
 
   const categoryOptions = [
@@ -213,7 +214,16 @@ export function WordGuessGame() {
         {feedbackText}
       </div>
 
-      <div className="word-keyboard" role="group" aria-label={t.wordGuess.keyboardLabel}>
+      <p id="letter-shortcuts" className="arcade-caption">{t.play.physicalLetters}</p>
+      <div className="word-keyboard" ref={focusKeyboard} role="group" tabIndex={0} aria-describedby="letter-shortcuts" aria-label={t.wordGuess.keyboardLabel}
+        onKeyDown={(event) => {
+          if (locked || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.nativeEvent.isComposing) return;
+          const letter = foldLetter(event.key);
+          if (alphabetFor(game.lang).includes(letter) && !game.guessedLetters.has(letter)) {
+            event.preventDefault();
+            playerGuess("letter", letter);
+          }
+        }}>
         {alphabetFor(game.lang).map((letter) => (
           <button
             key={letter}

@@ -7,7 +7,7 @@ import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import type { MemoryConfig, MemoryDifficulty, MemoryGridSize } from "./types";
+import type { MemoryConfig, MemoryDifficulty } from "./types";
 import { useMemoryMatch } from "./useMemoryMatch";
 
 type MemoryBoardStyle = CSSProperties & { "--memory-columns": number };
@@ -17,7 +17,7 @@ export function MemoryMatchGame() {
   const { phase, stage, match, startMatch, flipPlayerTile, playAgain, toSetup } =
     useMemoryMatch();
   const [difficulty, setDifficulty] = useState<MemoryDifficulty>("medium");
-  const [size, setSize] = useState<MemoryGridSize>(4);
+  const [boardChoice, setBoardChoice] = useState("4");
 
   if (phase === "setup") {
     return (
@@ -46,11 +46,12 @@ export function MemoryMatchGame() {
         <span className="field-label">{t.memoryMatch.boardSize}</span>
         <SegPicker
           options={[
+            { value: "quick", label: `${t.play.quickBoard} · 3 × 4` },
             { value: "4", label: t.memoryMatch.grid4 },
             { value: "6", label: t.memoryMatch.grid6 },
           ]}
-          value={String(size)}
-          onChange={(value) => setSize(Number(value) as MemoryGridSize)}
+          value={boardChoice}
+          onChange={setBoardChoice}
         />
 
         <div className="btn-row" style={{ marginTop: 22 }}>
@@ -58,7 +59,7 @@ export function MemoryMatchGame() {
             className="btn primary"
             style={{ minWidth: 180 }}
             onClick={() =>
-              startMatch({ difficulty, size } satisfies MemoryConfig)
+              startMatch({ difficulty, size: boardChoice === "6" ? 6 : 4, quick: boardChoice === "quick" } satisfies MemoryConfig)
             }
           >
             {t.common.startMatch}

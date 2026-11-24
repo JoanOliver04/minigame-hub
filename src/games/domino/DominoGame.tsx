@@ -107,7 +107,7 @@ export function DominoGame() {
             tile={tile}
             label={t.domino.tileLabel(tile.a, tile.b)}
             selected={selected === tile.id}
-            disabled={!myTurn}
+            disabled={!myTurn || !getPlayableSides(game, tile).length}
             onClick={() => toggle(tile.id)}
           />
         ))}

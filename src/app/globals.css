@@ -4586,6 +4586,66 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   background: rgba(255, 190, 80, 0.12);
 }
 
+.arcade-insight, .forge-workbench {
+  margin: 12px auto;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.arcade-insight summary { cursor: pointer; font-weight: 650; }
+.arcade-insight[open] summary { margin-bottom: 8px; }
+.arcade-tool {
+  min-height: 36px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.arcade-tool:disabled { cursor: default; opacity: .55; }
+.arcade-readout, .throw-strip, .arcade-check {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 14px;
+  margin: 10px 0;
+}
+.arcade-check input { accent-color: var(--accent); }
+.arcade-caption { display: block; margin: 8px 0; color: var(--text-dim); text-align: center; }
+.throw-strip { list-style: none; padding: 0; font-size: 1.4rem; }
+.winning-target { color: var(--accent); font-size: 1.8rem; }
+.connect-column:is(:hover, :focus-visible):not(:disabled) .connect-slot.landing::after {
+  content: ""; position: absolute; inset: 9%; border-radius: 50%;
+  background: #ff596470; border: 2px dashed #ffc0c4;
+}
+.penalty-ghost {
+  position: absolute; z-index: 2; transform: translate(-50%, -50%); pointer-events: none;
+  color: #fff; text-shadow: 0 1px 3px #111; font-size: 1.4rem;
+}
+.basket-release-ghost {
+  position: absolute; top: 0; bottom: 0; width: 3px; transform: translateX(-50%);
+  border-inline: 1px solid #16141a; background: #fff; pointer-events: none;
+}
+.shadow-tile.reachable::after {
+  content: ""; position: absolute; inset: 12%; border: 2px dotted #a7f2d0;
+  border-radius: 4px; pointer-events: none;
+}
+.breaker-cell.head.player {
+  display: grid; place-items: center; color: #0d1522; font-size: clamp(.55rem, 2vw, .95rem); line-height: 1;
+}
+.sig-recall { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 4px; }
+.forge-offer { background: var(--surface-2); color: var(--text); cursor: pointer; }
+.forge-offer:disabled { opacity: .5; cursor: default; }
+.forge-offer[aria-pressed="true"] { outline: 2px solid var(--accent); }
+.forge-die-row { display: grid; gap: 4px; margin-block: 8px; }
+.forge-die-row > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; }
+.forge-die-row .btn { min-width: 0; padding: 4px 1px; }
+.forge-die-row .forge-face { width: 100%; min-width: 0; }
+.hex-path { fill: none; stroke: white; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.fleet-cell.position-valid { outline: 2px dashed var(--accent); outline-offset: -3px; }
+.fleet-cell.position-blocked { outline: 2px dotted #e26c6c; outline-offset: -3px; }
+.storm-spell kbd { font: inherit; font-size: .75em; opacity: .8; }
+
 @media (max-width: 760px) {
   .property-board {
     grid-template-columns: repeat(2, minmax(0, 1fr));

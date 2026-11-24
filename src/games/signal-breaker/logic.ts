@@ -6,7 +6,7 @@
 
 import type { Rng } from "@/lib/rng";
 import type { Code, Feedback } from "./types";
-import { CODE_LENGTH, SYMBOL_COUNT } from "./types";
+import { CODE_LENGTH, MAX_GUESSES, SYMBOL_COUNT } from "./types";
 
 export function scoreGuess(secret: Code, guess: Code): Feedback {
   let exact = 0;
@@ -33,6 +33,12 @@ export function feedbackEqual(a: Feedback, b: Feedback): boolean {
 
 export function isSolved(feedback: Feedback): boolean {
   return feedback.exact === CODE_LENGTH;
+}
+
+/** Called after both sides have made the same number of attempts. */
+export function signalRoundOutcome(turn: number, playerSolved: boolean, aiSolved: boolean) {
+  if (playerSolved || aiSolved) return playerSolved === aiSolved ? "tie" : playerSolved ? "player" : "ai";
+  return turn >= MAX_GUESSES ? "tie" : null;
 }
 
 export function randomCode(rng: Rng, allowRepeats: boolean): Code {

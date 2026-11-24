@@ -134,6 +134,7 @@ export function stepCar(
       if (car.bestLap === null || lapTime < car.bestLap) {
         car.bestLap = lapTime;
       }
+      car.lastLap = lapTime;
       car.lastLapStart = elapsed;
       car.lap += 1;
       if (car.lap >= TOTAL_LAPS) {

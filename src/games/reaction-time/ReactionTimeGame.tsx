@@ -9,6 +9,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { timedPress } from "@/lib/press-timing";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -179,7 +180,7 @@ export function ReactionTimeGame() {
       <button
         type="button"
         className={boxClass}
-        onClick={handlePlayerAction}
+        {...timedPress(handlePlayerAction)}
         disabled={stage === "resolved"}
       >
         <span className="rt-box-text">{boxText}</span>
@@ -195,6 +196,9 @@ export function ReactionTimeGame() {
         {stage === "ready" && <span className="rt-box-hint">{t.reactionTime.tapHint}</span>}
       </button>
 
+      {match.playerTimes.length > 0 && (
+        <p className="arcade-readout">{t.play.bestReaction} · {t.reactionTime.msSuffix(Math.min(...match.playerTimes))}</p>
+      )}
       <div className="log-title">{t.reactionTime.logTitle}</div>
       <ul className="log">
         {history.map((entry) => (

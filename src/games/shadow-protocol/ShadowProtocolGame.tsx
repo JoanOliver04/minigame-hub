@@ -13,7 +13,7 @@ import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { ALARM_TURNS } from "./logic";
+import { ALARM_TURNS, moveDestination } from "./logic";
 import type { Position, ShadowDifficulty, ShadowState } from "./types";
 import { samePos } from "./types";
 import {
@@ -91,6 +91,10 @@ export function ShadowProtocolGame() {
     () => new Set(beaconSpots.map((pos: Position) => pos.y * (state?.width ?? 11) + pos.x)),
     [beaconSpots, state],
   );
+
+  const steps = state && armed !== "beacon"
+    ? DIR_CYCLE.map((dir) => moveDestination(state, dir, armed === "sprint"))
+    : [];
 
   const DIFFICULTY_OPTIONS = [
     { value: "easy", label: t.common.easy },
@@ -237,13 +241,15 @@ export function ShadowProtocolGame() {
           if (visible.has(i)) classes.push("seen");
           if (noiseSet.has(i)) classes.push("noise");
           if (armed === "beacon" && beaconSet.has(i)) classes.push("beacon-target");
+          const reachable = steps.some((step) => step && samePos(step, pos));
+          if (reachable) classes.push("reachable");
           if (isPlayer) classes.push("player-here");
           return (
             <button
               key={i}
               className={classes.join(" ")}
               onClick={() => tapTile(pos)}
-              aria-label={t.shadowProtocol.cellLabel(
+              aria-label={(reachable ? t.play.destination + " · " : "") + t.shadowProtocol.cellLabel(
                 x,
                 y,
                 tile,

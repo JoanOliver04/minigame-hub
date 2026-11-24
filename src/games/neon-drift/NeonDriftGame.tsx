@@ -128,9 +128,16 @@ export function NeonDriftGame() {
   /* ================= RACING ================= */
   if (!game.player || !game.ai) return null;
   const track = game.track;
-  const leading =
-    game.player.lap > game.ai.lap ||
-    (game.player.lap === game.ai.lap && game.player.checkpoint >= game.ai.checkpoint);
+  // Checkpoint zero is the finish line, after every other checkpoint.
+  const progress = (car: CarState) => car.lap * track.checkpoints.length +
+    (car.checkpoint || track.checkpoints.length);
+  const distanceToNext = (car: CarState) => {
+    const next = track.checkpoints[car.checkpoint];
+    return Math.hypot(car.position.x - next.x, car.position.y - next.y);
+  };
+  const leading = progress(game.player) === progress(game.ai)
+    ? distanceToNext(game.player) <= distanceToNext(game.ai)
+    : progress(game.player) > progress(game.ai);
 
   return (
     <section className="card screen drift-screen">
@@ -176,6 +183,9 @@ export function NeonDriftGame() {
         <div className="drift-boost-fill" style={{ width: `${game.player.boost}%` }} />
       </div>
 
+      {game.player.lastLap !== undefined && <p className="arcade-readout">
+        {t.play.raceSplit} · {formatTime(game.player.lastLap)}　{t.neonDrift.bestLap} · {formatTime(game.player.bestLap)}
+      </p>}
       <DriftControls bindControl={game.bindControl} />
     </section>
   );

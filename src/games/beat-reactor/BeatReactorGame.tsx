@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { timedPress } from "@/lib/press-timing";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -212,7 +213,7 @@ export function BeatReactorGame() {
             </div>
             <button
               className="btn reactor-pad"
-              onClick={() => game.hitLane(lane as Lane)}
+              {...timedPress(() => game.hitLane(lane as Lane))}
               aria-label={t.beatReactor.laneButtonLabel(lane + 1)}
             >
               {LANE_LABELS[lane]}
@@ -224,6 +225,8 @@ export function BeatReactorGame() {
 
       <div className="reactor-combo-row">
         <span className="you">{t.beatReactor.comboYou(game.playerCombo)}</span>
+        {game.flash && <span className="reactor-timing">{game.flash.errorMs === 0 ? "0 ms" :
+          `${game.flash.errorMs < 0 ? t.basketShot.early : t.basketShot.late} · ${Math.abs(game.flash.errorMs)} ms`}</span>}
         <span className="them">{t.beatReactor.comboAi(game.aiCombo)}</span>
       </div>
     </section>

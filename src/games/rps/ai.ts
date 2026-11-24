@@ -75,17 +75,20 @@ function estimatePlayer(state: MatchState): Record<Move, number> {
 }
 
 export function aiPickMove(state: MatchState, random = Math.random): Move {
-  if (state.difficulty === "easy") return pick(MOVES, random);
+  const last = state.noRepeat ? state.history[0] : undefined;
+  const available = last ? MOVES.filter(move => move !== last.aiMove) : MOVES;
+  if (state.difficulty === "easy") return pick(available, random);
 
   if (state.difficulty === "medium") {
     const fav = mostFrequentMove(state.freq);
-    if (fav && random() < 0.7) return COUNTER[fav];
-    return pick(MOVES, random);
+    if (fav && fav !== last?.playerMove && available.includes(COUNTER[fav]) && random() < 0.7) return COUNTER[fav];
+    return pick(available, random);
   }
 
-  if (!state.history.length || random() < 0.08) return pick(MOVES, random);
+  if (!state.history.length || random() < 0.08) return pick(available, random);
   const scores = estimatePlayer(state);
+  if (last) scores[last.playerMove] = 0;
   const utility = (move: Move) => scores[BEATS[move]] - scores[COUNTER[move]];
-  const best = Math.max(...MOVES.map(utility));
-  return pick(MOVES.filter((move) => Math.abs(utility(move) - best) < 1e-9), random);
+  const best = Math.max(...available.map(utility));
+  return pick(available.filter((move) => Math.abs(utility(move) - best) < 1e-9), random);
 }

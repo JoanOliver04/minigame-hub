@@ -15,7 +15,7 @@ import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import { CardFace } from "../higher-or-lower/CardFace";
 import { calculateHandValue } from "./logic";
-import { suggestAction } from "./hints";
+import { bustPercent, suggestAction } from "./hints";
 import type { BlackjackConfig, BlackjackDifficulty } from "./types";
 import { useBlackjack } from "./useBlackjack";
 
@@ -241,6 +241,9 @@ export function BlackjackGame() {
       </div>
 
       {hint && <div className="bj-hint">{t.blackjack.hintLabel(hint)}</div>}
+      {stage === "player" && difficultyLevel !== "hard" && dealerCards[0] && <details className="arcade-insight">
+        <summary>{t.play.bustRisk}</summary><strong>{bustPercent(playerCards, dealerCards[0])}%</strong>
+      </details>}
 
       <div className="btn-row bj-actions">
         <button className="btn primary" disabled={busy} onClick={hit}>

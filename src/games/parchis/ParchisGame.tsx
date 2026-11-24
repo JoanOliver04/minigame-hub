@@ -6,7 +6,7 @@ import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { legalParchisMoves } from "./logic";
+import { GOAL_PROGRESS, legalParchisMoves, pieceDestination } from "./logic";
 import { ParchisBoard } from "./ParchisBoard";
 import type { ParchisDifficulty } from "./types";
 import { useParchis } from "./useParchis";
@@ -124,6 +124,11 @@ export function ParchisGame() {
           )}
         onMove={move}
       />
+      {myTurn && legal.length > 0 && <div className="arcade-readout">{legal.map((id) => (
+        <button key={id} className="arcade-tool" onClick={() => move(id)}>
+          ♟ {id + 1} · {t.play.destination} {pieceDestination(game, PLAYER, id)} / {GOAL_PROGRESS}
+        </button>
+      ))}</div>}
       <div className="parchis-controls">
         <Dice value={game.dice} />
         <div>

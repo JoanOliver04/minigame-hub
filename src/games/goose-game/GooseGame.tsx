@@ -7,6 +7,7 @@ import { HowToPlay } from "@/components/ui/HowToPlay";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import { GooseBoard } from "./GooseBoard";
+import { previewGooseLanding } from "./logic";
 import type { GooseDifficulty, GooseSpecial } from "./types";
 import { useGooseGame } from "./useGooseGame";
 
@@ -70,6 +71,7 @@ export function GooseGame() {
   const canRoll = myTurn && game.die === null;
   const canMove = myTurn && game.die !== null;
   const canReroll = canMove && !game.rerolled && game.feathers[PLAYER] > 0;
+  const landing = canMove && game.die ? previewGooseLanding(game, PLAYER, game.die) : null;
   const action = game.lastAction;
   const actor = action?.actor === PLAYER ? t.common.you : t.common.ai;
   let feedback = myTurn
@@ -104,6 +106,8 @@ export function GooseGame() {
         </div>
       </div>
       <div className="feedback goose-feedback">{feedback}</div>
+      {landing && <p className="arcade-caption">{t.play.destination} · {landing.landed}
+        {landing.landed !== landing.destination && ` → ${landing.destination}`}{landing.special && ` · ${t.gooseGame.specialNames[landing.special]}`}</p>}
       <GooseBoard
         state={game}
         viewer={PLAYER}

@@ -13,6 +13,7 @@ export interface MatchTile {
 export interface MemoryConfig {
   difficulty: MemoryDifficulty;
   size: MemoryGridSize;
+  quick?: boolean;
 }
 
 export interface AIMemoryStore {

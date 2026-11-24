@@ -5,7 +5,7 @@ import { useScores } from "@/context/ScoresContext";
 import { getUseDelay } from "@/lib/settings";
 import { playSound } from "@/lib/sound";
 import { playTileRummyAiTurn } from "./ai";
-import { createTileRummyGame, drawTileRummyTile, playTileRummyMeld } from "./logic";
+import { createTileRummyGame, drawTileRummyTile, findTileRummyMelds, playTileRummyMeld } from "./logic";
 import type { TileRummyConfig, TileRummyGameState } from "./types";
 
 const PLAYER = "player";
@@ -80,6 +80,12 @@ export function useTileRummy() {
     }
   }
 
+  function suggest() {
+    if (!game || game.turn !== PLAYER) return;
+    const meld = findTileRummyMelds(game, PLAYER)[0];
+    if (meld) setSelected(meld.tiles.map((tile) => tile.id));
+  }
+
   function playAgain() {
     if (config) start(config);
   }
@@ -90,5 +96,5 @@ export function useTileRummy() {
     setPhase("setup");
   }
 
-  return { phase, game, selected, start, toggle, playSelected, draw, playAgain, toSetup };
+  return { phase, game, selected, start, toggle, suggest, playSelected, draw, playAgain, toSetup };
 }

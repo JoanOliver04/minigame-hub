@@ -30,9 +30,9 @@ const SYMBOLS = [
   "⭐",
 ] as const;
 
-export function createTiles(size: MemoryConfig["size"]): MatchTile[] {
-  const pairCount = (size * size) / 2;
-  const values = SYMBOLS.slice(0, pairCount).flatMap((value) => [value, value]);
+export function createTiles(size: MemoryConfig["size"], quick = false): MatchTile[] {
+  const pairCount = quick ? 6 : (size * size) / 2;
+  const values = shuffleItems(SYMBOLS).slice(0, pairCount).flatMap((value) => [value, value]);
   return shuffleItems(values).map((value, id) => ({
     id,
     value,
@@ -44,7 +44,7 @@ export function createTiles(size: MemoryConfig["size"]): MatchTile[] {
 export function createMemoryMatch(config: MemoryConfig): MemoryMatchState {
   return {
     config,
-    tiles: createTiles(config.size),
+    tiles: createTiles(config.size, config.quick),
     turn: "player",
     playerPairs: 0,
     aiPairs: 0,

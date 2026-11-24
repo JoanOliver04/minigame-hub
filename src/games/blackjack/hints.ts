@@ -1,11 +1,23 @@
 /** Blackjack coaching based on visible cards and the fixed dealer rules. */
-import type { Card } from "@/lib/cards";
+import { createStandardDeck, type Card } from "@/lib/cards";
 import { calculateHandValue, dealerShouldHit } from "./logic";
 import type { Action } from "./types";
 
 interface Total {
   total: number;
   isSoft: boolean;
+}
+
+/** Conditional on the player's hand and the single visible dealer card. */
+export function bustPercent(playerCards: Card[], dealerUpCard: Card): number {
+  const seen = new Set([...playerCards, dealerUpCard].map((card) => card.id));
+  const unseen = createStandardDeck().filter((card) => !seen.has(card.id));
+  // The dealer already checked for a natural before offering the player a hit.
+  const holeCandidates = unseen.filter(card => !calculateHandValue([dealerUpCard, card]).isBlackjack);
+  const busts = new Set(unseen.filter(card => calculateHandValue([...playerCards, card]).isBust));
+  const combinations = holeCandidates.length * (unseen.length - 1);
+  const losingDraws = holeCandidates.reduce((n, hole) => n + busts.size - Number(busts.has(hole)), 0);
+  return combinations ? Math.round(100 * losingDraws / combinations) : 0;
 }
 
 const BUST = 22;

@@ -16,7 +16,7 @@ type PuzzleBoardStyle = CSSProperties & { "--puzzle-size": number };
 
 export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
   const { t, locale } = useLocale();
-  const { phase, game, seconds, start, move, playAgain, toSetup } = useSlidingPuzzle(dailyDay);
+  const { phase, game, seconds, start, move, canUndo, undo, playAgain, toSetup } = useSlidingPuzzle(dailyDay);
   const { best } = useDailyStatus(dailyDay ?? null);
   const board = useRef<HTMLDivElement>(null);
   const focusResult = useCallback((heading: HTMLHeadingElement | null) => heading?.focus(), []);
@@ -133,6 +133,7 @@ export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
       </div>
       <p id="puzzle-controls" className="sliding-hint">{t.slidingPuzzle.moveHint}</p>
       <div className="btn-row">
+        {!dailyDay && <button type="button" className="btn" disabled={!canUndo} onClick={undo}>{t.play.undo}</button>}
         <button type="button" className="btn" onClick={() => {
           const index = suggestSlidingTile(game);
           if (index !== null) setHint({ game, index });

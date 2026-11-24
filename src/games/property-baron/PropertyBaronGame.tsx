@@ -75,6 +75,7 @@ export function PropertyBaronGame() {
     );
   }
 
+  const price = canBuy(state, "player") ? tile?.price : canUpgrade(state, "player") ? tile?.upgradeCost : undefined;
   return (
     <section className="card screen property-screen">
       <div className="rps-tally">
@@ -88,7 +89,7 @@ export function PropertyBaronGame() {
           return (
             <div key={item.id} className={`property-tile ${item.kind} ${prop?.owner === "player" ? "owned-you" : prop?.owner === "ai" ? "owned-ai" : ""}`}>
               <strong>{item.name}</strong>
-              {item.kind === "property" && <small>${item.price} · ${item.rent}{prop ? ` · L${prop.level}` : ""}</small>}
+              {item.kind === "property" && <small>${item.price} · {t.play.rent} ${(item.rent ?? 0) * (1 + (prop?.level ?? 0))}{prop?.owner ? ` · L${prop.level}` : ""}</small>}
               <span>{you.position === item.id ? "🙂" : ""}{ai.position === item.id ? " 🤖" : ""}</span>
             </div>
           );
@@ -101,6 +102,9 @@ export function PropertyBaronGame() {
             : t.propertyBaron.decisionPrompt(tile?.name ?? "")
           : t.propertyBaron.aiTurn}
       </p>
+      {state.turn === "player" && state.phase === "decision" && price !== undefined && (
+        <p className="arcade-caption">{t.play.balanceAfter} · ${you.money} − ${price} = ${you.money - price}</p>
+      )}
       <div className="btn-row">
         <button className="btn primary" disabled={state.turn !== "player" || state.phase !== "roll"} onClick={game.roll}>
           {state.dice ? t.propertyBaron.dice(state.dice[0], state.dice[1]) : t.propertyBaron.rollDice}

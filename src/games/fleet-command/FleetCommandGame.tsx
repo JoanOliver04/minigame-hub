@@ -16,6 +16,8 @@ import type { FleetDifficulty, ShotRecord, SonarReading } from "./types";
 import { BOARD_SIZE, FLEET_LENGTHS, SONAR_RADIUS, toXY } from "./types";
 import { useFleetCommand } from "./useFleetCommand";
 
+import { shipCells, placementValid } from "./logic";
+
 type CellView = "none" | "miss" | "hit" | "sunk";
 
 function shotMap(history: ShotRecord[]): CellView[] {
@@ -48,6 +50,7 @@ function sonarRegion(sonar: SonarReading | null): Set<number> {
 export function FleetCommandGame() {
   const game = useFleetCommand();
   const { t } = useLocale();
+  const [hoverCell, setHoverCell] = useState<number | null>(null);
   const [mobileTab, setMobileTab] = useState<"enemy" | "fleet">("enemy");
 
   const enemyMarks = useMemo(() => shotMap(game.playerHistory), [game.playerHistory]);
@@ -75,6 +78,10 @@ export function FleetCommandGame() {
 
   /* ================= SETUP ================= */
   if (game.phase === "setup") {
+    const preview = hoverCell !== null && game.nextLengthToPlace !== null
+      ? shipCells(hoverCell, game.nextLengthToPlace, game.horizontal)
+      : null;
+    const canPlace = preview && placementValid(preview, game.placedShips);
     const placedCells = new Map<number, number>();
     for (const ship of game.placedShips) {
       for (const cell of ship.cells) placedCells.set(cell, ship.id);
@@ -106,7 +113,11 @@ export function FleetCommandGame() {
           {Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => (
             <button
               key={i}
-              className={`fleet-cell${placedCells.has(i) ? " ship" : ""}`}
+              className={`fleet-cell${placedCells.has(i) ? " ship" : ""}${preview?.includes(i) ? canPlace ? " position-valid" : " position-blocked" : ""}`}
+              onPointerEnter={(event) => { if (event.pointerType !== "touch") setHoverCell(i); }}
+              onPointerLeave={() => setHoverCell(null)}
+              onFocus={() => setHoverCell(i)}
+              onBlur={() => setHoverCell(null)}
               onClick={() => game.placeAt(i)}
               aria-label={t.fleetCommand.placementCellLabel(
                 (i % BOARD_SIZE) + 1,
@@ -123,7 +134,8 @@ export function FleetCommandGame() {
           <button className="btn" onClick={game.shufflePlacement}>
             {t.fleetCommand.randomPlacement}
           </button>
-          <button className="btn" onClick={game.clearPlacement}>
+          <button className="btn" disabled={!game.placedShips.length} onClick={game.undoPlacement}>{t.play.undoPlacement}</button>
+          <button className="btn" disabled={!game.placedShips.length} onClick={game.clearPlacement}>
             {t.fleetCommand.clearPlacement}
           </button>
         </div>

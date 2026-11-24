@@ -92,6 +92,14 @@ export function canMoveTo(state: ShadowState, pos: Position): boolean {
   return !guardAt(state, pos);
 }
 
+export function moveDestination(state: ShadowState, dir: Dir, sprint: boolean): Position | null {
+  const v = DIR_VECTORS[dir];
+  const first = { x: state.player.x + v.x, y: state.player.y + v.y };
+  if (!canMoveTo(state, first)) return null;
+  const second = { x: first.x + v.x, y: first.y + v.y };
+  return sprint && canMoveTo(state, second) ? second : first;
+}
+
 export function legalMoveDirs(state: ShadowState): Dir[] {
   return DIR_CYCLE.filter((dir) => {
     const v = DIR_VECTORS[dir];
@@ -295,13 +303,10 @@ export function applyAction(prev: ShadowState, action: PlayerAction): TurnResult
 
   // ---------- 1. player action ----------
   if (action.kind === "move" || action.kind === "sprint") {
-    const v = DIR_VECTORS[action.dir];
-    const first = { x: state.player.x + v.x, y: state.player.y + v.y };
-    if (!canMoveTo(state, first)) return { state: prev, events: [] };
-    state.player = first;
+    const destination = moveDestination(state, action.dir, action.kind === "sprint");
+    if (!destination) return { state: prev, events: [] };
+    state.player = destination;
     if (action.kind === "sprint") {
-      const second = { x: first.x + v.x, y: first.y + v.y };
-      if (canMoveTo(state, second)) state.player = second;
       noise = { source: { ...state.player }, radius: SPRINT_NOISE_RADIUS };
     }
   } else if (action.kind === "hack") {

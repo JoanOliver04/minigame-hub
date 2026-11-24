@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { timedPress } from "@/lib/press-timing";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
@@ -23,6 +24,7 @@ export function BasketShotGame() {
     playerScore,
     aiScore,
     meter,
+    previousRelease,
     lastShot,
     history,
     startMatch,
@@ -217,11 +219,15 @@ export function BasketShotGame() {
         aria-label={t.basketShot.meterLabel}
       >
         <div className="basket-meter-zones" />
+        {previousRelease !== null && (
+          <span className="basket-release-ghost" style={{ left: `${previousRelease}%` }} title={t.play.previousRelease} />
+        )}
         <span
           className="basket-meter-marker"
           style={{ left: `${meter}%` }}
         />
       </div>
+      {previousRelease !== null && <small className="arcade-caption">{t.play.previousRelease} · {Math.round(previousRelease)}%</small>}
       <div className="basket-meter-caption">
         <span>{t.basketShot.early}</span>
         <strong>{t.basketShot.perfect}</strong>
@@ -232,7 +238,7 @@ export function BasketShotGame() {
         <button
           className="btn primary basket-shoot"
           disabled={!isPlayerTurn}
-          onClick={shoot}
+          {...timedPress(shoot)}
         >
           {t.basketShot.shoot}
         </button>

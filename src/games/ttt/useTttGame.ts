@@ -58,8 +58,7 @@ export function useTttGame() {
   }, []);
 
   function startMatch(difficulty: TttDifficulty, target: number) {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     setMatch(createTttMatch(difficulty, target));
     setBoard(emptyBoard());
     setSelectedCell(null);
@@ -155,8 +154,7 @@ export function useTttGame() {
   }
 
   function toSetup() {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
+    timersRef.current.splice(0).forEach(clearTimeout);
     setPhase("setup");
     setMatch(null);
     setBoard(emptyBoard());

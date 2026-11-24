@@ -37,24 +37,36 @@ export function legalMoves(board: readonly HexCell[]): number[] {
   return moves;
 }
 
-export function hasConnection(board: readonly HexCell[], owner: HexOwner): boolean {
+export function winningPath(board: readonly HexCell[], owner: HexOwner): number[] {
   const queue: number[] = [];
-  const seen = new Uint8Array(CELL_COUNT);
+  const parent = new Int16Array(CELL_COUNT).fill(-1);
   for (const index of startingEdges[owner]) {
     if (board[index] !== owner) continue;
-    seen[index] = 1;
+    parent[index] = index;
     queue.push(index);
   }
   for (let head = 0; head < queue.length; head++) {
     const index = queue[head];
-    if (owner === "player" ? index % HEX_SIZE === LAST_EDGE : index >= CELL_COUNT - HEX_SIZE) return true;
+    if (owner === "player" ? index % HEX_SIZE === LAST_EDGE : index >= CELL_COUNT - HEX_SIZE) {
+      const path = [index];
+      let cursor = index;
+      while (parent[cursor] !== cursor) {
+        cursor = parent[cursor];
+        path.push(cursor);
+      }
+      return path.reverse();
+    }
     for (const next of neighbours(index)) {
-      if (seen[next] || board[next] !== owner) continue;
-      seen[next] = 1;
+      if (parent[next] !== -1 || board[next] !== owner) continue;
+      parent[next] = index;
       queue.push(next);
     }
   }
-  return false;
+  return [];
+}
+
+export function hasConnection(board: readonly HexCell[], owner: HexOwner): boolean {
+  return winningPath(board, owner).length > 0;
 }
 
 export function placeStone(state: HexState, index: number): HexState {
