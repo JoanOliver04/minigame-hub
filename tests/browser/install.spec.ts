@@ -19,7 +19,7 @@ test("installed identity, icons and offline recovery work on the production buil
   expect((await cdp.send("Page.getInstallabilityErrors")).installabilityErrors).toEqual([]);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator(".game-card")).toHaveCount(29);
+  await expect(page.locator(".game-card")).toHaveCount(31);
   await expect(page.getByText("Sin conexión · Juego en solitario")).toBeVisible();
   await page.locator('.game-card[href="/games/ttt"]').click();
   await expect(page.locator(".htp-btn")).toBeVisible();
@@ -29,7 +29,7 @@ test("installed identity, icons and offline recovery work on the production buil
   await page.goto("/rooms/ABCDEF");
   await expect(page.getByRole("heading", { name: "Sin conexión" })).toBeVisible();
   await page.getByRole("link", { name: "Abrir la biblioteca de juegos" }).click();
-  await expect(page.locator(".game-card")).toHaveCount(29);
+  await expect(page.locator(".game-card")).toHaveCount(31);
   await page.goto("/rooms");
   await context.setOffline(false);
   await page.getByRole("button", { name: "Reintentar" }).click();

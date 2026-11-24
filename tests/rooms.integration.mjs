@@ -120,6 +120,38 @@ test("every multiplayer game's configured state can be created and joined", { ti
         assert.equal(room.gameId, id);
         assert.deepEqual(Object.keys(room.players).sort(), [host.uid, guest.uid].sort());
         assert.equal(typeof room.game, "object");
+        if (id === "mini-reversi" || id === "dice-race") {
+          const { roomVersion } = host.load("games/duels/room");
+          const mod = id === "mini-reversi" ? "reversiRoom" : "diceRoom";
+          const { legalMoves } = host.load("games/mini-reversi/logic");
+          const opening = roomVersion(room);
+          let current = room;
+          while (current.status === "playing") {
+            const actor = current.game.turn === host.uid ? host : guest;
+            const actions = actor.load("games/duels/room")[mod];
+            const state = current.game.state;
+            const move = id === "mini-reversi" ? legalMoves(state.board, state.active)[0]
+              : state.pot >= 12 ? { kind: "bank" } : { kind: "roll", face: 6 };
+            await actions.move(code, actor.uid, roomVersion(current), move);
+            const next = await read();
+            assert.equal(next.game.state.moves, state.moves + 1);
+            if (state.moves === 0) {
+              await actions.move(code, actor.uid, opening, move);
+              assert.deepEqual((await read()).game, next.game);
+            }
+            current = next;
+          }
+          assert.notEqual(current.game.state.winner, null);
+          const end = roomVersion(current);
+          await host.load("games/duels/room")[mod].rematch(code, host.uid, end);
+          assert.equal((await read()).status, "finished");
+          await guest.load("games/duels/room")[mod].rematch(code, guest.uid, end);
+          const replay = await read();
+          assert.equal(replay.status, "playing");
+          assert.equal(replay.game.turn, guest.uid);
+          assert.equal(replay.game.match, 2);
+          assert.equal(replay.game.state.moves, 0);
+        }
         if (id === "word-guess") {
           const words = host.load("games/word-guess/room");
           await words.submitWordGuess(code, host.uid, "word", "A");

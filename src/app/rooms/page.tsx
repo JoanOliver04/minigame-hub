@@ -6,8 +6,8 @@
  * known at runtime, unlike /games/[gameId]'s static solo-game routes.
  */
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/ui/BackLink";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
@@ -18,11 +18,17 @@ import { GAMES } from "@/games/registry";
 const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
 
 export default function RoomsPage() {
+  return <Suspense><RoomsForm /></Suspense>;
+}
+
+function RoomsForm() {
   const { t } = useLocale();
   const router = useRouter();
   const [name, setName] = usePlayerName();
   const [tab, setTab] = useState<"create" | "join">("create");
-  const [gameId, setGameId] = useState<string>(multiplayerGames[0]?.id ?? "");
+  const requested = useSearchParams().get("game");
+  const [chosen, setGameId] = useState<string | null>(null);
+  const gameId = chosen ?? multiplayerGames.find(game => game.id === requested)?.id ?? multiplayerGames[0].id;
   const [codeInput, setCodeInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

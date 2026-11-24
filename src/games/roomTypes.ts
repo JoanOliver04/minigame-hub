@@ -1,4 +1,7 @@
 import type { ComponentType } from "react";
+import type { RoomDoc } from "@/lib/rooms/types";
+
+export interface RoomViewProps { code: string; room: RoomDoc; uid: string }
 
 export type RoomGameSettings = Record<string, string>;
 
@@ -34,5 +37,5 @@ export interface RoomGameModule {
   settings?: RoomSettingDefinition[];
   defaultSettings?: RoomGameSettings;
   /** Renders the whole room experience (waiting/playing/finished) for `code`. */
-  RoomComponent: ComponentType<{ code: string }>;
+  RoomComponent: ComponentType<RoomViewProps>;
 }

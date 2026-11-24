@@ -963,7 +963,8 @@ export interface Dictionary {
   /** Multiplayer rooms (create/join by code) — RPS and Tic-Tac-Toe for now. */
   rooms: {
     navLink: string;
-    shortLink: string;
+    inviteLink: string;
+    linkCopied: string;
     title: string;
     tagline: string;
     yourNameLabel: string;
@@ -1225,6 +1226,8 @@ const en: Dictionary = {
     timing: "Time starts with your first move and keeps running if you leave. Return in this tab to resume. Fewer moves wins, with time as the tiebreaker.",
   },
   gamesMeta: {
+    "mini-reversi": { name: "Mini Reversi", description: "Bracket discs to flip them. Can you hold the corners of this 6 × 6 board?" },
+    "dice-race": { name: "Race to 30", description: "Roll to build a streak or bank your points before a one wipes out the turn." },
     guess: {
       name: "Number Duel",
       description: "Race the AI to find the secret number. Binary-search brain vs yours.",
@@ -2892,9 +2895,10 @@ const en: Dictionary = {
   },
   rooms: {
     navLink: "Play with Friends",
-    shortLink: "Rooms",
+    inviteLink: "Copy invitation link",
+    linkCopied: "Invitation link copied",
     title: "Play with Friends",
-    tagline: "Create a room, share the code, play live against a friend instead of the AI.",
+    tagline: "Create a room and share its link with a friend, or enter their room code to join.",
     yourNameLabel: "Your name",
     namePlaceholder: "e.g. Joan",
     createTab: "Create a room",
@@ -3187,6 +3191,8 @@ const es: Dictionary = {
     timing: "El reloj arranca con tu primer movimiento y sigue contando si sales. Vuelve en esta pestaña para retomar la partida. Gana la marca con menos movimientos y, en caso de empate, el menor tiempo.",
   },
   gamesMeta: {
+    "mini-reversi": { name: "Mini Reversi", description: "Atrapa fichas entre las tuyas para darles la vuelta. ¿Quién dominará las esquinas del tablero de 6 × 6?" },
+    "dice-race": { name: "Dados a 30", description: "Suma puntos con cada tirada y decide cuándo plantarte. Si sale un uno, pierdes lo acumulado en ese turno." },
     guess: {
       name: "Duelo de Números",
       description: "Compite con la IA por adivinar el número secreto. Búsqueda binaria vs tú.",
@@ -4890,9 +4896,10 @@ const es: Dictionary = {
   },
   rooms: {
     navLink: "Jugar con amigos",
-    shortLink: "Salas",
+    inviteLink: "Copiar enlace de invitación",
+    linkCopied: "Enlace de invitación copiado",
     title: "Jugar con amigos",
-    tagline: "Crea una sala, comparte el código y juega en directo contra un amigo en vez de la IA.",
+    tagline: "Crea una sala y comparte el enlace con un amigo, o introduce el código de su sala para unirte.",
     yourNameLabel: "Tu nombre",
     namePlaceholder: "p. ej. Joan",
     createTab: "Crear sala",

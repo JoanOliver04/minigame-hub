@@ -64,6 +64,8 @@ export const GAMES = [
   diceforgeArenaGame,
   hexDominionGame,
   spellstormGame,
+  { id: "mini-reversi", icon: "◐", category: "strategy", hasTies: true, supportsMultiplayer: true },
+  { id: "dice-race", icon: "🎲", category: "logic", hasTies: false, supportsMultiplayer: true },
 ] as const satisfies readonly GameDefinition[];
 
 export type ListedGame = (typeof GAMES)[number];

@@ -42,14 +42,14 @@ export function AppHeader() {
         <span>{t.app.title}</span>
       </Link>
       <div className="app-header-actions">
+        <Link href="/rooms" className="btn friends-link" prefetch={false}>
+          <span aria-hidden="true">👥</span> {t.rooms.navLink}
+        </Link>
         <InstallApp />
         <button type="button" className="btn hub-sound" aria-label={t.play.gameSound}
           title={t.play.gameSound} aria-pressed={sound} onClick={() => setSoundEnabled(!sound)}>
           <span aria-hidden="true">{sound ? "🔊" : "🔇"}</span>
         </button>
-        <Link href="/rooms" className="btn app-room-link" prefetch={false}>
-          <span className="rooms-full">{t.rooms.navLink}</span><span className="rooms-short">{t.rooms.shortLink}</span>
-        </Link>
         <div className="lang-switch" role="group" aria-label={t.app.language}>
           <SegPicker
             options={LOCALE_OPTIONS}

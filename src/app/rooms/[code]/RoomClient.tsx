@@ -182,13 +182,30 @@ export function RoomClient({ code }: { code: string }) {
             <strong aria-live="polite">{currentGameName}</strong>
           </div>
         </div>
+        {room.status === "waiting" && <InviteLink key={room.code} code={room.code} />}
         {isHost ? (
           <RoomSettings key={selectionKey} room={room} uid={uid} />
         ) : <p>{t.rooms.guestSettingsHint}</p>}
       </section>
-      <RoomComponent key={selectionKey} code={code} />
+      <RoomComponent key={selectionKey} code={code} room={room} uid={uid} />
     </>
   );
+}
+
+function InviteLink({ code }: { code: string }) {
+  const { t } = useLocale();
+  const [copied, setCopied] = useState(false);
+  const [manual, setManual] = useState("");
+  async function copy() {
+    const link = new URL("/rooms/" + code, window.location.origin).href;
+    try { await navigator.clipboard.writeText(link); setCopied(true); setManual(""); }
+    catch { setManual(link); }
+  }
+  return <div className="btn-row room-form-actions">
+    <button className="btn" type="button" onClick={copy}>{t.rooms.inviteLink}</button>
+    {copied && <span role="status">{t.rooms.linkCopied}</span>}
+    {manual && <input className="text-input" aria-label={t.rooms.inviteLink} readOnly value={manual} onFocus={e => e.target.select()} />}
+  </div>;
 }
 
 function RoomSettings({ room, uid }: { room: RoomDoc; uid: string }) {

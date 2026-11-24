@@ -6,7 +6,7 @@ test("favorites sync across tabs and mobile filters keep the full catalogue reac
   await favorites.goto("/favorites");
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
-  await expect(page.locator(".game-card")).toHaveCount(29);
+  await expect(page.locator(".game-card")).toHaveCount(31);
   await page.getByRole("button", { name: "Filtros", exact: true }).click();
   await page.getByRole("button", { name: "Lógica", exact: true }).click();
   await expect(page.locator(".game-card").first()).toContainText("Lógica");
@@ -17,7 +17,7 @@ test("favorites sync across tabs and mobile filters keep the full catalogue reac
   await expect(favorites.locator("h1")).toBeFocused();
   await expect(page.locator('.favorite-star[aria-pressed="true"]')).toHaveCount(0);
   await page.locator(".hub-clear").click();
-  await expect(page.locator(".game-card")).toHaveCount(29);
+  await expect(page.locator(".game-card")).toHaveCount(31);
 });
 
 test("the daily board resumes after reloading and a running challenge keeps its date at midnight", async ({ page }) => {

@@ -11,6 +11,7 @@ async function start(page: Page, slug: string) {
 
 // Each route is exercised through a real game control on a narrow viewport.
 const controls: Record<string, string> = {
+  "mini-reversi": ".reversi-cell:enabled", "dice-race": ".race-roll:enabled",
   guess: ".arcade-tool", rps: ".rps-choice", ttt: ".ttt-cell:enabled",
   "higher-or-lower": ".hol-choice:enabled", "connect-four": ".connect-column:enabled",
   "memory-match": ".memory-tile:enabled", nim: ".nim-token:enabled",
@@ -51,7 +52,7 @@ for (const [slug, control] of Object.entries(controls)) {
   });
 }
 
-test("all 29 games can be opened and played offline after a single library visit", async ({ context, page }) => {
+test("all catalogue games can be opened and played offline after a single library visit", async ({ context, page }) => {
   test.setTimeout(180_000);
   await page.goto("/");
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
@@ -69,7 +70,7 @@ test("all 29 games can be opened and played offline after a single library visit
   await expect(cold.locator(".app-header")).toBeVisible();
   await cold.goto("/scores");
   await cold.getByRole("checkbox").check();
-  await expect(cold.locator(".stats-table tbody tr:not(.overall)")).toHaveCount(29);
+  await expect(cold.locator(".stats-table tbody tr:not(.overall)")).toHaveCount(31);
   await cold.goto("/daily");
   await cold.locator(".sliding-tile.movable").first().click();
   await expect(cold.locator(".sliding-hud span").first()).toHaveText("1");
