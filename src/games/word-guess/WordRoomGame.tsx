@@ -10,8 +10,8 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
-import { alphabetFor, foldLetter } from "./letters";
-import { SHARED_MISTAKE_LIMIT } from "./logic";
+import { alphabetFor } from "./letters";
+import { SHARED_MISTAKE_LIMIT, wordPattern } from "./logic";
 import { useWordRoom } from "./useWordRoom";
 
 export function WordRoomGame({ code }: { code: string }) {
@@ -116,9 +116,7 @@ export function WordRoomGame({ code }: { code: string }) {
   /* ================= PLAYING ================= */
   const revealed = new Set(game.revealedLetters);
   const guessed = new Set(game.guessedLetters);
-  const pattern = [...game.word]
-    .map((letter) => (revealed.has(foldLetter(letter)) ? letter : "_"))
-    .join("");
+  const pattern = wordPattern(game);
   const locked = !isMyTurn;
 
   const fb = game.lastFeedback;
@@ -197,13 +195,16 @@ export function WordRoomGame({ code }: { code: string }) {
           autoComplete="off"
           placeholder={t.wordGuess.wordPlaceholder}
           aria-label={t.wordGuess.wordPlaceholder}
+          aria-describedby="word-input-feedback"
           onChange={(event) => setWordInput(event.target.value)}
         />
         <button className="btn primary" disabled={locked || !wordInput.trim()}>
           {t.wordGuess.guessWord}
         </button>
       </form>
-      <div className="error-msg">{inputError ? t.wordGuess.errors[inputError] : ""}</div>
+      <div id="word-input-feedback" className="error-msg" role="status">
+        {inputError === "length" ? t.wordGuess.lengthHint(pattern.length) : t.wordGuess.errors[inputError]}
+      </div>
 
       {game.history.length > 0 && (
         <>

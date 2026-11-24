@@ -7,18 +7,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { timedPress } from "@/lib/press-timing";
+import { ReactorLanes } from "./ReactorLanes";
+import { CHART_LEAD_IN } from "./generation";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import { isMotionReduced } from "@/lib/motion";
-import type { Bars, Bpm, ChartDensity, Lane, ReactorDifficulty } from "./types";
-import { LANE_KEYS } from "./types";
+import type { Bars, Bpm, ChartDensity, ReactorDifficulty } from "./types";
 import { useBeatReactor } from "./useBeatReactor";
-
-const LANE_LABELS = ["D", "F", "J", "K"];
 
 export function BeatReactorGame() {
   const game = useBeatReactor();
@@ -46,12 +44,10 @@ export function BeatReactorGame() {
     { value: "dense", label: t.beatReactor.densityDense },
   ];
 
-  const upcoming = useMemo(() => {
-    const windowSeconds = 2.2;
-    return game.events.filter(
-      (event) => event.hitTime - game.nowTime >= -0.15 && event.hitTime - game.nowTime <= windowSeconds,
-    );
-  }, [game.events, game.nowTime]);
+  const remaining = useMemo(() => {
+    const resolved = new Set(game.playerHistory.map(hit => hit.eventId));
+    return game.events.filter(note => !resolved.has(note.id));
+  }, [game.events, game.playerHistory]);
 
   /* ================= SETUP ================= */
   if (game.phase === "setup") {
@@ -154,9 +150,10 @@ export function BeatReactorGame() {
           </div>
         </div>
         <div className="btn-row">
-          <button className="btn primary" onClick={game.playAgain}>
-            {t.common.playAgain}
+          <button className="btn primary" onClick={game.retryChart}>
+            {t.beatReactor.retryChart}
           </button>
+          <button className="btn" onClick={game.startMatch}>{t.beatReactor.newChart}</button>
           <button className="btn" onClick={game.toSetup}>
             {t.common.changeSettings}
           </button>
@@ -168,6 +165,9 @@ export function BeatReactorGame() {
     );
   }
 
+  const beat = (game.nowTime - CHART_LEAD_IN) * game.bpm / 60;
+  const beatPulse = Math.max(0, 1 - (beat - Math.floor(beat)) * 4);
+  const end = game.events.at(-1)?.hitTime ?? CHART_LEAD_IN;
   /* ================= PLAYING ================= */
   return (
     <section className="card screen reactor-screen">
@@ -185,49 +185,24 @@ export function BeatReactorGame() {
       >
         <div
           className="reactor-core-inner"
-          style={{ transform: `scale(${1 + Math.min(0.25, game.playerCombo / 200)})` }}
-        />
+          style={{ transform: reduced ? undefined : `scale(${1 + beatPulse * 0.17 + Math.min(0.12, game.playerCombo / 240)})` }}
+        >{game.phase === "paused" ? "Ⅱ" : beat < 0 ? Math.ceil(-beat) : ""}</div>
       </div>
 
-      <div className="reactor-lanes" role="group" aria-label={t.beatReactor.lanesLabel}>
-        {[0, 1, 2, 3].map((lane) => (
-          <div key={lane} className="reactor-lane">
-            <div className="reactor-lane-track">
-              {upcoming
-                .filter((event) => event.lane === lane)
-                .map((event) => {
-                  const progress = 1 - (event.hitTime - game.nowTime) / 2.2;
-                  return (
-                    <div
-                      key={event.id}
-                      className={`reactor-note${event.accent ? " accent" : ""}`}
-                      style={{ top: `${Math.max(0, Math.min(100, progress * 100))}%` }}
-                    />
-                  );
-                })}
-              {game.flash && game.flash.lane === lane && (
-                <div key={game.flash.key} className={`reactor-flash j-${game.flash.judgement}`}>
-                  {t.beatReactor.judgementLabel[game.flash.judgement]}
-                </div>
-              )}
-            </div>
-            <button
-              className="btn reactor-pad"
-              {...timedPress(() => game.hitLane(lane as Lane))}
-              aria-label={t.beatReactor.laneButtonLabel(lane + 1)}
-            >
-              {LANE_LABELS[lane]}
-              <i>{LANE_KEYS[lane].toUpperCase()}</i>
-            </button>
-          </div>
-        ))}
-      </div>
+      <ReactorLanes events={remaining} time={game.nowTime + game.calibrationMs / 1000}
+        disabled={game.phase === "paused" || game.songDone} flash={game.flash} hitLane={game.hitLane} />
 
       <div className="reactor-combo-row">
         <span className="you">{t.beatReactor.comboYou(game.playerCombo)}</span>
-        {game.flash && <span className="reactor-timing">{game.flash.errorMs === 0 ? "0 ms" :
+        {game.flash && game.flash.errorMs !== null && <span className="reactor-timing">{game.flash.errorMs === 0 ? "0 ms" :
           `${game.flash.errorMs < 0 ? t.basketShot.early : t.basketShot.late} · ${Math.abs(game.flash.errorMs)} ms`}</span>}
         <span className="them">{t.beatReactor.comboAi(game.aiCombo)}</span>
+      </div>
+      <progress className="reactor-progress" aria-label={t.beatReactor.songProgress} max={end} value={Math.min(game.nowTime, end)} />
+      <div className="btn-row">
+        {!game.songDone && <button className="btn" onClick={game.phase === "paused" ? game.resume : game.pause}>
+          {game.phase === "paused" ? t.play.resumeGame : t.play.pauseGame}
+        </button>}
       </div>
     </section>
   );

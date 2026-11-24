@@ -7,7 +7,7 @@
  * ./useReactionTime.
  */
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { timedPress } from "@/lib/press-timing";
 import { BackLink } from "@/components/ui/BackLink";
@@ -29,9 +29,12 @@ export function ReactionTimeGame() {
     history,
     startMatch,
     handlePlayerAction,
+    pause,
+    resume,
     playAgain,
     toSetup,
   } = useReactionTime();
+  const focusTarget = useCallback((button: HTMLButtonElement | null) => button?.focus({ preventScroll: true }), []);
 
   // --- setup screen state ---
   const [difficulty, setDifficulty] = useState<ReactionDifficulty>("medium");
@@ -88,6 +91,13 @@ export function ReactionTimeGame() {
   }
 
   if (!match) return null;
+  if (phase === "paused") {
+    return <section className="card screen">
+      <BackLink />
+      <p className="feedback">{t.reactionTime.pausedHint}</p>
+      <div className="btn-row"><button ref={focusTarget} className="btn primary" onClick={resume}>{t.play.resumeGame}</button></div>
+    </section>;
+  }
 
   /* ================= END ================= */
   if (phase === "end") {
@@ -178,10 +188,11 @@ export function ReactionTimeGame() {
       </div>
 
       <button
+        ref={focusTarget}
         type="button"
         className={boxClass}
         {...timedPress(handlePlayerAction)}
-        disabled={stage === "resolved"}
+        aria-disabled={stage === "resolved"}
       >
         <span className="rt-box-text">{boxText}</span>
         {stage === "resolved" && lastOutcome && (
@@ -195,6 +206,7 @@ export function ReactionTimeGame() {
         )}
         {stage === "ready" && <span className="rt-box-hint">{t.reactionTime.tapHint}</span>}
       </button>
+      {!match.finished && <div className="btn-row"><button className="btn" onClick={pause}>{t.play.pauseGame}</button></div>}
 
       {match.playerTimes.length > 0 && (
         <p className="arcade-readout">{t.play.bestReaction} · {t.reactionTime.msSuffix(Math.min(...match.playerTimes))}</p>

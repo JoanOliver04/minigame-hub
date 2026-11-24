@@ -1,4 +1,4 @@
-import { alphabetFor, foldLetter, foldWord } from "./letters";
+import { alphabetFor, fitsClues, foldWord } from "./letters";
 import type { AIGuess, WordDifficulty, WordLang } from "./types";
 
 /** Letter-frequency order (most common first) per language — drives the
@@ -25,19 +25,11 @@ export function filterCandidates(knowledge: AIKnowledge): string[] {
     revealedLetters,
     candidatePool,
   } = knowledge;
-  const missed = [...guessedLetters].filter((letter) => !revealedLetters.has(letter));
+  const tried = new Set([...guessedLetters, ...revealedLetters]);
 
   return candidatePool.filter((word) => {
     const folded = foldWord(word);
-    if (folded.length !== pattern.length) return false;
-    if (knowledge.rejectedWords?.has(word)) return false;
-    if (missed.some((letter) => folded.includes(letter))) return false;
-
-    return [...pattern].every((visible, index) => {
-      if (visible !== "_") return foldLetter(word[index]) === foldLetter(visible);
-      // A revealed letter would be visible in all of its positions.
-      return !revealedLetters.has(foldLetter(word[index]));
-    });
+    return !knowledge.rejectedWords?.has(word) && fitsClues(folded, pattern, tried);
   });
 }
 

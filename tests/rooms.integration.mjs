@@ -120,6 +120,15 @@ test("every multiplayer game's configured state can be created and joined", { ti
         assert.equal(room.gameId, id);
         assert.deepEqual(Object.keys(room.players).sort(), [host.uid, guest.uid].sort());
         assert.equal(typeof room.game, "object");
+        if (id === "word-guess") {
+          const words = host.load("games/word-guess/room");
+          await words.submitWordGuess(code, host.uid, "word", "A");
+          assert.deepEqual((await read()).game, room.game);
+          await words.submitWordGuess(code, host.uid, "word", room.game.word);
+          const finished = await read();
+          assert.equal(finished.status, "finished");
+          assert.equal(finished.game.winner, "player");
+        }
         if (id === "reaction-time") {
           const reaction = host.load("games/reaction-time/room");
           await reaction.submitReaction(code, host.uid, { reactionMs: 180, falseStart: false });

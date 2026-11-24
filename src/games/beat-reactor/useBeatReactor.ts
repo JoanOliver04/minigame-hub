@@ -16,7 +16,7 @@ import { createRng, randomSeed } from "@/lib/rng";
 import { loadPref, savePref } from "@/lib/prefs";
 import { ReactorAudio } from "./audio";
 import { precomputeAiHits } from "./ai";
-import { generateChart } from "./generation";
+import { CHART_LEAD_IN, generateChart } from "./generation";
 import { collectAutoMisses, comboMultiplier, findTarget, hitScore, judge } from "./logic";
 import type {
   AiHit,
@@ -31,17 +31,16 @@ import type {
 } from "./types";
 import { LANE_KEYS } from "./types";
 
-export type ReactorPhase = "setup" | "playing" | "end";
+export type ReactorPhase = "setup" | "playing" | "paused" | "end";
 
 const CALIBRATION_PREF_KEY = "beatReactor.calibration";
 const CALIBRATION_VERSION = 1;
-const LEAD_IN_S = 1.5;
 const END_HOLD_MS = 1600;
 
 interface LaneFlashState {
   lane: Lane;
   judgement: Judgement;
-  errorMs: number;
+  errorMs: number | null;
   key: number;
 }
 
@@ -78,6 +77,7 @@ export function useBeatReactor() {
   const eventsRef = useRef<BeatEvent[]>([]);
   const scoreRecordedRef = useRef(false);
   const flashKeyRef = useRef(0);
+  const seedRef = useRef(0);
   const playerScoreRef = useRef(0);
   const aiScoreRef = useRef(0);
   const playerComboRef = useRef(0);
@@ -87,7 +87,7 @@ export function useBeatReactor() {
   useEffect(() => {
     // One-shot post-hydration load, same pattern as ScoresContext.
     const stored = loadPref<number>(CALIBRATION_PREF_KEY, CALIBRATION_VERSION);
-    if (stored !== null) {
+    if (typeof stored === "number" && Number.isFinite(stored) && Math.abs(stored) <= 150) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCalibrationMs(stored);
     }
@@ -110,6 +110,7 @@ export function useBeatReactor() {
   const finish = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
+    audioRef.current?.pause();
     if (!scoreRecordedRef.current) {
       scoreRecordedRef.current = true;
       const outcome =
@@ -154,9 +155,11 @@ export function useBeatReactor() {
     }
 
     // --- player auto-miss sweep ---
-    const misses = collectAutoMisses(eventsRef.current, resolvedPlayerRef.current, t);
+    const misses = collectAutoMisses(eventsRef.current, resolvedPlayerRef.current, t + calibrationMs / 1000);
     if (misses.length > 0) {
       for (const event of misses) resolvedPlayerRef.current.add(event.id);
+      const lastMiss = misses[misses.length - 1];
+      setFlash({ lane: lastMiss.lane, judgement: "miss", errorMs: null, key: ++flashKeyRef.current });
       playerComboRef.current = 0;
       setPlayerCombo(0);
       setPlayerHistory((h) => [
@@ -172,19 +175,20 @@ export function useBeatReactor() {
     }
 
     const lastEvent = eventsRef.current[eventsRef.current.length - 1];
-    const songEndTime = lastEvent ? lastEvent.hitTime + 0.6 : LEAD_IN_S;
-    if (t >= songEndTime && eventsRef.current.length > 0) {
+    const songEndTime = lastEvent ? lastEvent.hitTime + 0.6 : CHART_LEAD_IN;
+    audio.backing(t, songEndTime);
+    if (t >= songEndTime) {
       finish();
       return;
     }
     rafRef.current = requestAnimationFrame(() => loopRef.current());
-  }, [finish]);
+  }, [finish, calibrationMs]);
 
   useEffect(() => {
     loopRef.current = loop;
   }, [loop]);
 
-  const startMatch = useCallback(() => {
+  const beginSong = useCallback((seed: number) => {
     timerRef.current.forEach(clearTimeout);
     timerRef.current = [];
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -192,10 +196,11 @@ export function useBeatReactor() {
 
     const audio = audioRef.current ?? new ReactorAudio();
     audioRef.current = audio;
-    audio.ensureStarted();
+    audio.start(bpm, muted);
 
-    const rng = createRng(randomSeed());
-    const chart = generateChart({ seed: randomSeed(), bpm, bars, density }, rng);
+    seedRef.current = seed;
+    const rng = createRng(seed);
+    const chart = generateChart({ seed, bpm, bars, density }, rng);
     const aiHits = precomputeAiHits(chart, difficulty, rng);
 
     eventsRef.current = chart;
@@ -222,15 +227,38 @@ export function useBeatReactor() {
     setPhase("playing");
 
     rafRef.current = requestAnimationFrame(() => loopRef.current());
-  }, [bpm, bars, density, difficulty]);
+  }, [bpm, bars, density, difficulty, muted]);
+
+  const pause = useCallback(() => {
+    if (rafRef.current === null || scoreRecordedRef.current) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    audioRef.current?.pause();
+    setPhase("paused");
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "playing") return;
+    function onVisibility() { if (document.hidden) pause(); }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [phase, pause]);
+
+  function resume() {
+    const audio = audioRef.current;
+    if (!audio || phase !== "paused" || rafRef.current !== null || document.hidden) return;
+    audio.start(bpm, muted, audio.currentTime);
+    setPhase("playing");
+    rafRef.current = requestAnimationFrame(() => loopRef.current());
+  }
 
   const hitLane = useCallback(
     (lane: Lane) => {
       const audio = audioRef.current;
-      if (!audio || phase !== "playing" || songDone) return;
+      if (!audio || phase !== "playing" || songDone || rafRef.current === null) return;
       const t = audio.currentTime + calibrationMs / 1000;
       const target = findTarget(eventsRef.current, resolvedPlayerRef.current, lane, t);
-      audio.playLaneTone(lane, false, muted);
+      audio.playLaneTone(lane, target?.accent ?? false);
 
       if (!target) return; // off-lane tap: no penalty, just no hit
       resolvedPlayerRef.current.add(target.id);
@@ -253,7 +281,7 @@ export function useBeatReactor() {
       setFlash({ lane, judgement: j, errorMs: Math.round(errorMs), key: flashKeyRef.current });
       if (j === "miss") setReactorShake((s) => s + 1);
     },
-    [phase, songDone, calibrationMs, muted],
+    [phase, songDone, calibrationMs],
   );
 
   useEffect(() => {
@@ -269,8 +297,6 @@ export function useBeatReactor() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [phase, hitLane]);
-
-  const playAgain = useCallback(() => startMatch(), [startMatch]);
 
   const toSetup = useCallback(() => {
     timerRef.current.forEach(clearTimeout);
@@ -309,10 +335,11 @@ export function useBeatReactor() {
     flash,
     reactorShake,
     songDone,
-    startMatch,
+    startMatch: () => beginSong(randomSeed()),
     hitLane,
-    playAgain,
+    retryChart: () => beginSong(seedRef.current),
+    pause,
+    resume,
     toSetup,
-    leadInSeconds: LEAD_IN_S,
   };
 }

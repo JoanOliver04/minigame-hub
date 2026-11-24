@@ -16,6 +16,7 @@ import type { BeatEvent, ChartConfig } from "./types";
 
 const MIN_LANE_GAP_MS = 90;
 const BEATS_PER_BAR = 4;
+export const CHART_LEAD_IN = 1.5;
 /** Subdivisions per beat sampled as candidate note slots. */
 const SUBDIVISIONS: Record<ChartConfig["density"], number> = {
   light: 2,
@@ -33,7 +34,6 @@ export function generateChart(config: ChartConfig, rng: Rng): BeatEvent[] {
   const secondsPerBeat = 60 / config.bpm;
   const subdivisions = SUBDIVISIONS[config.density];
   const slotDuration = secondsPerBeat / subdivisions;
-  const startOffset = 1.5; // lead-in before the first note, seconds
 
   const events: BeatEvent[] = [];
   const laneLastTime: number[] = [-Infinity, -Infinity, -Infinity, -Infinity];
@@ -42,7 +42,7 @@ export function generateChart(config: ChartConfig, rng: Rng): BeatEvent[] {
   const totalSlots = config.bars * BEATS_PER_BAR * subdivisions;
   for (let slot = 0; slot < totalSlots; slot++) {
     const bar = Math.floor(slot / (BEATS_PER_BAR * subdivisions));
-    const time = startOffset + slot * slotDuration;
+    const time = CHART_LEAD_IN + slot * slotDuration;
 
     // Difficulty ramps only at bar boundaries: first bar is always simple,
     // then density approaches the configured target over the first half.

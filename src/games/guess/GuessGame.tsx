@@ -6,7 +6,7 @@
  * Behavior is a faithful port of the original vanilla app.
  */
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
@@ -16,7 +16,7 @@ import { Toggle } from "@/components/ui/Toggle";
 import { useLocale } from "@/context/LocaleContext";
 import { EMPTY_SCORES, useScores } from "@/context/ScoresContext";
 import { getUseDelay, setUseDelay } from "@/lib/settings";
-import { isSoundEnabled, playSound, setSoundEnabled } from "@/lib/sound";
+import { isSoundEnabled, playSound, setSoundEnabled, subscribeSound } from "@/lib/sound";
 import type { Difficulty } from "./logic";
 import { useGuessGame } from "./useGuessGame";
 
@@ -45,7 +45,7 @@ export function GuessGame() {
   const [customMax, setCustomMax] = useState("1000");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [delayOn, setDelayOn] = useState(getUseDelay());
-  const [soundOn, setSoundOn] = useState(isSoundEnabled());
+  const soundOn = useSyncExternalStore(subscribeSound, isSoundEnabled, () => true);
   const [startError, setStartError] = useState("");
 
   // --- play screen state ---
@@ -90,7 +90,6 @@ export function GuessGame() {
 
     setStartError("");
     setUseDelay(delayOn);
-    setSoundEnabled(soundOn);
     setGuessValue("");
     setGuessError("");
     start({ min, max, difficulty });
@@ -184,7 +183,7 @@ export function GuessGame() {
           />
 
           <Toggle label={t.guess.delayToggle} checked={delayOn} onChange={setDelayOn} />
-          <Toggle label={t.guess.soundToggle} checked={soundOn} onChange={setSoundOn} />
+          <Toggle label={t.guess.soundToggle} checked={soundOn} onChange={setSoundEnabled} />
 
           <p className="error-msg">{startError}</p>
 

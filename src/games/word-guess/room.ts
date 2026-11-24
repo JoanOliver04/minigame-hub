@@ -19,7 +19,6 @@
 
 import { randomInt } from "@/lib/random";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
-import { foldLetter } from "./letters";
 import { applyGuess } from "./logic";
 import type {
   GuessKind,
@@ -130,9 +129,6 @@ export async function submitWordGuess(
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
 
     const actor: WordActor = uid === g.hostUid ? "player" : "ai";
-
-    // Cheap dedupe (the UI also disables these): don't waste a turn re-guessing.
-    if (kind === "letter" && g.guessedLetters.includes(foldLetter(rawValue))) return null;
 
     const state = toState(g, actor);
     const next = applyGuess(state, actor, kind, rawValue);

@@ -3,17 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useScores } from "@/context/ScoresContext";
 import { randomInt } from "@/lib/random";
+import { readValue, writeValue } from "@/lib/browserStorage";
 import { getUseDelay } from "@/lib/settings";
 import { playSound } from "@/lib/sound";
 import { chooseAIGuess } from "./ai";
-import { foldLetter, foldWord } from "./letters";
-import { applyGuess, createWordGuessState, normalizeWord, wordPattern } from "./logic";
+import { applyGuess, createWordGuessState, guessError, wordPattern } from "./logic";
 import type {
   GuessKind,
   WordGuessConfig,
   WordGuessState,
 } from "./types";
-import { wordsForDifficulty } from "./words";
+import { drawWord, wordsForDifficulty } from "./words";
 
 export function useWordGuess() {
   const [game, setGame] = useState<WordGuessState | null>(null);
@@ -23,7 +23,9 @@ export function useWordGuess() {
 
   function startGame(config: WordGuessConfig) {
     const pool = wordsForDifficulty(config.category, config.difficulty, config.lang);
-    const word = pool[randomInt(0, pool.length - 1)];
+    const key = `miniHubWordDraw:${config.lang}:${config.category}:${config.difficulty}`;
+    const { word, history } = drawWord(pool, readValue(key, "session"));
+    writeValue(key, history, "session");
     recordedRef.current = false;
     setInputError("");
     setGame(createWordGuessState(config, word));
@@ -42,36 +44,10 @@ export function useWordGuess() {
 
   function playerGuess(kind: GuessKind, rawValue: string): boolean {
     if (!game || game.currentTurn !== "player" || game.finished) return false;
-    const raw = normalizeWord(rawValue);
-
-    if (kind === "letter") {
-      const base = foldLetter(raw);
-      if (!/^[A-ZÑ]$/.test(base)) {
-        setInputError("letter");
-        return false;
-      }
-      if (game.guessedLetters.has(base)) {
-        setInputError("used");
-        return false;
-      }
-    } else {
-      const folded = foldWord(raw);
-      if (folded.length === 0 || !/^[A-ZÑ]+$/.test(folded)) {
-        setInputError("word");
-        return false;
-      }
-      if (
-        game.history.some(
-          (entry) => entry.kind === "word" && foldWord(entry.value) === folded,
-        )
-      ) {
-        setInputError("usedWord");
-        return false;
-      }
-    }
-
-    setInputError("");
-    performGuess(game, kind, raw);
+    const error = guessError(game, kind, rawValue);
+    setInputError(error);
+    if (error) return false;
+    performGuess(game, kind, rawValue);
     return true;
   }
 

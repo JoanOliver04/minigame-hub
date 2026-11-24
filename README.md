@@ -60,6 +60,10 @@ Star games to keep them in [Favorites](https://minigame-hub-orcin.vercel.app/fav
 
 Memory Match keeps your fewest attempts on each solo board size. Neon Drift saves your fastest time-trial lap on each circuit and lets you race its ghost. Both records stay in your browser.
 
+Beat Reactor uses a synthesized backing rhythm and lets you replay the same track against the same performance. In single-player Beat Reactor and Reaction Time, switching tabs pauses the match. Reaction Time counts a completed match on the scoreboard and shows your reaction time even when the opponent was faster. The header sound control applies across games and remembers your choice. Library and Favorites filters are kept separately for each tab.
+
+Word Guess rotates through the words for your chosen language, category and difficulty before repeating any. A full-word guess that conflicts with the visible clues leaves your turn and mistake budget intact.
+
 The [daily puzzle](https://minigame-hub-orcin.vercel.app/daily) gives each local calendar date a reproducible eight-tile board. Move a tile by tapping it, or focus the board and use the arrow keys to move the gap. The clock starts on the first move. Reloading or returning in the same tab restores that day's attempt, including elapsed time. Personal bests favor fewer moves, then faster finishes. The finish screen compares your path with the shortest solution.
 
 | Game | Route | AI strategy |

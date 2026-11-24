@@ -13,7 +13,7 @@ import { ensureSignedIn } from "@/lib/firebase/anonAuth";
 import { isRoomExpired } from "@/lib/rooms/expiry";
 import { leaveRoom, subscribeRoom, voteRematch } from "@/lib/rooms/roomsApi";
 import type { RoomDoc } from "@/lib/rooms/types";
-import { foldLetter, foldWord } from "./letters";
+import { guessError } from "./logic";
 import type { GuessKind } from "./types";
 import { resetWordRoomForRematch, submitWordGuess, type WordRoomGame } from "./room";
 
@@ -87,32 +87,10 @@ export function useWordRoom(code: string): UseWordRoomResult {
       if (!uid || !room || room.status !== "playing" || isRoomExpired(room)) return false;
       const g = room.game;
       if (g.finished || g.turn !== uid) return false;
-      const raw = rawValue.trim().toUpperCase();
-
-      if (kind === "letter") {
-        const base = foldLetter(raw);
-        if (!/^[A-ZÑ]$/.test(base)) {
-          setInputError("letter");
-          return false;
-        }
-        if (g.guessedLetters.includes(base)) {
-          setInputError("used");
-          return false;
-        }
-      } else {
-        const folded = foldWord(raw);
-        if (folded.length === 0 || !/^[A-ZÑ]+$/.test(folded)) {
-          setInputError("word");
-          return false;
-        }
-        if (g.history.some((entry) => entry.kind === "word" && foldWord(entry.value) === folded)) {
-          setInputError("usedWord");
-          return false;
-        }
-      }
-
-      setInputError("");
-      submitWordGuess(code, uid, kind, raw).catch((error) => console.warn("submitWordGuess", error));
+      const error = guessError(g, kind, rawValue);
+      setInputError(error);
+      if (error) return false;
+      submitWordGuess(code, uid, kind, rawValue).catch((error) => console.warn("submitWordGuess", error));
       return true;
     },
     [uid, room, code],

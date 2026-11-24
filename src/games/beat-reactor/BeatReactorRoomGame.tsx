@@ -7,14 +7,10 @@
  * higher score wins.
  */
 
-import { useMemo } from "react";
+import { ReactorLanes } from "./ReactorLanes";
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
-import { LANE_KEYS } from "./types";
-import type { Lane } from "./types";
 import { useReactorRoom } from "./useReactorRoom";
-
-const LANE_LABELS = ["D", "F", "J", "K"];
 
 export function BeatReactorRoomGame({ code }: { code: string }) {
   const { t } = useLocale();
@@ -37,11 +33,6 @@ export function BeatReactorRoomGame({ code }: { code: string }) {
     leave,
   } = useReactorRoom(code);
 
-  const upcoming = useMemo(
-    () =>
-      events.filter((event) => event.hitTime - nowTime >= -0.15 && event.hitTime - nowTime <= 2.2),
-    [events, nowTime],
-  );
 
   if (stage === "connecting") {
     return (
@@ -167,39 +158,7 @@ export function BeatReactorRoomGame({ code }: { code: string }) {
         <span className="reactor-hud-item them">{opponentName}</span>
       </div>
 
-      <div className="reactor-lanes" role="group" aria-label={t.beatReactor.lanesLabel}>
-        {[0, 1, 2, 3].map((lane) => (
-          <div key={lane} className="reactor-lane">
-            <div className="reactor-lane-track">
-              {upcoming
-                .filter((event) => event.lane === lane)
-                .map((event) => {
-                  const progress = 1 - (event.hitTime - nowTime) / 2.2;
-                  return (
-                    <div
-                      key={event.id}
-                      className={`reactor-note${event.accent ? " accent" : ""}`}
-                      style={{ top: `${Math.max(0, Math.min(100, progress * 100))}%` }}
-                    />
-                  );
-                })}
-              {flash && flash.lane === lane && (
-                <div key={flash.key} className={`reactor-flash j-${flash.judgement}`}>
-                  {t.beatReactor.judgementLabel[flash.judgement]}
-                </div>
-              )}
-            </div>
-            <button
-              className="btn reactor-pad"
-              onClick={() => hitLane(lane as Lane)}
-              aria-label={t.beatReactor.laneButtonLabel(lane + 1)}
-            >
-              {LANE_LABELS[lane]}
-              <i>{LANE_KEYS[lane].toUpperCase()}</i>
-            </button>
-          </div>
-        ))}
-      </div>
+      <ReactorLanes events={events} time={nowTime} flash={flash} hitLane={hitLane} />
 
       <div className="reactor-combo-row">
         <span className="you">{t.beatReactor.comboYou(combo)}</span>

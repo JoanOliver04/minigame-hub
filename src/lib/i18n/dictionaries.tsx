@@ -63,6 +63,9 @@ export interface Dictionary {
     restartTrial: string;
     pauseRace: string;
     resumeRace: string;
+    pauseGame: string;
+    resumeGame: string;
+    gameSound: string;
     checkpoint: (index: number, total: number) => string;
   };
   app: {
@@ -343,6 +346,7 @@ export interface Dictionary {
     aiMistakes: string;
     keyboardLabel: string;
     wordPlaceholder: string;
+    lengthHint: (length: number) => string;
     guessWord: string;
     historyTitle: string;
     correctGuess: string;
@@ -621,6 +625,7 @@ export interface Dictionary {
     yourTimeLabel: (ms: number | null) => string;
     aiTimeLabel: (ms: number | null) => string;
     playerFalseStartResult: string;
+    pausedHint: string;
     aiFalseStartResult: string;
     winRound: string;
     loseRound: string;
@@ -630,7 +635,7 @@ export interface Dictionary {
       round: number,
       playerTimeMs: number | null,
       playerFalseStart: boolean,
-      aiTimeMs: number,
+      aiTimeMs: number | null,
       aiFalseStart: boolean,
       winner: "player" | "ai" | "tie",
     ) => string;
@@ -817,6 +822,9 @@ export interface Dictionary {
     densityNormal: string;
     densityDense: string;
     silentMode: string;
+    retryChart: string;
+    newChart: string;
+    songProgress: string;
     calibrationLabel: (ms: number) => string;
     tallyYou: (score: number) => string;
     tallyAi: (score: number) => string;
@@ -1153,6 +1161,9 @@ const en: Dictionary = {
     restartTrial: "Restart lap",
     pauseRace: "Pause race",
     resumeRace: "Resume race",
+    pauseGame: "Pause game",
+    resumeGame: "Resume game",
+    gameSound: "Game sound",
     checkpoint: (index, total) => `Next gate · ${index}/${total}`,
   },
   app: {
@@ -1733,6 +1744,7 @@ const en: Dictionary = {
     aiMistakes: "AI mistakes",
     keyboardLabel: "Letter keyboard",
     wordPlaceholder: "Guess the full word…",
+    lengthHint: (length) => `Try a word with ${length} letters. You still have your turn.`,
     guessWord: "Guess word",
     historyTitle: "Guess history",
     correctGuess: "Correct — extra turn",
@@ -1746,6 +1758,7 @@ const en: Dictionary = {
       used: "That letter has already been guessed.",
       word: "Use letters only for a full-word guess.",
       usedWord: "That word has already been attempted.",
+      clues: "Check the revealed tiles and the letters already ruled out. Try again.",
     },
     endTitle: (winner) =>
       winner === "player" ? "You win the round!" : winner === "ai" ? "AI wins the round." : "Round drawn!",
@@ -2240,6 +2253,7 @@ const en: Dictionary = {
     yourTimeLabel: (ms) => `You: ${ms === null ? "—" : `${ms}ms`}`,
     aiTimeLabel: (ms) => `AI: ${ms === null ? "—" : `${ms}ms`}`,
     playerFalseStartResult: "False Start! You clicked before the signal — AI wins the round.",
+    pausedHint: "Game paused. Your score is saved for this match. Resume when you're ready for a fresh signal.",
     aiFalseStartResult: "AI False Start! It jumped the gun — you win the round.",
     winRound: "You win the round!",
     loseRound: "AI wins the round.",
@@ -2248,7 +2262,7 @@ const en: Dictionary = {
     logEntry: (round, playerTimeMs, playerFalseStart, aiTimeMs, aiFalseStart, winner) =>
       `Round ${round}: You ${
         playerFalseStart ? "false start" : playerTimeMs === null ? "—" : `${playerTimeMs}ms`
-      } vs AI ${aiFalseStart ? "false start" : `${aiTimeMs}ms`} — ${
+      } vs AI ${aiFalseStart ? "false start" : aiTimeMs === null ? "—" : `${aiTimeMs}ms`} — ${
         winner === "player" ? "You win" : winner === "ai" ? "AI wins" : "Push"
       }`,
     avgYourLabel: "Your avg reaction",
@@ -2620,6 +2634,9 @@ const en: Dictionary = {
     densityNormal: "Normal",
     densityDense: "Dense",
     silentMode: "Silent mode (visual only)",
+    retryChart: "Replay this track",
+    newChart: "New track",
+    songProgress: "Track progress",
     calibrationLabel: (ms) => `Audio calibration: ${ms > 0 ? "+" : ""}${ms} ms`,
     tallyYou: (score) => `You ${score}`,
     tallyAi: (score) => `AI ${score}`,
@@ -3102,6 +3119,9 @@ const es: Dictionary = {
     restartTrial: "Reiniciar vuelta",
     pauseRace: "Pausar carrera",
     resumeRace: "Continuar carrera",
+    pauseGame: "Pausar partida",
+    resumeGame: "Continuar partida",
+    gameSound: "Sonido de los juegos",
     checkpoint: (index, total) => `Próximo control · ${index}/${total}`,
   },
   app: {
@@ -3685,6 +3705,7 @@ const es: Dictionary = {
     aiMistakes: "Fallos de la IA",
     keyboardLabel: "Teclado de letras",
     wordPlaceholder: "Adivina la palabra completa…",
+    lengthHint: (length) => `Prueba con una palabra de ${length} letras. Conservas el turno.`,
     guessWord: "Probar palabra",
     historyTitle: "Historial de intentos",
     correctGuess: "Correcto — turno extra",
@@ -3698,6 +3719,7 @@ const es: Dictionary = {
       used: "Esa letra ya se ha probado.",
       word: "Usa solo letras para probar una palabra completa.",
       usedWord: "Esa palabra ya se ha probado.",
+      clues: "Revisa las casillas descubiertas y las letras que ya descartaste. Puedes volver a probar.",
     },
     endTitle: (winner) =>
       winner === "player" ? "¡Ganas la ronda!" : winner === "ai" ? "La IA gana la ronda." : "¡Ronda empatada!",
@@ -4199,6 +4221,7 @@ const es: Dictionary = {
     yourTimeLabel: (ms) => `Tú: ${ms === null ? "—" : `${ms}ms`}`,
     aiTimeLabel: (ms) => `IA: ${ms === null ? "—" : `${ms}ms`}`,
     playerFalseStartResult: "¡Salida en falso! Has hecho clic antes de la señal — gana la IA.",
+    pausedHint: "Partida en pausa. Conservas el marcador. Cuando continúes, espera una nueva señal.",
     aiFalseStartResult: "¡Salida en falso de la IA! Se ha adelantado — ganas tú la ronda.",
     winRound: "¡Ganas la ronda!",
     loseRound: "Gana la ronda la IA.",
@@ -4207,7 +4230,7 @@ const es: Dictionary = {
     logEntry: (round, playerTimeMs, playerFalseStart, aiTimeMs, aiFalseStart, winner) =>
       `Ronda ${round}: Tú ${
         playerFalseStart ? "salida en falso" : playerTimeMs === null ? "—" : `${playerTimeMs}ms`
-      } vs IA ${aiFalseStart ? "salida en falso" : `${aiTimeMs}ms`} — ${
+      } vs IA ${aiFalseStart ? "salida en falso" : aiTimeMs === null ? "—" : `${aiTimeMs}ms`} — ${
         winner === "player" ? "Ganas tú" : winner === "ai" ? "Gana la IA" : "Empate"
       }`,
     avgYourLabel: "Tu reacción media",
@@ -4602,6 +4625,9 @@ const es: Dictionary = {
     densityNormal: "Normal",
     densityDense: "Densa",
     silentMode: "Modo silencioso (solo visual)",
+    retryChart: "Repetir esta pista",
+    newChart: "Nueva pista",
+    songProgress: "Progreso de la pista",
     calibrationLabel: (ms) => `Calibración de audio: ${ms > 0 ? "+" : ""}${ms} ms`,
     tallyYou: (score) => `Tú ${score}`,
     tallyAi: (score) => `IA ${score}`,

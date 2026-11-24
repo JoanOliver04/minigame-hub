@@ -27,7 +27,8 @@ export function WordGuessGame() {
   const [category, setCategory] = useState<WordCategory>("animals");
   // Default the word language to the interface language, so a player who
   // switched the app to Spanish gets Spanish words unless they choose otherwise.
-  const [lang, setLang] = useState<WordLang>(locale === "es" ? "es" : "en");
+  const [chosenLang, setLang] = useState<WordLang | null>(null);
+  const lang = chosenLang ?? locale;
   const focusKeyboard = useCallback((node: HTMLDivElement | null) => node?.focus({ preventScroll: true }), []);
   const [wordInput, setWordInput] = useState("");
 
@@ -250,13 +251,16 @@ export function WordGuessGame() {
           autoComplete="off"
           placeholder={t.wordGuess.wordPlaceholder}
           aria-label={t.wordGuess.wordPlaceholder}
+          aria-describedby="word-input-feedback"
           onChange={(event) => setWordInput(event.target.value)}
         />
         <button className="btn primary" disabled={locked || !wordInput.trim()}>
           {t.wordGuess.guessWord}
         </button>
       </form>
-      <div className="error-msg">{inputError ? t.wordGuess.errors[inputError] : ""}</div>
+      <div id="word-input-feedback" className="error-msg" role="status">
+        {inputError === "length" ? t.wordGuess.lengthHint(pattern.length) : t.wordGuess.errors[inputError]}
+      </div>
 
       {game.history.length > 0 && (
         <>

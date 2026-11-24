@@ -1,70 +1,113 @@
-/**
- * Beat Reactor — dedicated Web Audio graph (blueprint §6.2).
- *
- * The AudioContext clock is authoritative: chart hitTimes and judgement are
- * both expressed in `audioContext.currentTime` seconds, never `Date.now()`.
- * This module owns exactly one AudioContext per mounted game instance and
- * must be closed on unmount (blueprint §6.7: "audio nodes disconnect").
- */
+import { isSoundEnabled, subscribeSound } from "@/lib/sound";
+import { CHART_LEAD_IN } from "./generation";
+import type { Bpm, Judgement } from "./types";
 
-const LANE_FREQS = [220, 277, 330, 392]; // one tone per lane, tap sound
-const ACCENT_BOOST = 1.5;
+const laneFrequencies = [220, 277.18, 329.63, 392];
+const bassRoots = [110, 87.31, 130.81, 98];
 
+/** A song-relative clock. Silent play and devices without Web Audio use the monotonic clock. */
 export class ReactorAudio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private audioOrigin: number | null = null;
+  private wallOrigin = 0;
+  private offset = 0;
+  private running = false;
+  private beatSeconds = 0;
+  private nextBeat = 0;
+  private unsubscribe: (() => void) | null = null;
 
-  ensureStarted(): AudioContext {
-    if (!this.ctx) {
-      this.ctx = new AudioContext();
-      this.master = this.ctx.createGain();
-      this.master.gain.value = 0.2;
-      this.master.connect(this.ctx.destination);
+  start(bpm: Bpm, muted: boolean, from = 0) {
+    this.dispose();
+    this.offset = from;
+    this.wallOrigin = performance.now();
+    this.running = true;
+    this.beatSeconds = 60 / bpm;
+    this.nextBeat = Math.ceil((from - CHART_LEAD_IN) / this.beatSeconds);
+    if (muted) return;
+    try {
+      const ctx = new AudioContext();
+      this.ctx = ctx;
+      this.master = ctx.createGain();
+      const updateGain = () => { if (this.master) this.master.gain.value = isSoundEnabled() ? 0.2 : 0; };
+      updateGain();
+      this.unsubscribe = subscribeSound(updateGain);
+      this.master.connect(ctx.destination);
+      if (ctx.state === "running") this.audioOrigin = ctx.currentTime;
+      else void ctx.resume().catch(() => {});
+    } catch {
+      // The chart and its controls remain available with visual cues.
     }
-    return this.ctx;
   }
 
   get currentTime(): number {
-    return this.ctx?.currentTime ?? 0;
+    if (!this.running) return this.offset;
+    const elapsed = (performance.now() - this.wallOrigin) / 1000;
+    if (this.ctx?.state !== "running") {
+      this.audioOrigin = null;
+      return this.offset + elapsed;
+    }
+    this.audioOrigin ??= this.ctx.currentTime - elapsed;
+    return this.offset + this.ctx.currentTime - this.audioOrigin;
   }
 
-  playLaneTone(lane: number, accent: boolean, muted: boolean) {
-    if (muted || !this.ctx || !this.master) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const now = this.ctx.currentTime;
-    osc.type = "square";
-    osc.frequency.value = LANE_FREQS[lane] ?? 300;
-    const vol = accent ? 0.16 * ACCENT_BOOST : 0.12;
-    gain.gain.setValueAtTime(vol, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-    osc.connect(gain).connect(this.master);
-    osc.start(now);
-    osc.stop(now + 0.13);
-  }
-
-  playFeedback(kind: "perfect" | "great" | "good" | "miss") {
+  private tone(type: OscillatorType, hz: number, volume: number, duration: number, at: number, endHz = hz) {
     if (!this.ctx || !this.master) return;
-    const now = this.ctx.currentTime;
-    const freq = kind === "perfect" ? 900 : kind === "great" ? 700 : kind === "good" ? 500 : 140;
     const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = kind === "miss" ? "sawtooth" : "sine";
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(kind === "miss" ? 0.14 : 0.1, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-    osc.connect(gain).connect(this.master);
-    osc.start(now);
-    osc.stop(now + 0.11);
+    const envelope = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(hz, at);
+    osc.frequency.exponentialRampToValueAtTime(endHz, at + duration);
+    envelope.gain.setValueAtTime(0.001, at);
+    envelope.gain.exponentialRampToValueAtTime(volume, at + 0.004);
+    envelope.gain.exponentialRampToValueAtTime(0.001, at + duration);
+    osc.connect(envelope).connect(this.master);
+    osc.onended = () => { osc.disconnect(); envelope.disconnect(); };
+    osc.start(at);
+    osc.stop(at + duration);
+  }
+
+  /** Schedule on the audio clock just ahead of the display frame; skip beats missed during a stall. */
+  backing(now: number, end: number) {
+    if (this.ctx?.state !== "running") return;
+    this.nextBeat = Math.max(this.nextBeat, Math.ceil((now - 0.025 - CHART_LEAD_IN) / this.beatSeconds));
+    for (;;) {
+      const beat = this.nextBeat;
+      const time = CHART_LEAD_IN + beat * this.beatSeconds;
+      if (time > Math.min(now + 0.14, end)) return;
+      const at = this.ctx.currentTime + Math.max(0, time - now);
+      if (beat < 0) this.tone("triangle", 660, 0.16, 0.045, at);
+      else if (beat % 2 === 0) {
+        this.tone("sine", 125, 0.43, 0.14, at, 48);
+        this.tone("triangle", bassRoots[Math.floor(beat / 4) % 4], 0.19, this.beatSeconds * 0.55, at);
+      } else this.tone("triangle", 730, 0.19, 0.065, at, 210);
+      this.nextBeat++;
+    }
+  }
+
+  playLaneTone(lane: number, accent: boolean) {
+    if (this.ctx) this.tone("triangle", laneFrequencies[lane], accent ? 0.4 : 0.3, 0.15, this.ctx.currentTime);
+  }
+
+  playFeedback(kind: Judgement) {
+    if (this.ctx) this.tone("sine", kind === "perfect" ? 880 : kind === "great" ? 660 : kind === "good" ? 440 : 140,
+      0.09, 0.075, this.ctx.currentTime);
+  }
+
+  pause() {
+    const elapsed = this.currentTime;
+    this.dispose();
+    this.offset = elapsed;
   }
 
   dispose() {
+    this.unsubscribe?.();
+    this.unsubscribe = null;
+    this.running = false;
     this.master?.disconnect();
     this.master = null;
-    if (this.ctx) {
-      const ctx = this.ctx;
-      this.ctx = null;
-      void ctx.close();
-    }
+    if (this.ctx && this.ctx.state !== "closed") void this.ctx.close().catch(() => {});
+    this.ctx = null;
+    this.audioOrigin = null;
   }
 }

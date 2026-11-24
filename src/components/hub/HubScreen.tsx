@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { filterGames } from "@/games/filter";
 import { GAMES } from "@/games/registry";
-import { GAME_CATEGORIES, type GameCategory } from "@/games/types";
+import { GAME_CATEGORIES } from "@/games/types";
+import { readValue, subscribeStorage, writeValue } from "@/lib/browserStorage";
 import { GameCard } from "./GameCard";
 import { StatsTable } from "./StatsTable";
 import { DailyFeature } from "./DailyFeature";
@@ -39,9 +40,12 @@ export function HubScreen({ view = "library" }: { view?: View }) {
 
 function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyFavorites: boolean }) {
   const { t } = useLocale();
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<GameCategory | "all">("all");
-  const [multiplayerOnly, setMultiplayerOnly] = useState(false);
+  const storageKey = onlyFavorites ? "miniHubFavoriteFilters" : "miniHubLibraryFilters";
+  const stored = useSyncExternalStore(subscribeStorage, () => readValue(storageKey, "session"), () => null);
+  const filters = new URLSearchParams(stored ?? "");
+  const query = filters.get("q") ?? "";
+  const category = categories.find(value => value === filters.get("category")) ?? "all";
+  const multiplayerOnly = filters.get("multiplayer") === "1";
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const source = onlyFavorites ? GAMES.filter((game) => favorites.has(game.id)) : GAMES;
@@ -49,10 +53,15 @@ function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyF
   const filtered = Boolean(query || category !== "all" || multiplayerOnly);
   const activeOptions = Number(category !== "all") + Number(multiplayerOnly);
 
+  function setFilter(key: string, value: string) {
+    const next = new URLSearchParams(readValue(storageKey, "session") ?? "");
+    if (value) next.set(key, value);
+    else next.delete(key);
+    writeValue(storageKey, next.toString() || null, "session");
+  }
+
   function clearFilters() {
-    setQuery("");
-    setCategory("all");
-    setMultiplayerOnly(false);
+    writeValue(storageKey, null, "session");
     searchRef.current?.focus();
   }
 
@@ -69,7 +78,7 @@ function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyF
             type="search"
             className="text-input"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => setFilter("q", event.target.value)}
             placeholder={t.hub.searchPlaceholder}
             autoComplete="off"
           />
@@ -83,7 +92,7 @@ function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyF
             <input
               type="checkbox"
               checked={multiplayerOnly}
-              onChange={(event) => setMultiplayerOnly(event.target.checked)}
+              onChange={(event) => setFilter("multiplayer", event.target.checked ? "1" : "")}
             />
             {t.hub.multiplayer}
           </label>
@@ -94,7 +103,7 @@ function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyF
                 type="button"
                 className={category === value ? "selected" : ""}
                 aria-pressed={category === value}
-                onClick={() => setCategory(value)}
+                onClick={() => setFilter("category", value === "all" ? "" : value)}
               >
                 {value === "all" ? t.hub.all : t.hub.categories[value]}
               </button>

@@ -3,10 +3,8 @@
 /**
  * Reaction Time — stateful match engine as a React hook.
  * Owns the round state machine (waiting -> ready -> go -> resolved) and the
- * two timers that race each round: the real "Go!" signal, and the AI's
- * single precomputed event (a false start before the signal, or a genuine
- * reaction after it). AI behavior lives in ./ai, pure round/match math in
- * ./logic.
+ * timers for the signal, an optional AI false start, and the response window.
+ * Both reaction times are measured relative to the same signal.
  *
  * Why `matchRef` instead of just reading the `match` state variable: most
  * rounds here can resolve purely from a timer firing (the AI reacts before
@@ -18,7 +16,7 @@
  * `match`, so every closure — however old — reads the true current value.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import { randomInt } from "@/lib/random";
 import { useScores } from "@/context/ScoresContext";
 import { playSound } from "@/lib/sound";
@@ -39,9 +37,10 @@ import type {
   RoundStage,
 } from "./types";
 
-export type ReactionPhase = "setup" | "playing" | "end";
+export type ReactionPhase = "setup" | "playing" | "paused" | "end";
 
 const ROUND_END_HOLD_MS = 2200;
+const RESPONSE_WINDOW_MS = 1600;
 
 export function useReactionTime() {
   const [phase, setPhase] = useState<ReactionPhase>("setup");
@@ -57,11 +56,22 @@ export function useReactionTime() {
   const aiRollRef = useRef<AiReactionRoll | null>(null);
   const resolvedRef = useRef(false);
   const logIdRef = useRef(0);
+  const timeOutRound = useEffectEvent(() => resolveRound(null, false));
 
-  const clearTimers = () => {
+  // Start timing when React has put the green target on screen, after any render delay.
+  useLayoutEffect(() => {
+    if (phase === "playing" && stage === "go") {
+      goTimestampRef.current = preciseNow();
+      playSound("blip");
+      const timer = setTimeout(timeOutRound, RESPONSE_WINDOW_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, stage]);
+
+  const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
     timersRef.current.length = 0;
-  };
+  }, []);
   const schedule = (fn: () => void, delay: number) => {
     timersRef.current.push(setTimeout(fn, delay));
   };
@@ -69,6 +79,26 @@ export function useReactionTime() {
     const timers = timersRef.current;
     return () => timers.forEach(clearTimeout);
   }, []);
+
+  const pause = useCallback(() => {
+    if (!matchRef.current || matchRef.current.finished) return;
+    clearTimers();
+    resolvedRef.current = true;
+    setPhase("paused");
+  }, [clearTimers]);
+
+  useEffect(() => {
+    if (phase !== "playing") return;
+    function onVisibility() { if (document.hidden) pause(); }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [phase, pause]);
+
+  function resume() {
+    if (phase !== "paused" || document.hidden) return;
+    setPhase("playing");
+    startRound();
+  }
 
   /** Keep the ref and the state copy of the match in lockstep. */
   function commitMatch(next: ReactionMatchState | null) {
@@ -106,27 +136,14 @@ export function useReactionTime() {
     const aiRoll = simulateAiReaction(config.difficulty, signalDelayMs);
     aiRollRef.current = aiRoll;
 
-    // The AI's whole round is one precomputed event: it either jumps the
-    // gun at a random instant before the signal, or reacts a fixed delay
-    // after it — either way, exactly one timer.
-    const aiEventDelayMs = aiRoll.falseStart
-      ? randomInt(0, Math.max(1, signalDelayMs - 50))
-      : signalDelayMs + aiRoll.reactionMs;
-
     schedule(() => {
       if (resolvedRef.current) return;
       setStage("go");
-      goTimestampRef.current = preciseNow();
-      playSound("blip");
     }, signalDelayMs);
 
-    schedule(() => {
-      if (resolvedRef.current) return;
-      // The AI's event fires before the player has acted at all — it alone
-      // decides the round (a false start if this landed before the signal,
-      // otherwise a plain "the AI was faster").
-      resolveRound(null, false);
-    }, aiEventDelayMs);
+    if (aiRoll.falseStart) {
+      schedule(() => resolveRound(null, false, true), randomInt(0, Math.max(1, signalDelayMs - 50)));
+    }
   }
 
   /** The player's one input per round: a click/tap during "ready" or "go". */
@@ -143,36 +160,36 @@ export function useReactionTime() {
     // against a rapid double-click registering twice.
   }
 
-  function resolveRound(playerTimeMs: number | null, playerFalseStart: boolean) {
+  function resolveRound(playerTimeMs: number | null, playerFalseStart: boolean, aiFalseStart = false) {
     if (resolvedRef.current) return;
     const currentMatch = matchRef.current;
     const aiRoll = aiRollRef.current;
     if (!currentMatch || !aiRoll) return;
 
     resolvedRef.current = true;
-    clearTimers(); // cancels whichever of {signal, AI event} hasn't fired yet
+    clearTimers();
 
     const winner = decideRoundWinner(
       playerFalseStart,
-      aiRoll.falseStart,
+      aiFalseStart,
       playerTimeMs,
       aiRoll.reactionMs,
     );
     const outcome: RoundResult = {
       playerTimeMs,
-      aiTimeMs: aiRoll.reactionMs,
+      aiTimeMs: playerFalseStart || aiFalseStart ? null : aiRoll.reactionMs,
       playerFalseStart,
-      aiFalseStart: aiRoll.falseStart,
+      aiFalseStart,
       winner,
     };
 
     setStage("resolved");
     setLastOutcome(outcome);
     playSound(winner === "player" ? "win" : winner === "ai" ? "lose" : "blip");
-    record("reaction-time", winner === "tie" ? "tie" : winner === "player" ? "win" : "loss");
 
     const nextMatch = applyReactionRoundOutcome(currentMatch, outcome);
     commitMatch(nextMatch);
+    if (nextMatch.finished) record("reaction-time", nextMatch.youScore > nextMatch.aiScore ? "win" : "loss");
 
     logIdRef.current += 1;
     const entry: ReactionHistoryEntry = {
@@ -217,6 +234,8 @@ export function useReactionTime() {
     history,
     startMatch,
     handlePlayerAction,
+    pause,
+    resume,
     playAgain,
     toSetup,
   };

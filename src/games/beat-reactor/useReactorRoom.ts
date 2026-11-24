@@ -131,6 +131,13 @@ export function useReactorRoom(code: string): UseReactorRoomResult {
     };
   }, [code]);
 
+  useEffect(() => {
+    if (stage === "playing" || rafRef.current === null) return;
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    audioRef.current?.dispose();
+  }, [stage]);
+
   const finish = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
@@ -158,7 +165,9 @@ export function useReactorRoom(code: string): UseReactorRoomResult {
 
     const lastEvent = eventsRef.current[eventsRef.current.length - 1];
     const songEndTime = lastEvent ? lastEvent.hitTime + 0.6 : 0;
-    if (t >= songEndTime && eventsRef.current.length > 0) {
+    audio.backing(t, songEndTime);
+    if (t >= songEndTime) {
+      audio.pause();
       finish();
       return;
     }
@@ -193,7 +202,7 @@ export function useReactorRoom(code: string): UseReactorRoomResult {
     if (!g || localPlay !== "ready") return;
     const audio = audioRef.current ?? new ReactorAudio();
     audioRef.current = audio;
-    audio.ensureStarted();
+    audio.start(g.bpm, muted);
 
     const chart = generateChart(
       { seed: g.seed, bpm: g.bpm, bars: g.bars, density: g.density },
@@ -208,7 +217,7 @@ export function useReactorRoom(code: string): UseReactorRoomResult {
     setCombo(0);
     setLocalPlay("playing");
     rafRef.current = requestAnimationFrame(() => loopRef.current());
-  }, [room, localPlay]);
+  }, [room, localPlay, muted]);
 
   const hitLane = useCallback(
     (lane: Lane) => {
@@ -216,9 +225,10 @@ export function useReactorRoom(code: string): UseReactorRoomResult {
       if (!audio || localPlay !== "playing") return;
       const t = audio.currentTime;
       const target = findTarget(eventsRef.current, resolvedRef.current, lane, t);
-      audio.playLaneTone(lane, false, muted);
+      audio.playLaneTone(lane, target?.accent ?? false);
       if (!target) return;
       resolvedRef.current.add(target.id);
+      setEvents(remaining => remaining.filter(event => event.id !== target.id));
       const j = judge((t - target.hitTime) * 1000);
       if (!muted) audio.playFeedback(j);
       const gained = hitScore(j, comboRef.current);
@@ -236,6 +246,7 @@ export function useReactorRoom(code: string): UseReactorRoomResult {
   useEffect(() => {
     if (localPlay !== "playing") return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return;
       const idx = LANE_KEYS.indexOf(e.key.toLowerCase() as (typeof LANE_KEYS)[number]);
       if (idx !== -1) {
         e.preventDefault();

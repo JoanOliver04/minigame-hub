@@ -1,4 +1,4 @@
-import { foldLetter, foldWord } from "./letters";
+import { alphabetFor, fitsClues, foldLetter, foldWord } from "./letters";
 import type {
   GuessKind,
   WordActor,
@@ -11,7 +11,7 @@ export const SHARED_MISTAKE_LIMIT = 8;
 export const WRONG_WORD_COST = 2;
 
 export function normalizeWord(value: string): string {
-  return value.trim().toUpperCase();
+  return value.trim().normalize("NFC").toUpperCase();
 }
 
 export function createWordGuessState(
@@ -35,12 +35,32 @@ export function createWordGuessState(
   };
 }
 
-export function wordPattern(state: WordGuessState): string {
+type WordBoard = Pick<WordGuessState, "word" | "lang" | "history"> & {
+  guessedLetters: Iterable<string>;
+  revealedLetters: Iterable<string>;
+};
+
+export function wordPattern(state: Pick<WordBoard, "word" | "revealedLetters">): string {
   // Revealed slots show the word's real character (accent kept); matching is
   // by base letter, so a guessed E reveals É / e / é alike.
+  const revealed = new Set(state.revealedLetters);
   return [...state.word]
-    .map((letter) => (state.revealedLetters.has(foldLetter(letter)) ? letter : "_"))
+    .map((letter) => (revealed.has(foldLetter(letter)) ? letter : "_"))
     .join("");
+}
+
+export function guessError(board: WordBoard, kind: GuessKind, value: string): string {
+  const folded = foldWord(normalizeWord(value));
+  const alphabet = alphabetFor(board.lang);
+  const tried = new Set(board.guessedLetters);
+  if (kind === "letter") {
+    if (!alphabet.includes(folded)) return "letter";
+    return tried.has(folded) ? "used" : "";
+  }
+  if (!folded || [...folded].some(letter => !alphabet.includes(letter))) return "word";
+  if (board.history.some(entry => entry.kind === "word" && foldWord(entry.value) === folded)) return "usedWord";
+  if (folded.length !== board.word.length) return "length";
+  return fitsClues(folded, wordPattern(board), tried) ? "" : "clues";
 }
 
 export function totalMistakes(state: WordGuessState): number {
@@ -58,7 +78,7 @@ export function applyGuess(
   kind: GuessKind,
   rawValue: string,
 ): WordGuessState {
-  if (state.finished || state.currentTurn !== actor) return state;
+  if (state.finished || state.currentTurn !== actor || guessError(state, kind, rawValue)) return state;
 
   const isLetter = kind === "letter";
   const raw = normalizeWord(rawValue);

@@ -3,23 +3,35 @@
  * Client-only: the AudioContext is created lazily on first user interaction.
  */
 
+import { readValue, subscribeValue, writeValue } from "./browserStorage";
+
 export type SoundKind = "win" | "lose" | "error" | "blip";
 
 let audioCtx: AudioContext | null = null;
-let enabled = true;
+let master: GainNode | null = null;
+const soundKey = "miniHubSound";
 
 export function setSoundEnabled(value: boolean) {
-  enabled = value;
+  writeValue(soundKey, value ? "on" : "off");
 }
 
 export function isSoundEnabled() {
-  return enabled;
+  return readValue(soundKey) !== "off";
+}
+
+export function subscribeSound(listener: () => void) {
+  return subscribeValue(soundKey, listener);
 }
 
 export function playSound(kind: SoundKind) {
-  if (!enabled) return;
+  if (!isSoundEnabled()) return;
   try {
-    if (!audioCtx) audioCtx = new AudioContext();
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+      master = audioCtx.createGain();
+      master.connect(audioCtx.destination);
+      subscribeSound(() => { if (master) master.gain.value = isSoundEnabled() ? 1 : 0; });
+    }
     const now = audioCtx.currentTime;
 
     const beep = (freq: number, start: number, dur: number, vol: number) => {
@@ -29,7 +41,8 @@ export function playSound(kind: SoundKind) {
       osc.frequency.value = freq;
       gain.gain.setValueAtTime(vol, now + start);
       gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
-      osc.connect(gain).connect(audioCtx!.destination);
+      osc.connect(gain).connect(master!);
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
       osc.start(now + start);
       osc.stop(now + start + dur);
     };

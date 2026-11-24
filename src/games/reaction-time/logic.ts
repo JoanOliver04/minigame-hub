@@ -71,7 +71,7 @@ export function applyReactionRoundOutcome(
     outcome.playerFalseStart || outcome.playerTimeMs === null
       ? match.playerTimes
       : [...match.playerTimes, outcome.playerTimeMs];
-  const aiTimes = outcome.aiFalseStart ? match.aiTimes : [...match.aiTimes, outcome.aiTimeMs];
+  const aiTimes = outcome.aiTimeMs === null || outcome.aiFalseStart ? match.aiTimes : [...match.aiTimes, outcome.aiTimeMs];
 
   return {
     ...match,

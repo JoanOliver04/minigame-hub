@@ -19,13 +19,19 @@ const FOLD_MAP: Record<string, string> = {
 
 /** Uppercase a single character and collapse accents to their base letter. */
 export function foldLetter(char: string): string {
-  const upper = char.toUpperCase();
+  const upper = char.normalize("NFC").toUpperCase();
   return FOLD_MAP[upper] ?? upper;
 }
 
 /** Fold an entire string letter by letter (preserves length and Ñ). */
 export function foldWord(word: string): string {
-  return [...word].map(foldLetter).join("");
+  return [...word.normalize("NFC")].map(foldLetter).join("");
+}
+
+/** A tried letter is visible in every matching slot. Unknown slots cannot contain it. */
+export function fitsClues(folded: string, pattern: string, tried: ReadonlySet<string>) {
+  return folded.length === pattern.length && [...pattern].every((letter, index) =>
+    letter === "_" ? !tried.has(folded[index]) : foldLetter(letter) === folded[index]);
 }
 
 export const ALPHABET_EN = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");

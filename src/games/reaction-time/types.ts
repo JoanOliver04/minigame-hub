@@ -19,7 +19,7 @@ export type RoundStage = "waiting" | "ready" | "go" | "resolved";
 
 export interface RoundResult {
   playerTimeMs: number | null;
-  aiTimeMs: number;
+  aiTimeMs: number | null;
   playerFalseStart: boolean;
   aiFalseStart: boolean;
   winner: "player" | "ai" | "tie";
@@ -48,7 +48,7 @@ export interface ReactionHistoryEntry {
   id: number;
   round: number;
   playerTimeMs: number | null;
-  aiTimeMs: number;
+  aiTimeMs: number | null;
   playerFalseStart: boolean;
   aiFalseStart: boolean;
   winner: "player" | "ai" | "tie";
