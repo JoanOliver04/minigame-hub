@@ -14,6 +14,7 @@ export interface MemoryConfig {
   difficulty: MemoryDifficulty;
   size: MemoryGridSize;
   quick?: boolean;
+  solo?: boolean;
 }
 
 export interface AIMemoryStore {

@@ -11,8 +11,9 @@
  * AudioContext-free sound calls are all cancelled on unmount.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useScores } from "@/context/ScoresContext";
+import { updateBrowserRecord, useBrowserRecord } from "@/lib/browserRecords";
 import { createRng, randomSeed, type Rng } from "@/lib/rng";
 import { isMotionReduced } from "@/lib/motion";
 import { loadPref, savePref } from "@/lib/prefs";
@@ -20,12 +21,13 @@ import { playSound } from "@/lib/sound";
 import { aiControl, createAiMemory, type AiMemory } from "./ai";
 import { boostEfficiency, raceResult, type RaceOutcome } from "./logic";
 import { initialCar, stepCar } from "./physics";
+import { fasterGhost, readGhost, recordLap, trialKey, type GhostLap } from "./ghost";
 import { useDriftControls } from "./useDriftControls";
 import { getTrack, type TrackDef } from "./tracks";
 import type { CarState, ControlInput, DriftDifficulty } from "./types";
 import { FIXED_DT, MAX_FRAME_DELTA, TOTAL_LAPS } from "./types";
 
-export type DriftPhase = "setup" | "racing" | "end";
+export type DriftPhase = "setup" | "racing" | "paused" | "end";
 
 const BEST_LAP_PREF_KEY = "neonDrift.bestLap";
 const BEST_LAP_VERSION = 1;
@@ -37,6 +39,12 @@ export function useNeonDrift() {
   const [phase, setPhase] = useState<DriftPhase>("setup");
   const [difficulty, setDifficulty] = useState<DriftDifficulty>("medium");
   const [trackId, setTrackId] = useState("circuit");
+  const [trial, setTrial] = useState(false);
+  const rawBest = useBrowserRecord(trial ? trialKey(trackId) : null);
+  const bestTrial = useMemo(() => readGhost(rawBest), [rawBest]);
+  const [opponentGhost, setOpponentGhost] = useState<GhostLap | null>(null);
+  const recordingRef = useRef<ReturnType<typeof recordLap> | null>(null);
+  const lastTrialRef = useRef<{ track: string; lap: GhostLap } | null>(null);
   const [player, setPlayer] = useState<CarState | null>(null);
   const [ai, setAi] = useState<CarState | null>(null);
   const [raceTime, setRaceTime] = useState(0);
@@ -55,7 +63,6 @@ export function useNeonDrift() {
   const lastTsRef = useRef<number>(0);
   const accumulatorRef = useRef(0);
   const raceTimeRef = useRef(0);
-  const startAtRef = useRef(0);
   const recordedRef = useRef(false);
   const loopRef = useRef<(ts: number) => void>(() => {});
 
@@ -87,8 +94,8 @@ export function useNeonDrift() {
         playSound(result === "player" ? "win" : result === "ai" ? "lose" : "blip");
         // Personal best lap is stored per track, separate from W/L/T.
         if (p.bestLap !== null) {
-          const stored =
-            loadPref<{ track: string; time: number }[]>(BEST_LAP_PREF_KEY, BEST_LAP_VERSION) ?? [];
+          const raw = loadPref<{ track: string; time: number }[]>(BEST_LAP_PREF_KEY, BEST_LAP_VERSION);
+          const stored = Array.isArray(raw) ? raw.filter(e => e && typeof e.track === "string" && Number.isFinite(e.time) && e.time > 0) : [];
           const existing = stored.find((e) => e.track === trackRef.current.id);
           if (!existing || p.bestLap < existing.time) {
             const next = stored.filter((e) => e.track !== trackRef.current.id);
@@ -127,14 +134,21 @@ export function useNeonDrift() {
 
       accumulatorRef.current += frameDelta;
       let p = playerRef.current!;
-      let a = aiRef.current!;
+      let a = aiRef.current;
+      const recording = recordingRef.current;
       while (accumulatorRef.current >= FIXED_DT) {
         const elapsed = raceTimeRef.current;
-        p = stepCar(p, inputRef.current, track, elapsed);
-        const aInput = aiControl(a, track, difficulty, rngRef.current, aiMemoryRef.current);
-        a = stepCar(a, aInput, track, elapsed);
         raceTimeRef.current += FIXED_DT;
         accumulatorRef.current -= FIXED_DT;
+        p = stepCar(p, inputRef.current, track, recording ? raceTimeRef.current : elapsed, recording ? 1 : TOTAL_LAPS);
+        if (a) {
+          const aInput = aiControl(a, track, difficulty, rngRef.current, aiMemoryRef.current);
+          a = stepCar(a, aInput, track, elapsed);
+        }
+        if (recording) {
+          if (p.finished) break;
+          recording.observe(raceTimeRef.current, p);
+        }
       }
       playerRef.current = p;
       aiRef.current = a;
@@ -142,13 +156,24 @@ export function useNeonDrift() {
       setAi(a);
       setRaceTime(raceTimeRef.current);
 
-      if (p.finished && a.finished) {
+      if (recording && p.finishTime !== null) {
+        const lap = recording.finish(p.finishTime, p);
+        recordingRef.current = null;
+        const last = lastTrialRef.current;
+        if (!last || last.track !== track.id || lap.time < last.lap.time) lastTrialRef.current = { track: track.id, lap };
+        void updateBrowserRecord(trialKey(track.id), raw => fasterGhost(raw, lap));
+        stopLoop();
+        playSound("win");
+        setPhase("end");
+        return;
+      }
+      if (p.finished && a?.finished) {
         finish(p, a);
         return;
       }
       rafRef.current = requestAnimationFrame((next) => loopRef.current(next));
     },
-    [difficulty, finish],
+    [difficulty, finish, stopLoop],
   );
 
   useEffect(() => {
@@ -165,7 +190,11 @@ export function useNeonDrift() {
     recordedRef.current = false;
 
     const p = initialCar(track);
-    const a = initialCar(track);
+    const a = trial ? null : initialCar(track);
+    recordingRef.current = trial ? recordLap(p) : null;
+    const last = lastTrialRef.current;
+    const rival = last?.track === track.id && (!bestTrial || last.lap.time < bestTrial.time) ? last.lap : bestTrial;
+    setOpponentGhost(trial ? rival : null);
     playerRef.current = p;
     aiRef.current = a;
     // Throttle auto-held from the green light; physics is frozen during the
@@ -181,10 +210,28 @@ export function useNeonDrift() {
     lastTsRef.current = 0;
     accumulatorRef.current = 0;
     raceTimeRef.current = -COUNTDOWN_S;
-    startAtRef.current = 0;
     setPhase("racing");
     rafRef.current = requestAnimationFrame((ts) => loopRef.current(ts));
-  }, [trackId, stopLoop]);
+  }, [trackId, stopLoop, trial, bestTrial]);
+
+  const pause = useCallback(() => {
+    stopLoop();
+    setPhase("paused");
+  }, [stopLoop]);
+
+  useEffect(() => {
+    if (phase !== "racing") return;
+    const onVisibility = () => { if (document.hidden) pause(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [phase, pause]);
+
+  const resume = () => {
+    if (phase !== "paused" || document.hidden) return;
+    lastTsRef.current = 0;
+    setPhase("racing");
+    rafRef.current = requestAnimationFrame(ts => loopRef.current(ts));
+  };
 
   const setInput = useCallback((partial: Partial<ControlInput>) => {
     inputRef.current = { ...inputRef.current, ...partial };
@@ -201,6 +248,12 @@ export function useNeonDrift() {
 
   return {
     phase,
+    trial,
+    setTrial,
+    bestTrial,
+    opponentGhost,
+    pause,
+    resume,
     difficulty,
     setDifficulty,
     trackId,

@@ -5,7 +5,6 @@
  * HUD, and touch steering/brake/boost pads (blueprint §5.3/5.6).
  */
 
-import { useState } from "react";
 import Link from "next/link";
 import { DriftControls } from "./DriftControls";
 import { BackLink } from "@/components/ui/BackLink";
@@ -17,8 +16,9 @@ import { boostEfficiency, formatTime } from "./logic";
 import { TRACKS, centerlinePath } from "./tracks";
 import type { CarState, DriftDifficulty } from "./types";
 import { useNeonDrift } from "./useNeonDrift";
+import { ghostAt, type Pose } from "./ghost";
 
-function Car({ car, className }: { car: CarState; className: string }) {
+function Car({ car, className }: { car: Pose; className: string }) {
   const deg = (car.heading * 180) / Math.PI;
   return (
     <g transform={`translate(${car.position.x} ${car.position.y}) rotate(${deg})`} className={className}>
@@ -31,7 +31,6 @@ function Car({ car, className }: { car: CarState; className: string }) {
 export function NeonDriftGame() {
   const game = useNeonDrift();
   const { t } = useLocale();
-  const [difficulty, setDifficulty] = useState<DriftDifficulty>("medium");
 
   const DIFFICULTY_OPTIONS = [
     { value: "easy", label: t.common.easy },
@@ -48,23 +47,33 @@ export function NeonDriftGame() {
     return (
       <section className="card screen drift-screen">
         <BackLink />
-        <HowToPlay title={t.gamesMeta["neon-drift"].name}>{t.neonDrift.rules}</HowToPlay>
+        <HowToPlay title={t.gamesMeta["neon-drift"].name}>
+          {t.neonDrift.rules}
+        </HowToPlay>
 
-        <span className="field-label">
-          {t.common.aiDifficulty}{" "}
-          <InfoTip label={t.neonDrift.difficultyTipLabel}>{t.neonDrift.difficultyTip}</InfoTip>
-        </span>
+        <span className="field-label">{t.play.mode}</span>
         <SegPicker
-          options={DIFFICULTY_OPTIONS}
-          value={difficulty}
-          onChange={(v) => {
-            setDifficulty(v as DriftDifficulty);
-            game.setDifficulty(v as DriftDifficulty);
-          }}
+          options={[{ value: "duel", label: t.play.duel }, { value: "trial", label: t.play.trial }]}
+          value={game.trial ? "trial" : "duel"}
+          onChange={value => game.setTrial(value === "trial")}
         />
+        {game.trial ? <p className="arcade-caption">{t.play.trialHint}</p> : (
+          <>
+            <span className="field-label">
+              {t.common.aiDifficulty}{" "}
+              <InfoTip label={t.neonDrift.difficultyTipLabel}>{t.neonDrift.difficultyTip}</InfoTip>
+            </span>
+            <SegPicker
+              options={DIFFICULTY_OPTIONS}
+              value={game.difficulty}
+              onChange={value => game.setDifficulty(value as DriftDifficulty)}
+            />
+          </>
+        )}
 
         <span className="field-label">{t.neonDrift.trackLabel}</span>
         <SegPicker options={TRACK_OPTIONS} value={game.trackId} onChange={game.setTrackId} />
+        {game.trial && game.bestTrial && <p className="arcade-readout">{t.neonDrift.personalBest} · {formatTime(game.bestTrial.time)}</p>}
 
         <div className="btn-row" style={{ marginTop: 22 }}>
           <button className="btn primary" style={{ minWidth: 180 }} onClick={game.startRace}>
@@ -76,24 +85,27 @@ export function NeonDriftGame() {
   }
 
   /* ================= END ================= */
-  if (game.phase === "end" && game.player && game.ai) {
-    const won = game.outcome === "player";
+  if (game.phase === "end" && game.player) {
+    const won = game.trial || game.outcome === "player";
+    const savedTime = game.bestTrial?.time;
+    const finishTime = game.player.finishTime;
+    const bestTime = savedTime !== undefined && finishTime !== null ? Math.min(savedTime, finishTime) : finishTime ?? savedTime ?? null;
     return (
       <section className="card end-card screen drift-screen">
         <div className="end-emoji">{won ? "🏁" : game.outcome === "tie" ? "🤝" : "🤖"}</div>
         <div className={`end-title ${won ? "player-win" : game.outcome === "ai" ? "ai-win" : ""}`}>
-          {t.neonDrift.endTitle(game.outcome ?? "tie")}
+          {game.trial ? t.play.finishTrial : t.neonDrift.endTitle(game.outcome ?? "tie")}
         </div>
         <div className="end-number">
-          {t.neonDrift.finishTimes(
+          {game.trial ? formatTime(game.player.finishTime) : t.neonDrift.finishTimes(
             formatTime(game.player.finishTime),
-            formatTime(game.ai.finishTime),
+            formatTime(game.ai?.finishTime ?? null),
           )}
         </div>
         <div className="end-stats">
           <div className="stat-box player">
-            <div className="label">{t.neonDrift.bestLap}</div>
-            <div className="value">{formatTime(game.player.bestLap)}</div>
+            <div className="label">{game.trial ? t.neonDrift.personalBest : t.neonDrift.bestLap}</div>
+            <div className="value">{formatTime(game.trial ? bestTime : game.player.bestLap)}</div>
           </div>
           <div className="stat-box neutral">
             <div className="label">{t.neonDrift.offTrack}</div>
@@ -109,6 +121,10 @@ export function NeonDriftGame() {
               <div className="value">{formatTime(game.personalBest)}</div>
             </div>
           )}
+          {game.trial && game.opponentGhost && <div className="stat-box neutral">
+            <div className="label">{t.play.previousBest}</div>
+            <div className="value">{formatTime(game.opponentGhost.time)}</div>
+          </div>}
         </div>
         <div className="btn-row">
           <button className="btn primary" onClick={game.playAgain}>
@@ -126,7 +142,7 @@ export function NeonDriftGame() {
   }
 
   /* ================= RACING ================= */
-  if (!game.player || !game.ai) return null;
+  if (!game.player) return null;
   const track = game.track;
   // Checkpoint zero is the finish line, after every other checkpoint.
   const progress = (car: CarState) => car.lap * track.checkpoints.length +
@@ -135,9 +151,10 @@ export function NeonDriftGame() {
     const next = track.checkpoints[car.checkpoint];
     return Math.hypot(car.position.x - next.x, car.position.y - next.y);
   };
-  const leading = progress(game.player) === progress(game.ai)
+  const leading = game.ai && (progress(game.player) === progress(game.ai)
     ? distanceToNext(game.player) <= distanceToNext(game.ai)
-    : progress(game.player) > progress(game.ai);
+    : progress(game.player) > progress(game.ai));
+  const ghost = game.opponentGhost ? ghostAt(game.opponentGhost, game.raceTime) : null;
 
   return (
     <section className="card screen drift-screen">
@@ -145,11 +162,12 @@ export function NeonDriftGame() {
 
       <div className="drift-hud">
         <span className="drift-hud-item">
-          {t.neonDrift.lapLabel(Math.min(game.player.lap + 1, game.totalLaps), game.totalLaps)}
+          {game.trial ? t.play.trial : t.neonDrift.lapLabel(Math.min(game.player.lap + 1, game.totalLaps), game.totalLaps)}
         </span>
         <span className="drift-hud-item">{formatTime(game.raceTime)}</span>
-        <span className={`drift-hud-item ${leading ? "lead" : "behind"}`}>
-          {leading ? t.neonDrift.leading : t.neonDrift.chasing}
+        <span className={`drift-hud-item${game.trial ? "" : leading ? " lead" : " behind"}`}>
+          {game.trial ? t.play.checkpoint(game.player.checkpoint || track.checkpoints.length, track.checkpoints.length)
+            : leading ? t.neonDrift.leading : t.neonDrift.chasing}
         </span>
       </div>
 
@@ -172,11 +190,14 @@ export function NeonDriftGame() {
               className={`drift-checkpoint${i === game.player!.checkpoint ? " next" : ""}${i === 0 ? " start" : ""}`}
             />
           ))}
-          <Car car={game.ai} className="drift-car ai" />
+          {game.ai && <Car car={game.ai} className="drift-car ai" />}
+          {ghost && <Car car={ghost} className="drift-car ghost" />}
           <Car car={game.player} className="drift-car player" />
         </svg>
 
-        {game.countdown > 0 && <div className="drift-countdown">{game.countdown}</div>}
+        {game.phase === "paused"
+          ? <div className="drift-countdown paused" aria-hidden="true">Ⅱ</div>
+          : game.countdown > 0 && <div className="drift-countdown">{game.countdown}</div>}
       </div>
 
       <div className="drift-boost-bar" aria-label={t.neonDrift.boostLabel}>
@@ -187,6 +208,13 @@ export function NeonDriftGame() {
         {t.play.raceSplit} · {formatTime(game.player.lastLap)}　{t.neonDrift.bestLap} · {formatTime(game.player.bestLap)}
       </p>}
       <DriftControls bindControl={game.bindControl} />
+      {game.opponentGhost && <p className="arcade-caption"><span className="ghost-key" aria-hidden="true" /> {t.play.ghost} · {formatTime(game.opponentGhost.time)}</p>}
+      <div className="btn-row drift-actions">
+        <button className="btn" onClick={game.phase === "paused" ? game.resume : game.pause}>
+          {game.phase === "paused" ? t.play.resumeRace : t.play.pauseRace}
+        </button>
+        {game.trial && <button className="btn" onClick={game.startRace}>{t.play.restartTrial}</button>}
+      </div>
     </section>
   );
 }

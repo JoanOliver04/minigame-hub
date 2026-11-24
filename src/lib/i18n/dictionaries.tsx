@@ -48,6 +48,22 @@ export interface Dictionary {
     castKey: string;
     noRepeat: string;
     quickBoard: string;
+    mode: string;
+    duel: string;
+    memorySolo: string;
+    memorySoloHint: string;
+    pairsFound: (found: number, total: number) => string;
+    boardCleared: string;
+    bestAttempts: string;
+    previousBest: string;
+    trial: string;
+    trialHint: string;
+    finishTrial: string;
+    ghost: string;
+    restartTrial: string;
+    pauseRace: string;
+    resumeRace: string;
+    checkpoint: (index: number, total: number) => string;
   };
   app: {
     title: string;
@@ -244,8 +260,8 @@ export interface Dictionary {
     aiTurn: string;
     aiThinking: string;
     chooseTiles: string;
-    matchFound: (actor: string) => string;
-    noMatch: (actor: string) => string;
+    matchFound: (actor: "player" | "ai") => string;
+    noMatch: (actor: "player" | "ai") => string;
     hiddenTile: string;
     visibleTile: (value: string) => string;
     solvedTile: string;
@@ -1122,6 +1138,22 @@ const en: Dictionary = {
     castKey: "Cast",
     noRepeat: "Neither player can use the same hand twice in a row.",
     quickBoard: "Quick board",
+    mode: "Game mode",
+    duel: "AI duel",
+    memorySolo: "Solo board",
+    memorySoloHint: "Find every pair in as few attempts as possible. Each board size has its own record.",
+    pairsFound: (found, total) => `${found} of ${total} pairs`,
+    boardCleared: "All pairs found!",
+    bestAttempts: "Fewest attempts",
+    previousBest: "Previous best",
+    trial: "Time trial",
+    trialHint: "Drive one lap through every checkpoint. Beat your best run to set a new ghost for this track.",
+    finishTrial: "Lap complete!",
+    ghost: "Personal best ghost",
+    restartTrial: "Restart lap",
+    pauseRace: "Pause race",
+    resumeRace: "Resume race",
+    checkpoint: (index, total) => `Next gate · ${index}/${total}`,
   },
   app: {
     title: "Mini-Game Hub",
@@ -1195,7 +1227,7 @@ const en: Dictionary = {
     },
     "memory-match": {
       name: "Memory Match",
-      description: "Find matching pairs before an AI with fallible memory.",
+      description: "Find more pairs than the AI, or clear a solo board in as few attempts as possible.",
     },
     "connect-four": {
       name: "Connect Four",
@@ -1283,7 +1315,7 @@ const en: Dictionary = {
     },
     "neon-drift": {
       name: "Neon Drift",
-      description: "Race a rival AI through neon circuits with clean lines and boost.",
+      description: "Race the AI over three laps or chase your best lap's ghost in a time trial.",
     },
     "signal-breaker": {
       name: "Signal Breaker",
@@ -1533,16 +1565,16 @@ const en: Dictionary = {
     grid6: "6 × 6 · 18 pairs",
     yourPairs: "Your pairs",
     aiPairs: "AI pairs",
-    yourMoves: "Your moves",
+    yourMoves: "Your attempts",
     aiMoves: "AI moves",
     pairs: (count) => `${count} pairs`,
-    moves: (count) => `${count} moves`,
+    moves: (count) => `${count} ${count === 1 ? "attempt" : "attempts"}`,
     yourTurn: "Your turn",
     aiTurn: "AI turn",
     aiThinking: "AI is remembering",
     chooseTiles: "Choose two tiles",
-    matchFound: (actor) => `${actor} found a pair and plays again!`,
-    noMatch: (actor) => `${actor} did not find a pair.`,
+    matchFound: (actor) => actor === "player" ? "You found a pair! Pick two more tiles." : "The AI found a pair and plays again.",
+    noMatch: (actor) => actor === "player" ? "Those tiles didn't match." : "The AI missed the pair.",
     hiddenTile: "Hidden tile",
     visibleTile: (value) => `Revealed tile: ${value}`,
     solvedTile: "Solved pair",
@@ -2698,7 +2730,7 @@ const en: Dictionary = {
     rules: (
       <>
         <p>
-          Three laps against an AI rival. Your throttle is held automatically —
+          Drive three laps in an AI duel or one lap against your best time. Your throttle is held automatically —
           you steer, brake into corners, and spend a limited boost meter on the
           straights. Leaving the track cuts your grip and acceleration, so keep
           a clean racing line.
@@ -3055,6 +3087,22 @@ const es: Dictionary = {
     castKey: "Lanzar",
     noRepeat: "Ningún jugador puede repetir su última jugada.",
     quickBoard: "Tablero rápido",
+    mode: "Modo de juego",
+    duel: "Duelo con la IA",
+    memorySolo: "Tablero en solitario",
+    memorySoloHint: "Encuentra todas las parejas en el menor número de intentos. Cada tamaño de tablero tiene su propio récord.",
+    pairsFound: (found, total) => `${found} de ${total} parejas`,
+    boardCleared: "¡Encontraste todas las parejas!",
+    bestAttempts: "Mínimo de intentos",
+    previousBest: "Marca anterior",
+    trial: "Contrarreloj",
+    trialHint: "Completa una vuelta pasando por todos los controles. Si mejoras tu marca, esa vuelta será tu nuevo fantasma en el circuito.",
+    finishTrial: "¡Vuelta completada!",
+    ghost: "Fantasma de tu mejor vuelta",
+    restartTrial: "Reiniciar vuelta",
+    pauseRace: "Pausar carrera",
+    resumeRace: "Continuar carrera",
+    checkpoint: (index, total) => `Próximo control · ${index}/${total}`,
   },
   app: {
     title: "Mini-Game Hub",
@@ -3128,7 +3176,7 @@ const es: Dictionary = {
     },
     "memory-match": {
       name: "Juego de Memoria",
-      description: "Encuentra parejas antes que una IA con memoria imperfecta.",
+      description: "Encuentra más parejas que la IA o completa el tablero en solitario con el mínimo de intentos.",
     },
     "connect-four": {
       name: "Cuatro en Raya",
@@ -3216,7 +3264,7 @@ const es: Dictionary = {
     },
     "neon-drift": {
       name: "Derrape Neón",
-      description: "Corre contra la IA por circuitos de neón con trazadas limpias y turbo.",
+      description: "Corre tres vueltas contra la IA o intenta adelantar al fantasma de tu mejor vuelta.",
     },
     "signal-breaker": {
       name: "Rompeseñales",
@@ -3467,16 +3515,16 @@ const es: Dictionary = {
     grid6: "6 × 6 · 18 parejas",
     yourPairs: "Tus parejas",
     aiPairs: "Parejas de la IA",
-    yourMoves: "Tus movimientos",
+    yourMoves: "Tus intentos",
     aiMoves: "Movimientos IA",
     pairs: (count) => `${count} parejas`,
-    moves: (count) => `${count} movimientos`,
+    moves: (count) => `${count} ${count === 1 ? "intento" : "intentos"}`,
     yourTurn: "Tu turno",
     aiTurn: "Turno de la IA",
     aiThinking: "La IA está recordando",
     chooseTiles: "Elige dos fichas",
-    matchFound: (actor) => `¡${actor} encontró una pareja y vuelve a jugar!`,
-    noMatch: (actor) => `${actor} no encontró una pareja.`,
+    matchFound: (actor) => actor === "player" ? "¡Encontraste una pareja! Elige otras dos fichas." : "La IA encontró una pareja y vuelve a jugar.",
+    noMatch: (actor) => actor === "player" ? "Esas dos fichas son distintas." : "La IA no encontró una pareja.",
     hiddenTile: "Ficha oculta",
     visibleTile: (value) => `Ficha revelada: ${value}`,
     solvedTile: "Pareja resuelta",
@@ -4666,7 +4714,7 @@ const es: Dictionary = {
     rules: (
       <>
         <p>
-          Tres vueltas contra una IA rival. El acelerador se mantiene solo: tú
+          Compite tres vueltas contra la IA o corre una vuelta contra tu mejor marca. El coche acelera solo. Tú
           giras, frenas en las curvas y gastas un turbo limitado en las rectas.
           Salirte de la pista reduce agarre y aceleración, así que mantén una
           trazada limpia.

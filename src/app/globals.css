@@ -2268,6 +2268,8 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   margin-bottom: 8px;
 }
 .memory-tally .turn-banner { margin: 0; text-align: center; }
+.memory-solo-tally { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1rem; padding: .75rem; background: var(--surface-2); border-radius: var(--radius-sm); }
+.memory-solo-tally strong { color: var(--player); }
 .memory-score {
   display: flex;
   flex-direction: column;
@@ -4249,6 +4251,10 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .drift-car rect { fill: var(--nd-primary); }
 .drift-car.ai rect { fill: var(--ai); }
 .drift-car .drift-car-nose { fill: #fff; opacity: 0.8; }
+.drift-car.ghost { opacity: .7; }
+.drift-car.ghost rect { fill: #182437; stroke: #f5f3ff; stroke-width: 3; stroke-dasharray: 5 3; }
+.ghost-key { display: inline-block; width: 1.1em; height: .6em; border: 1px dashed currentColor; border-radius: 2px; }
+.drift-actions { margin-top: 12px; }
 .drift-countdown {
   position: absolute;
   inset: 0;

@@ -74,6 +74,7 @@ export function useDriftControls(enabled: boolean, apply: (input: RaceInput) => 
   }
 
   return (action: Action) => ({
+    disabled: !enabled,
     "data-drift-action": action,
     onPointerDown(event: PointerEvent<HTMLButtonElement>) {
       if (!enabled || event.button !== 0) return;

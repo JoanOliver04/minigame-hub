@@ -58,6 +58,8 @@ The catalogue includes 27 games with AI opponents, a fixed-rule Blackjack dealer
 
 Star games to keep them in [Favorites](https://minigame-hub-orcin.vercel.app/favorites). [My scoreboard](https://minigame-hub-orcin.vercel.app/scores) shows completed solo matches, wins, losses and ties on this browser, including results from older versions.
 
+Memory Match keeps your fewest attempts on each solo board size. Neon Drift saves your fastest time-trial lap on each circuit and lets you race its ghost. Both records stay in your browser.
+
 The [daily puzzle](https://minigame-hub-orcin.vercel.app/daily) gives each local calendar date a reproducible eight-tile board. Move a tile by tapping it, or focus the board and use the arrow keys to move the gap. The clock starts on the first move. Reloading or returning in the same tab restores that day's attempt, including elapsed time. Personal bests favor fewer moves, then faster finishes. The finish screen compares your path with the shortest solution.
 
 | Game | Route | AI strategy |

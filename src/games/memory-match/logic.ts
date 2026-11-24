@@ -88,3 +88,12 @@ export function otherActor(actor: MemoryActor): MemoryActor {
   return actor === "player" ? "ai" : "player";
 }
 
+export function bestAttempts(raw: string | null, pairs: number): number | null {
+  const moves = Number(raw);
+  return Number.isSafeInteger(moves) && moves >= pairs ? moves : null;
+}
+
+export function memoryRecordKey(pairs: number) {
+  return `miniHubMemorySolo_v1:${pairs}`;
+}
+

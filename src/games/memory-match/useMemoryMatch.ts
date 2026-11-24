@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useScores } from "@/context/ScoresContext";
+import { updateBrowserRecord } from "@/lib/browserRecords";
 import { getUseDelay } from "@/lib/settings";
 import { playSound } from "@/lib/sound";
 import {
@@ -13,6 +14,8 @@ import {
 } from "./ai";
 import {
   createMemoryMatch,
+  bestAttempts,
+  memoryRecordKey,
   decideMemoryWinner,
   flipTile,
   hideTiles,
@@ -58,6 +61,7 @@ export function useMemoryMatch() {
   }, []);
 
   function observe(current: MemoryMatchState, index: number) {
+    if (current.config.solo) return;
     memoryRef.current = observeTile(
       memoryRef.current,
       index,
@@ -67,10 +71,16 @@ export function useMemoryMatch() {
   }
 
   function finish(next: MemoryMatchState) {
-    const winner = decideMemoryWinner(next.playerPairs, next.aiPairs);
+    const winner = next.config.solo ? null : decideMemoryWinner(next.playerPairs, next.aiPairs);
     const finished = { ...next, finished: true, winner };
     setMatch(finished);
-    record("memory-match", winner === "player" ? "win" : winner === "ai" ? "loss" : "tie");
+    if (winner) {
+      record("memory-match", winner === "player" ? "win" : winner === "ai" ? "loss" : "tie");
+    } else {
+      const pairs = next.tiles.length / 2;
+      void updateBrowserRecord(memoryRecordKey(pairs), raw =>
+        String(Math.min(bestAttempts(raw, pairs) ?? Infinity, next.playerMoves)));
+    }
     schedule(() => setPhase("end"), END_HOLD_MS);
   }
 
@@ -157,7 +167,7 @@ export function useMemoryMatch() {
       const next: MemoryMatchState = {
         ...withFeedback,
         tiles: hideTiles(withFeedback.tiles, indexes),
-        turn: otherActor(actor),
+        turn: current.config.solo ? "player" : otherActor(actor),
       };
       setMatch(next);
       if (next.turn === "ai") scheduleAITurn(next);

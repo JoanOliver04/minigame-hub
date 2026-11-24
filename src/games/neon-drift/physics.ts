@@ -63,6 +63,7 @@ export function stepCar(
   input: ControlInput,
   track: TrackDef,
   elapsed: number,
+  laps = TOTAL_LAPS,
 ): CarState {
   if (prev.finished) return prev;
 
@@ -137,7 +138,7 @@ export function stepCar(
       car.lastLap = lapTime;
       car.lastLapStart = elapsed;
       car.lap += 1;
-      if (car.lap >= TOTAL_LAPS) {
+      if (car.lap >= laps) {
         car.finished = true;
         car.finishTime = elapsed;
       }
