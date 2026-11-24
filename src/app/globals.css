@@ -2292,10 +2292,11 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   grid-template-columns: repeat(var(--memory-columns), minmax(0, 1fr));
   gap: clamp(4px, 1.3vw, 9px);
   width: 100%;
-  max-width: 660px;
+  max-width: clamp(288px, calc(100svh - 22rem), 600px);
   margin: 16px auto 0;
   perspective: 900px;
 }
+.memory-tally ~ .memory-board { max-width: clamp(288px, calc(100svh - 24rem), 600px); }
 .memory-tile {
   position: relative;
   min-width: 0;
@@ -2311,10 +2312,14 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .memory-tile-inner {
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   transform-style: preserve-3d;
   transition: transform 0.42s cubic-bezier(0.2, 0.75, 0.25, 1);
 }
 .memory-tile.flipped .memory-tile-inner { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .memory-tile-inner { transition: none; }
+}
 .memory-tile-back,
 .memory-tile-front {
   position: absolute;

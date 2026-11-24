@@ -2733,7 +2733,7 @@ const en: Dictionary = {
           Drive three laps in an AI duel or one lap against your best time. Your throttle is held automatically —
           you steer, brake into corners, and spend a limited boost meter on the
           straights. Leaving the track cuts your grip and acceleration, so keep
-          a clean racing line.
+          a clean racing line. If you reach the edge of the arena, your car stops and turns back toward the road.
         </p>
         <p>
           Steer with ◀ ▶ (or arrow keys / A-D), brake with the brake pad (or
@@ -4717,7 +4717,7 @@ const es: Dictionary = {
           Compite tres vueltas contra la IA o corre una vuelta contra tu mejor marca. El coche acelera solo. Tú
           giras, frenas en las curvas y gastas un turbo limitado en las rectas.
           Salirte de la pista reduce agarre y aceleración, así que mantén una
-          trazada limpia.
+          trazada limpia. Si llegas al borde de la zona de carrera, el coche frena y se orienta hacia el asfalto.
         </p>
         <p>
           Gira con ◀ ▶ (o flechas / A-D), frena con el pad de freno (o Abajo/S)

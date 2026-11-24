@@ -167,14 +167,23 @@ export function getTrack(id: string): TrackDef {
   return TRACKS.find((track) => track.id === id) ?? TRACKS[0];
 }
 
-/** Signed distance from the nearest centreline point (for off-track test). */
-export function distanceToTrack(track: TrackDef, p: Vec2): number {
-  let best = Infinity;
-  for (const c of track.centerline) {
-    const d = (c.x - p.x) * (c.x - p.x) + (c.y - p.y) * (c.y - p.y);
-    if (d < best) best = d;
+export function nearestCenterlineIndex(track: TrackDef, position: Vec2): number {
+  let bestIndex = 0;
+  let bestDistance = Infinity;
+  for (let i = 0; i < track.centerline.length; i++) {
+    const p = track.centerline[i];
+    const distance = (p.x - position.x) ** 2 + (p.y - position.y) ** 2;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestIndex = i;
+    }
   }
-  return Math.sqrt(best);
+  return bestIndex;
+}
+
+export function distanceToTrack(track: TrackDef, position: Vec2): number {
+  const p = track.centerline[nearestCenterlineIndex(track, position)];
+  return Math.hypot(p.x - position.x, p.y - position.y);
 }
 
 /** Build an SVG path string for the closed centreline. */

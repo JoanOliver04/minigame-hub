@@ -1,5 +1,25 @@
 import { expect, test } from "@playwright/test";
 
+test("a laptop shows the entire six-by-six board and respects reduced motion", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const solo of [false, true]) {
+    await page.goto("/games/memory-match");
+    if (solo) await page.getByRole("button", { name: "Tablero en solitario" }).click();
+    await page.getByRole("button", { name: /6\s*×\s*6/ }).click();
+    await page.locator("main section button.btn.primary").last().click();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const board = page.locator(".memory-board");
+    await expect(board.locator("button")).toHaveCount(36);
+    const fits = await board.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= window.innerHeight;
+    });
+    expect(fits).toBe(true);
+    await expect(board.locator(".memory-tile-inner").first()).toHaveCSS("transition-duration", "0s");
+  }
+});
+
 test("a solo memory miss keeps the turn and a finished board saves its own record", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto("/games/memory-match");

@@ -9,7 +9,7 @@
  * MAX_FRAME_DELTA so a backgrounded tab cannot teleport a car).
  */
 
-import { distanceToTrack, type TrackDef } from "./tracks";
+import { distanceToTrack, nearestCenterlineIndex, type TrackDef } from "./tracks";
 import type { CarState, ControlInput, Vec2 } from "./types";
 import {
   BOOST_DRAIN_PER_S,
@@ -30,6 +30,9 @@ const OFF_TRACK_GRIP = 3.2;
 const STEER_RATE = 3.1;
 const ANGULAR_DAMP = 8.5;
 const CHECKPOINT_RADIUS = 90;
+// The full 32 × 18 car should stay inside the 1000 × 1000 race view.
+const MIN_CAR_POSITION = 20;
+const MAX_CAR_POSITION = 1000 - MIN_CAR_POSITION;
 
 export function initialCar(track: TrackDef): CarState {
   const start = track.centerline[0];
@@ -120,6 +123,18 @@ export function stepCar(
   // --- integrate position ---
   car.position.x += car.velocity.x * FIXED_DT;
   car.position.y += car.velocity.y * FIXED_DT;
+
+  const { x, y } = car.position;
+  if (x < MIN_CAR_POSITION || x > MAX_CAR_POSITION || y < MIN_CAR_POSITION || y > MAX_CAR_POSITION) {
+    car.position.x = Math.max(MIN_CAR_POSITION, Math.min(MAX_CAR_POSITION, x));
+    car.position.y = Math.max(MIN_CAR_POSITION, Math.min(MAX_CAR_POSITION, y));
+    const road = track.centerline[nearestCenterlineIndex(track, car.position)];
+    const inward = Math.atan2(road.y - car.position.y, road.x - car.position.x);
+    const turn = inward - car.heading;
+    car.heading += Math.atan2(Math.sin(turn), Math.cos(turn));
+    car.velocity = { x: 0, y: 0 };
+    car.angularVelocity = 0;
+  }
 
   if (!onTrack) car.offTrackTime += FIXED_DT;
 

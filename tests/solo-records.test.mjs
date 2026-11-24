@@ -52,3 +52,24 @@ test("memory reserves independent records for each board and rejects impossible 
   assert.equal(bestAttempts("6", 6), 6);
   assert.equal(bestAttempts("7", 8), null);
 });
+
+test("a driver reaching any arena edge stays in view and can drive back to the road", () => {
+  const { initialCar, stepCar } = load("games/neon-drift/physics");
+  const { TRACKS, distanceToTrack } = load("games/neon-drift/tracks");
+  const throttle = { throttle: 1, steer: 0, brake: 0, boost: false };
+  for (const track of TRACKS) {
+    for (const [x, y] of [[19, 500], [981, 500], [500, 19], [500, 981], [981, 981]]) {
+      const entering = { ...initialCar(track), position: { x, y }, checkpoint: 3 };
+      let car = stepCar(entering, throttle, track, 1);
+      assert.equal(car.checkpoint, 3);
+      assert.equal(car.lap, 0);
+      assert.deepEqual(car.velocity, { x: 0, y: 0 });
+      const startDistance = distanceToTrack(track, car.position);
+      for (let tick = 1; tick <= 90; tick++) {
+        car = stepCar(car, throttle, track, 1 + tick / 120);
+        assert.ok(car.position.x >= 20 && car.position.x <= 980 && car.position.y >= 20 && car.position.y <= 980);
+      }
+      assert.ok(distanceToTrack(track, car.position) < startDistance);
+    }
+  }
+});
