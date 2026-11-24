@@ -35,7 +35,6 @@ export function TileRummyGame() {
           <span className="ruby">7</span><span className="sun">8</span>
           <span className="leaf">9</span><span className="joker">★</span>
         </div>
-        <h1>{t.gamesMeta["tile-rummy"].name}</h1>
         <p className="tile-rummy-tagline">{t.tileRummy.tagline}</p>
         <span className="field-label">{t.common.aiDifficulty}</span>
         <SegPicker

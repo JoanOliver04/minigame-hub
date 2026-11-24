@@ -24,7 +24,7 @@ export function AppHeader() {
       </Link>
       <div className="app-header-actions">
         <Link href="/rooms" className="btn app-room-link" prefetch={false}>
-          {t.rooms.navLink}
+          <span className="rooms-full">{t.rooms.navLink}</span><span className="rooms-short">{t.rooms.shortLink}</span>
         </Link>
         <div className="lang-switch" role="group" aria-label={t.app.language}>
           <SegPicker

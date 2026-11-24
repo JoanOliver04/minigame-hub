@@ -33,7 +33,6 @@ export function DominoGame() {
         <div className="domino-hero" aria-hidden="true">
           <span>6|6</span><span>5|3</span><span>4|0</span>
         </div>
-        <h1>{t.gamesMeta.domino.name}</h1>
         <p className="domino-tagline">{t.domino.tagline}</p>
         <span className="field-label">{t.common.aiDifficulty}</span>
         <SegPicker

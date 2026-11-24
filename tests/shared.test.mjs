@@ -4,7 +4,7 @@ import { createSourceLoader } from "./load-typescript.mjs";
 
 const load = createSourceLoader();
 const { filterGames } = load("games/filter");
-const { sanitizeScores, migrateLegacyScores, recordScore, mergeScores } = load("lib/scoreStore");
+const { sanitizeScores, decodeScoreSnapshot, recordScore } = load("lib/scoreStore");
 const { generateRoomCode, normalizeRoomCode } = load("lib/rooms/code");
 
 test("search combines accent-insensitive words with category and multiplayer filters", () => {
@@ -26,6 +26,9 @@ test("search combines accent-insensitive words with category and multiplayer fil
   assert.deepEqual(filter("tablero", "strategy", true), ["parchis"]);
   assert.deepEqual(filter("", "logic", true), []);
   assert.deepEqual(filter("no match"), []);
+  assert.deepEqual(filterGames(games, metadata, {
+    query: "logica", category: "all", multiplayerOnly: false, categoryNames: { logic: "Lógica" },
+  }).map(({ id }) => id), ["sliding-puzzle"]);
 });
 
 test("stored scores keep valid tallies and discard damaged counters and unsafe keys", () => {
@@ -38,18 +41,19 @@ test("stored scores keep valid tallies and discard damaged counters and unsafe k
   assert.deepEqual(sanitizeScores([]), {});
 });
 
-test("migrated and pending results are combined without mutating either score store", () => {
-  const saved = migrateLegacyScores({ player: 7, ai: 2 });
-  const pending = recordScore(recordScore({}, "guess", "win"), "ttt", "tie");
-  assert.deepEqual(mergeScores(saved, pending), {
+test("recording starts from current storage or legacy results and preserves earlier scores", () => {
+  const legacy = JSON.stringify({ player: 7, ai: 2 });
+  const saved = decodeScoreSnapshot(null, legacy);
+  const updated = recordScore(recordScore(saved, "guess", "win"), "ttt", "tie");
+  assert.deepEqual(decodeScoreSnapshot(JSON.stringify(updated), legacy), {
     guess: { win: 8, loss: 2, tie: 0 },
     ttt: { win: 0, loss: 0, tie: 1 },
   });
   assert.deepEqual(saved.guess, { win: 7, loss: 2, tie: 0 });
-  assert.equal(pending.guess.win, 1);
   const largest = { ttt: { win: Number.MAX_SAFE_INTEGER, loss: 0, tie: 0 } };
   assert.equal(recordScore(largest, "ttt", "win").ttt.win, Number.MAX_SAFE_INTEGER);
-  assert.deepEqual(migrateLegacyScores("damaged"), {});
+  assert.deepEqual(decodeScoreSnapshot(null, "damaged"), {});
+  assert.deepEqual(decodeScoreSnapshot("{}", legacy), {});
 });
 
 test("room links accept canonical codes and reject malformed strings", () => {

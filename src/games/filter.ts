@@ -4,6 +4,7 @@ interface Filters {
   query: string;
   category: GameCategory | "all";
   multiplayerOnly: boolean;
+  categoryNames?: Record<GameCategory, string>;
 }
 
 function normalize(value: string): string {
@@ -13,7 +14,7 @@ function normalize(value: string): string {
 export function filterGames<TGame extends GameDefinition>(
   games: readonly TGame[],
   metadata: Record<string, { name: string; description: string }>,
-  { query, category, multiplayerOnly }: Filters,
+  { query, category, multiplayerOnly, categoryNames }: Filters,
 ): TGame[] {
   const terms = normalize(query).trim().split(/\s+/).filter(Boolean);
   return games.filter((game) => {
@@ -21,7 +22,7 @@ export function filterGames<TGame extends GameDefinition>(
     if (multiplayerOnly && !game.supportsMultiplayer) return false;
     if (terms.length === 0) return true;
     const meta = metadata[game.id];
-    const text = normalize([game.id, meta?.name, meta?.description].join(" "));
+    const text = normalize([game.id, meta?.name, meta?.description, categoryNames?.[game.category]].join(" "));
     return terms.every((term) => text.includes(term));
   });
 }

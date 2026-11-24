@@ -1,61 +1,67 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useScores } from "@/context/ScoresContext";
 import { playSound } from "@/lib/sound";
+import { dailyBoard } from "./daily";
 import { createSlidingPuzzle, moveSlidingTile } from "./logic";
 import type { SlidingPuzzleConfig, SlidingPuzzleState } from "./types";
+import { loadDailyRun, saveDailyBest, saveDailyRun } from "./useDailyChallenge";
 
-export type SlidingPuzzlePhase = "setup" | "playing" | "end";
+type Match = { game: SlidingPuzzleState; startedAt: number | null };
 
-export function useSlidingPuzzle() {
-  const [phase, setPhase] = useState<SlidingPuzzlePhase>("setup");
-  const [game, setGame] = useState<SlidingPuzzleState | null>(null);
-  const [config, setConfig] = useState<SlidingPuzzleConfig | null>(null);
-  const [seconds, setSeconds] = useState(0);
-  const recordedRef = useRef(false);
+function elapsed(start: number | null, end: number) {
+  return start === null ? 0 : Math.max(0, Math.floor((end - start) / 1000));
+}
+
+export function useSlidingPuzzle(dailyDay?: string) {
+  const [match, setMatch] = useState<Match | null>(() => dailyDay
+    ? loadDailyRun(dailyDay) ?? { game: dailyBoard(dailyDay), startedAt: null }
+    : null);
+  const [now, setNow] = useState(Date.now);
   const { record } = useScores();
+  const game = match?.game;
+  const startedAt = match?.startedAt ?? null;
+  const phase = !game ? "setup" : game.solved ? "end" : "playing";
 
   useEffect(() => {
-    if (phase !== "playing" || game?.solved) return;
-    const timer = setInterval(() => setSeconds((current) => current + 1), 1000);
-    return () => clearInterval(timer);
-  }, [game?.solved, phase]);
+    if (phase !== "playing" || startedAt === null) return;
+    const tick = () => setNow(Date.now());
+    const timer = setInterval(tick, 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [startedAt, phase]);
 
-  useEffect(() => {
-    if (!game?.solved || recordedRef.current) return;
-    recordedRef.current = true;
-    record("sliding-puzzle", "win");
-    playSound("win");
-    setPhase("end");
-  }, [game, record]);
-
-  function start(nextConfig: SlidingPuzzleConfig) {
-    recordedRef.current = false;
-    setSeconds(0);
-    setConfig(nextConfig);
-    setGame(createSlidingPuzzle(nextConfig.size));
-    setPhase("playing");
+  function start({ size }: SlidingPuzzleConfig) {
+    const time = Date.now();
+    setNow(time);
+    setMatch(dailyDay
+      ? { game: dailyBoard(dailyDay), startedAt: null }
+      : { game: createSlidingPuzzle(size), startedAt: time });
   }
 
   function move(index: number) {
-    if (!game || phase !== "playing") return;
-    const next = moveSlidingTile(game, index);
-    if (next !== game) {
-      setGame(next);
-      playSound(next.solved ? "win" : "blip");
+    if (!match || match.game.solved) return;
+    const next = moveSlidingTile(match.game, index);
+    if (next === match.game) return;
+    const time = Date.now();
+    const startTime = match.startedAt ?? time;
+    setMatch({ game: next, startedAt: startTime });
+    setNow(time);
+    playSound(next.solved ? "win" : "blip");
+    if (dailyDay) {
+      saveDailyRun(next.solved ? null : { day: dailyDay, game: next, startedAt: startTime });
+      if (next.solved) saveDailyBest(dailyDay, { moves: next.moves, seconds: elapsed(startTime, time) });
     }
+    if (next.solved) record("sliding-puzzle", "win");
   }
 
-  function playAgain() {
-    if (config) start(config);
-  }
-
-  function toSetup() {
-    setGame(null);
-    setSeconds(0);
-    setPhase("setup");
-  }
-
-  return { phase, game, seconds, start, move, playAgain, toSetup };
+  return {
+    phase, game, seconds: elapsed(startedAt, now), start, move,
+    playAgain: () => { if (game) start({ size: game.size }); },
+    toSetup: () => setMatch(null),
+  };
 }

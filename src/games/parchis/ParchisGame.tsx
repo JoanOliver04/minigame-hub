@@ -33,7 +33,6 @@ export function ParchisGame() {
         <div className="parchis-emblem" aria-hidden="true">
           <span className="red">●</span><b>⚄</b><span className="blue">●</span>
         </div>
-        <h1>{t.gamesMeta.parchis.name}</h1>
         <p className="parchis-tagline">{t.parchis.tagline}</p>
         <span className="field-label">{t.common.aiDifficulty}</span>
         <SegPicker

@@ -25,7 +25,7 @@ export function isSlidingPuzzleSolved(tiles: number[]): boolean {
   return tiles.every((tile, index) => tile === (index === tiles.length - 1 ? 0 : index + 1));
 }
 
-export function createSlidingPuzzle(size: PuzzleSize): SlidingPuzzleState {
+export function createSlidingPuzzle(size: PuzzleSize, random = Math.random): SlidingPuzzleState {
   let tiles = solvedTiles(size);
   let emptyIndex = tiles.length - 1;
   let previous = -1;
@@ -33,7 +33,7 @@ export function createSlidingPuzzle(size: PuzzleSize): SlidingPuzzleState {
 
   for (let i = 0; i < shuffleMoves; i += 1) {
     const options = neighbors(emptyIndex, size).filter((index) => index !== previous);
-    const picked = options[Math.floor(Math.random() * options.length)];
+    const picked = options[Math.floor(random() * options.length)];
     tiles = swap(tiles, emptyIndex, picked);
     previous = emptyIndex;
     emptyIndex = picked;
@@ -52,6 +52,15 @@ export function canMoveTile(state: SlidingPuzzleState, index: number): boolean {
   return neighbors(state.emptyIndex, state.size).includes(index);
 }
 
+/** Arrow keys move the empty space in the indicated direction. */
+export function arrowTarget(state: SlidingPuzzleState, key: string): number | null {
+  const offsets: Record<string, number> = {
+    ArrowUp: -state.size, ArrowDown: state.size, ArrowLeft: -1, ArrowRight: 1,
+  };
+  const index = state.emptyIndex + offsets[key];
+  return canMoveTile(state, index) ? index : null;
+}
+
 function distanceFromGoal(tiles: number[], size: PuzzleSize): number {
   let distance = 0;
   for (const [index, tile] of tiles.entries()) {
@@ -63,9 +72,45 @@ function distanceFromGoal(tiles: number[], size: PuzzleSize): number {
   return distance;
 }
 
+const smallBoardNeighbors = Array.from({ length: 9 }, (_, index) => neighbors(index, 3));
+const distanceToPosition = Array.from({ length: 9 }, (_, goal) => Array.from({ length: 9 }, (_, pos) =>
+  Math.abs(Math.floor(goal / 3) - Math.floor(pos / 3)) + Math.abs(goal % 3 - pos % 3)));
+
+/** Iterative deepening with an admissible Manhattan bound on a solvable eight-puzzle. */
+export function shortestSmallPuzzle(state: SlidingPuzzleState): { index: number; moves: number } | null {
+  if (state.size !== 3 || state.solved) return null;
+  const tiles = state.tiles.slice();
+  const initial = distanceFromGoal(tiles, 3);
+  let first = -1;
+  function search(empty: number, previous: number, depth: number, distance: number, limit: number): boolean {
+    if (depth + distance > limit) return false;
+    if (distance === 0) return true;
+    for (const pos of smallBoardNeighbors[empty]) {
+      if (pos === previous) continue;
+      const tile = tiles[pos];
+      const distances = distanceToPosition[tile - 1];
+      tiles[empty] = tile;
+      tiles[pos] = 0;
+      if (search(pos, empty, depth + 1, distance - distances[pos] + distances[empty], limit)) {
+        if (depth === 0) first = pos;
+        return true;
+      }
+      tiles[pos] = tile;
+      tiles[empty] = 0;
+    }
+    return false;
+  }
+  // Every slide changes the parity of Manhattan distance. The eight-puzzle diameter is 31.
+  for (let limit = initial; limit <= 31; limit += 2) {
+    if (search(state.emptyIndex, -1, 0, initial, limit)) return { index: first, moves: limit };
+  }
+  return null;
+}
+
 /** Recommend the first move of a bounded search without changing the board. */
 export function suggestSlidingTile(state: SlidingPuzzleState): number | null {
   if (state.solved) return null;
+  if (state.size === 3) return shortestSmallPuzzle(state)?.index ?? null;
   type Candidate = { tiles: number[]; empty: number; firstMove: number; distance: number };
   let frontier: Candidate[] = [{
     tiles: state.tiles,

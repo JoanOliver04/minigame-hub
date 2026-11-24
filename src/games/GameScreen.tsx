@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 import type { GameId } from "./registry";
+import { useLocale } from "@/context/LocaleContext";
 
 // Keep the import paths literal so Next.js can split each game into its own chunks.
 const gameScreens = {
@@ -38,6 +39,10 @@ const gameScreens = {
 } satisfies Record<GameId, ComponentType>;
 
 export function GameScreen({ gameId }: { gameId: GameId }) {
+  const { t } = useLocale();
   const Game = gameScreens[gameId];
-  return <Game key={gameId} />;
+  return <>
+    <h1 className="solo-title">{t.gamesMeta[gameId].name}</h1>
+    <Game key={gameId} />
+  </>;
 }

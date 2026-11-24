@@ -28,7 +28,7 @@
 
 ---
 
-Mini-Game Hub is a Next.js application built around a simple idea repeated twenty-nine different ways: given a small, well-defined game, design a focused interaction or an opponent whose difficulty tiers come from an actual algorithm — minimax with alpha-beta pruning, combinatorial game theory, A* pathfinding, Monte Carlo tree search, expectimax, Bayesian-ish placement inference, exact card counting, meld evaluation — not a random-number fudge factor. All twenty-nine solo games are **fully client-side**: no server, no database, no network call, `localStorage` for scores and preferences. Twenty-eight of them *also* support a **live multiplayer room** — a friend joins with a short code and you play head-to-head in real time — backed by a thin Firebase layer (Cloud Firestore + Anonymous Auth) that is the project's only backend of any kind, and its only dependency beyond Next.js/React. The room layer is game-agnostic; each multiplayer game plugs in with a small `room.ts`/`use<Name>Room.ts`/`<Name>RoomGame.tsx` triple that **reuses the same pure rules the solo AI mode uses** and adds only uid-keyed bookkeeping. See [§2](#2-multiplayer-rooms) for how that layer works and the sync patterns the room games fall into.
+Mini-Game Hub is a Next.js application built around a simple idea repeated twenty-nine different ways: given a small, well-defined game, design a focused interaction or an opponent whose difficulty tiers come from an actual algorithm — minimax with alpha-beta pruning, combinatorial game theory, A* pathfinding, Monte Carlo tree search, expectimax, Bayesian-ish placement inference, exact card counting, meld evaluation — not a random-number fudge factor. All twenty-nine solo games are **fully client-side**: gameplay runs in the browser, with IndexedDB for score records and localStorage for preferences. Twenty-eight of them *also* support a **live multiplayer room** — a friend joins with a short code and you play head-to-head in real time — backed by a thin Firebase layer (Cloud Firestore + Anonymous Auth) that is the project's only backend of any kind, and its only dependency beyond Next.js/React. The room layer is game-agnostic; each multiplayer game plugs in with a small `room.ts`/`use<Name>Room.ts`/`<Name>RoomGame.tsx` triple that **reuses the same pure rules the solo AI mode uses** and adds only uid-keyed bookkeeping. See [§2](#2-multiplayer-rooms) for how that layer works and the sync patterns the room games fall into.
 
 **Author:** Joan V. Oliver Rosell
 **License:** Proprietary — source is public for portfolio/evaluation purposes only, see [LICENSE](LICENSE)
@@ -56,6 +56,10 @@ Mini-Game Hub is a Next.js application built around a simple idea repeated twent
 
 The catalogue includes 27 games with AI opponents, a fixed-rule Blackjack dealer with an Easy-mode coach, and Sliding Puzzle with three board sizes and an optional move hint. Strategies run locally and use the state available to the player or opponent.
 
+Star games to keep them in [Favorites](https://minigame-hub-orcin.vercel.app/favorites). [My scoreboard](https://minigame-hub-orcin.vercel.app/scores) shows completed solo matches, wins, losses and ties on this browser, including results from older versions.
+
+The [daily puzzle](https://minigame-hub-orcin.vercel.app/daily) gives each local calendar date a reproducible eight-tile board. Move a tile by tapping it, or focus the board and use the arrow keys to move the gap. The clock starts on the first move. Reloading or returning in the same tab restores that day's attempt, including elapsed time. Personal bests favor fewer moves, then faster finishes. The finish screen compares your path with the shortest solution.
+
 | Game | Route | AI strategy |
 |---|---|---|
 | 🔢 Number Duel | `/games/guess` | Competitive interval splitting maximizes winning secrets under alternating play, with a preference for central guesses |
@@ -73,7 +77,7 @@ The catalogue includes 27 games with AI opponents, a fixed-rule Blackjack dealer
 | 🪿 Game of the Goose | `/games/goose-game` | Limited-reroll strategy compares each landing against the expected value of all six possible rolls |
 | 🧩 Tile Rummy | `/games/tile-rummy` | Meld search scores groups, runs, jokers, 30-point opening pressure and endgame rack size |
 | 🁢 Domino | `/games/domino` | Double-six blocking dominoes with hand-value AI, side choice and online room play |
-| 🧩 Sliding Puzzle | `/games/sliding-puzzle` | Optional move recommendation from a bounded board search on solvable 3×3, 4×4 and 5×5 boards |
+| 🧩 Sliding Puzzle | `/games/sliding-puzzle` | Optimal 3×3 hints from iterative deepening with Manhattan distance. Larger boards use a bounded beam search. |
 | ⚡ Reaction Time | `/games/reaction-time` | The simulated reaction and false-start risk respond to the wait before the signal, within each difficulty's limits |
 | ⚽ Penalty Shootout | `/games/penalty-kick` | Pre-commit keeper AI, pattern learning and three balanced shot techniques |
 | 🏀 Basket Challenge | `/games/basket-shot` | The opponent samples a release position and scores through the same timing zones as the player |
@@ -154,7 +158,7 @@ The room layer (`src/lib/rooms/`, `src/games/roomTypes.ts`, `src/games/roomRegis
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/home-hub.png" alt="Hub — main menu with the game grid" /><br/><sub><b>Hub</b> — the registry-driven game grid</sub></td>
-    <td width="50%"><img src="docs/screenshots/session-scoreboard.png" alt="Session scoreboard of wins, losses and ties per game" /><br/><sub><b>Session scoreboard</b> — per-game W/L/T from <code>ScoresContext</code></sub></td>
+    <td width="50%"><img src="docs/screenshots/session-scoreboard.png" alt="Personal scoreboard with matches played, games tried and win rate" /><br/><sub><b>My scoreboard</b> — solo results saved on this device</sub></td>
   </tr>
 </table>
 
@@ -201,7 +205,7 @@ The room layer (`src/lib/rooms/`, `src/games/roomTypes.ts`, `src/games/roomRegis
 
 ## 4. Architecture
 
-A Next.js App Router application. The twenty-nine solo games are **fully static and client-only** — no backend, no network call, `localStorage` for scores and preferences. Multiplayer rooms are the one exception: they're backed by Cloud Firestore + Firebase Anonymous Auth, a serverless BaaS layer with no server of the project's own (no custom API routes, no Cloud Functions).
+A Next.js App Router application. The twenty-nine solo games are **fully static and client-only** — game rules and AI run locally, with IndexedDB and localStorage for records and preferences. Multiplayer rooms are the one exception: they're backed by Cloud Firestore + Firebase Anonymous Auth, a serverless BaaS layer with no server of the project's own (no custom API routes, no Cloud Functions).
 
 ```mermaid
 flowchart TB
@@ -211,7 +215,7 @@ flowchart TB
         Game["/games/[gameId]<br/>generateStaticParams · dynamicParams=false"]
         Rooms["/rooms, /rooms/[code]<br/>client-rendered, dynamic"]
         LC["LocaleContext<br/>EN/ES · localStorage"]
-        SC["ScoresContext<br/>per-game W/L/T · localStorage (solo only)"]
+        SC["ScoresContext<br/>per-game W/L/T · IndexedDB (solo only)"]
         Hub --> Game
         Hub --> Rooms
         LC -.-> Hub
@@ -259,7 +263,7 @@ flowchart TB
 - **Static by construction for solo games.** `src/app/games/[gameId]/page.tsx` sets `dynamicParams = false` and generates one page per entry in the game registry at build time — any unregistered id 404s, there is no dynamic catch-all. `/rooms` and `/rooms/[code]` are a separate, client-rendered route tree, since room data only exists at runtime.
 - **Lightweight catalogue.** The hub, static routes and scoreboard share the metadata in `src/games/registry.ts`. The hub can search by name or description, filter by category and show just multiplayer titles. The selected solo game loads through `src/games/GameScreen.tsx`. The room registry loads the selected multiplayer game's logic and view on demand.
 - **Logic isolated from React — and from the network.** Every game's `logic.ts` (state transitions) and `ai.ts` (opponent strategy) are plain, framework-free TypeScript. The multiplayer `room.ts` modules reuse those same pure functions for the parts that are genuinely just game rules (`judge`, `applyMove`, `checkOutcome`, `legalMoves`), and only add new, uid-keyed bookkeeping for the PvP-specific parts (scores, turns, pending moves) — the AI-shaped `MatchState`/`TttMatchState` types are never touched or repurposed.
-- **Two small global contexts, no store library, for local state.** `LocaleContext` and `ScoresContext` both follow the same SSR-safe pattern: initialize to a fixed default for the server render, hydrate from `localStorage` in a post-mount `useEffect`, so there is never a hydration mismatch on first paint. Multiplayer state does **not** go through either context — it lives in Firestore and streams in via `onSnapshot`.
+- **Local state.** The language switch remembers the player's choice and defaults to a supported browser language on first use. IndexedDB transactions update solo scores and daily records across tabs and import earlier scores on the first write. A localStorage copy keeps the original score format. Multiplayer state lives in Firestore and streams via `onSnapshot`.
 - **Additive score schema.** `ScoresContext.record(gameId, outcome)` has no dependency on the game registry — a brand-new game id gets a zeroed win/loss/tie row automatically on its first recorded result. This store is solo-only by design (see [§2](#2-multiplayer-rooms)).
 
 ---
@@ -272,7 +276,7 @@ flowchart TB
 | **Language** | TypeScript (strict) | End-to-end type safety, including a `satisfies`-checked i18n dictionary |
 | **UI runtime** | React 19 | Server + Client Components; every game screen is a small client-side state machine |
 | **Styling** | Hand-written CSS (`globals.css`) | Custom-property design tokens, zero utility-CSS or component-library dependency |
-| **Local state** | React Context + `localStorage` | Locale and solo-game scores/preferences — no external store |
+| **Local state** | React Context, IndexedDB and Web Storage | Solo scores, daily records, favorites and preferences |
 | **Multiplayer backend** | Firebase — Cloud Firestore + Anonymous Auth | Serverless realtime sync and transactions for room state, invisible per-device identity, no server of the project's own, free Spark plan |
 | **Multiplayer access control** | Firestore Security Rules (`firestore.rules`) | The actual enforcement layer for who can read/write a room and when — not just client code (see [§2](#2-multiplayer-rooms)) |
 | **Audio** | Native Web Audio API (`lib/sound.ts`) | Four synthesized cues (win/lose/error/blip), no audio asset files |
@@ -324,7 +328,7 @@ src/
 │   └── ui/                     SegPicker, Toggle, HowToPlay, InfoTip, BackLink
 ├── context/
 │   ├── LocaleContext.tsx       EN/ES switch, localStorage-backed
-│   └── ScoresContext.tsx       Per-game W/L/T store, localStorage-backed, solo games only
+│   └── ScoresContext.tsx       Per-game solo W/L/T, with legacy score migration
 ├── games/
 │   ├── types.ts                GameDefinition contract (incl. `supportsMultiplayer`)
 │   ├── registry.ts             Central game list — see §8
@@ -376,7 +380,7 @@ src/
         ├── code.ts             generateRoomCode() — 6 chars, unambiguous alphabet
         ├── roomsApi.ts         createRoom/joinRoom/switchRoomGame/subscribeRoom/leaveRoom/voteRematch/runRoomUpdate
         ├── expiry.ts           isRoomExpired() — client mirror of the Security Rules' notExpired()
-        └── usePlayerName.ts    localStorage-backed display name, same hydration pattern as ScoresContext
+        └── usePlayerName.ts    localStorage-backed display name
 
 firestore.rules                 Security Rules — seat membership, turn ownership, rematch/status guards, soft expiry (see §2)
 firebase.json                   Points the Firebase CLI at firestore.rules (rules are otherwise pasted
@@ -428,6 +432,7 @@ npm run dev      # http://localhost:3000 (Turbopack)
 | `npm run lint` | ESLint over the whole project |
 | `npm test` | Tests for catalogue filtering, stored scores, room codes and game rules |
 | `npm run test:rooms` | Room lifecycle and access-control tests inside the Firebase emulators |
+| `npm run test:e2e` | Chromium tests for favorites, the daily challenge, midnight rollover and simultaneous finishes. Install the test browser once with `npx playwright install chromium`. |
 
 All twenty-nine solo games work immediately with no configuration — they have no dependency on the steps below.
 
@@ -462,7 +467,7 @@ Firestore's Node dependency uses a scoped `@grpc/grpc-js` override for [GHSA-f59
 - **Logic first, React second — and network third.** Every game's rules and AI live in framework-free `.ts` modules; the React hook is a thin state-machine wrapper on top. Multiplayer's `room.ts` modules follow the same discipline one layer further out: game rules stay pure and reused, only the network/transaction plumbing is new. This is what makes twenty-nine independent games (plus a multiplayer layer) maintainable by one person.
 - **Type-checked content.** The bilingual dictionary uses `satisfies Dictionary` on both locales — English/Spanish key drift is a compile error, not a runtime gap discovered by a user.
 - **Structured game history.** Games that show move logs store semantic events where needed and format them through the active locale, so switching English/Spanish changes the history text without renaming board spaces that are intentionally branded.
-- **SSR-safe client state.** Both global contexts start with defaults for the server render and restore preferences or scores from `localStorage` after mounting.
+- **SSR-safe client state.** The server render uses fixed defaults. Client subscriptions then restore local records and preferences.
 - **Backend checks for room access.** Firestore Security Rules enforce seat membership, room expiry, rematch authorization and allowed room transitions. Game rules and hidden game state follow the casual-play [trust model](#trust-model).
 - **Minimal, deliberate dependencies.** The twenty-nine solo games add nothing beyond Next.js/React. Multiplayer adds exactly one dependency, `firebase`, chosen because it's a serverless BaaS that needs no infrastructure of the project's own to run or operate.
 

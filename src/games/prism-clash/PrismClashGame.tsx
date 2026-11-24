@@ -39,7 +39,6 @@ export function PrismClashGame() {
           <span className="ember">✦</span><span className="tide">7</span>
           <span className="bloom">❄</span><span className="volt">+2</span>
         </div>
-        <h1>{t.gamesMeta["prism-clash"].name}</h1>
         <p className="prism-tagline">{t.prismClash.tagline}</p>
         <span className="field-label">{t.common.aiDifficulty}</span>
         <SegPicker

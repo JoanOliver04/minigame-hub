@@ -25,7 +25,6 @@ export function GooseGame() {
         <BackLink />
         <HowToPlay title={t.gamesMeta["goose-game"].name}>{t.gooseGame.rules}</HowToPlay>
         <div className="goose-emblem" aria-hidden="true"><span>🪿</span><b>63</b><i>🪶</i></div>
-        <h1>{t.gamesMeta["goose-game"].name}</h1>
         <p className="goose-tagline">{t.gooseGame.tagline}</p>
         <span className="field-label">{t.common.aiDifficulty}</span>
         <SegPicker

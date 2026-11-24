@@ -1,20 +1,26 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { canMoveTile, suggestSlidingTile } from "./logic";
+import { arrowTarget, canMoveTile, shortestSmallPuzzle, suggestSlidingTile } from "./logic";
+import { dailyBoard } from "./daily";
 import type { PuzzleSize, SlidingPuzzleState } from "./types";
 import { useSlidingPuzzle } from "./useSlidingPuzzle";
+import { useDailyStatus } from "./useDailyChallenge";
 
 type PuzzleBoardStyle = CSSProperties & { "--puzzle-size": number };
 
-export function SlidingPuzzleGame() {
-  const { t } = useLocale();
-  const { phase, game, seconds, start, move, playAgain, toSetup } = useSlidingPuzzle();
+export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
+  const { t, locale } = useLocale();
+  const { phase, game, seconds, start, move, playAgain, toSetup } = useSlidingPuzzle(dailyDay);
+  const { best } = useDailyStatus(dailyDay ?? null);
+  const board = useRef<HTMLDivElement>(null);
+  const focusResult = useCallback((heading: HTMLHeadingElement | null) => heading?.focus(), []);
+  const minimum = useMemo(() => dailyDay ? shortestSmallPuzzle(dailyBoard(dailyDay))?.moves : undefined, [dailyDay]);
   const [size, setSize] = useState<PuzzleSize>(4);
   const [hint, setHint] = useState<{ game: SlidingPuzzleState; index: number } | null>(null);
 
@@ -28,7 +34,6 @@ export function SlidingPuzzleGame() {
             <span key={`${tile}-${index}`} className={tile === 0 ? "empty" : ""}>{tile || ""}</span>
           ))}
         </div>
-        <h1>{t.gamesMeta["sliding-puzzle"].name}</h1>
         <p className="sliding-tagline">{t.slidingPuzzle.tagline}</p>
         <span className="field-label">{t.slidingPuzzle.boardSize}</span>
         <SegPicker
@@ -53,12 +58,16 @@ export function SlidingPuzzleGame() {
   if (phase === "end") {
     return (
       <section className="card end-card screen sliding-screen">
-        <div className="end-emoji">🧩</div>
-        <div className="end-title player-win">{t.slidingPuzzle.solvedTitle}</div>
+        <div className="end-emoji" aria-hidden="true">🧩</div>
+        {dailyDay && <h1>{t.daily.title}</h1>}
+        <h2 ref={focusResult} tabIndex={-1} className="end-title player-win">{t.slidingPuzzle.solvedTitle}</h2>
         <div className="end-number">{t.slidingPuzzle.result(game.moves, seconds)}</div>
+        {minimum !== undefined && <p className="puzzle-par">{t.daily.comparison(game.moves, minimum)}</p>}
+        {dailyDay && best && <p role="status">{t.daily.best} · {t.slidingPuzzle.result(best.moves, best.seconds)}</p>}
         <div className="btn-row">
           <button className="btn primary" onClick={playAgain}>{t.common.playAgain}</button>
-          <button className="btn" onClick={toSetup}>{t.common.changeSettings}</button>
+          {dailyDay ? <Link href="/games/sliding-puzzle" className="btn">{t.daily.freePlay}</Link>
+            : <button className="btn" onClick={toSetup}>{t.common.changeSettings}</button>}
           <Link href="/" className="btn">{t.common.returnToHub}</Link>
         </div>
       </section>
@@ -69,14 +78,39 @@ export function SlidingPuzzleGame() {
   return (
     <section className="card screen sliding-screen">
       <BackLink />
+      {dailyDay && <>
+        <HowToPlay title={t.daily.title}>{t.slidingPuzzle.rules}<p>{t.daily.timing}</p></HowToPlay>
+        <header className="daily-heading">
+          <time dateTime={dailyDay}>{new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(dailyDay + "T12:00:00"))}</time>
+          <h1>{t.daily.title}</h1>
+          <p>{minimum !== undefined && t.daily.target(minimum)}</p>
+          {best && <p>{t.daily.best} · {t.slidingPuzzle.result(best.moves, best.seconds)}</p>}
+        </header>
+      </>}
       <div className="sliding-hud">
         <div><strong>{t.slidingPuzzle.moves}</strong><span>{game.moves}</span></div>
         <div><strong>{t.slidingPuzzle.time}</strong><span>{formatTime(seconds)}</span></div>
         <div><strong>{t.slidingPuzzle.size}</strong><span>{game.size} × {game.size}</span></div>
       </div>
-      <div className="feedback sliding-feedback">{t.slidingPuzzle.playingHint}</div>
+      <div className="feedback sliding-feedback">{dailyDay
+        ? (game.moves === 0 ? t.daily.firstMove : t.daily.savedRun)
+        : t.slidingPuzzle.playingHint}</div>
       <div
+        ref={board}
         className="sliding-board"
+        tabIndex={0}
+        role="group"
+        aria-describedby="puzzle-controls"
+        onKeyDown={(event) => {
+          if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key) ||
+            event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          event.preventDefault();
+          const index = arrowTarget(game, event.key);
+          if (index !== null) {
+            board.current?.focus({ preventScroll: true });
+            move(index);
+          }
+        }}
         style={{ "--puzzle-size": game.size } as PuzzleBoardStyle}
         aria-label={t.slidingPuzzle.boardLabel}
       >
@@ -85,7 +119,7 @@ export function SlidingPuzzleGame() {
           const movable = !empty && canMoveTile(game, index);
           return (
             <button
-              key={`${tile}-${index}`}
+              key={tile}
               className={`sliding-tile${empty ? " empty" : ""}${movable ? " movable" : ""}`}
               style={index === hintIndex ? { outline: "2px solid var(--accent)", outlineOffset: -3 } : undefined}
               disabled={empty || !movable}
@@ -97,7 +131,7 @@ export function SlidingPuzzleGame() {
           );
         })}
       </div>
-      <p className="sliding-hint">{t.slidingPuzzle.moveHint}</p>
+      <p id="puzzle-controls" className="sliding-hint">{t.slidingPuzzle.moveHint}</p>
       <div className="btn-row">
         <button type="button" className="btn" onClick={() => {
           const index = suggestSlidingTile(game);

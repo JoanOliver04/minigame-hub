@@ -42,15 +42,11 @@ export function recordScore(scores: AllScores, gameId: string, outcome: Outcome)
   };
 }
 
-/** Preserve any result recorded before the local scoreboard finished loading. */
-export function mergeScores(saved: AllScores, pending: AllScores): AllScores {
-  const updates = Object.fromEntries(Object.entries(pending).map(([id, increments]) => {
-    const prior = Object.prototype.hasOwnProperty.call(saved, id) ? saved[id] : EMPTY_SCORES;
-    return [id, {
-        win: Math.min(Number.MAX_SAFE_INTEGER, prior.win + increments.win),
-        loss: Math.min(Number.MAX_SAFE_INTEGER, prior.loss + increments.loss),
-        tie: Math.min(Number.MAX_SAFE_INTEGER, prior.tie + increments.tie),
-    }];
-  }));
-  return { ...saved, ...updates };
+export function decodeScoreSnapshot(stored: string | null, legacy: string | null): AllScores {
+  try {
+    if (stored !== null) return sanitizeScores(JSON.parse(stored));
+    return migrateLegacyScores(JSON.parse(legacy ?? "null"));
+  } catch {
+    return {};
+  }
 }

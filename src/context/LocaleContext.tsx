@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { dictionaries, type Dictionary, type Locale } from "@/lib/i18n/dictionaries";
 import { useStoredPreference } from "@/lib/useStoredPreference";
+import { usePathname } from "next/navigation";
 
 const STORAGE_KEY = "miniHubLocale_v1";
 
@@ -15,19 +16,28 @@ interface LocaleApi {
 const LocaleContext = createContext<LocaleApi | null>(null);
 
 function parseLocale(value: string | null): Locale | null {
-  return value === "en" || value === "es" ? value : null;
+  if (value === "en" || value === "es") return value;
+  for (const language of navigator.languages) {
+    const base = language.toLowerCase().split("-")[0];
+    if (base === "en" || base === "es") return base;
+  }
+  return null;
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useStoredPreference<Locale>(STORAGE_KEY, "en", parseLocale);
+  const pathname = usePathname();
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title =
-      locale === "es"
-        ? `${dictionaries.es.app.title} — ${dictionaries.es.app.vsLine}`
-        : `${dictionaries.en.app.title} — ${dictionaries.en.app.vsLine}`;
-  }, [locale]);
+    const t = dictionaries[locale];
+    const section = pathname.startsWith("/games/") ? t.gamesMeta[pathname.slice(7)]?.name
+      : pathname === "/daily" ? t.daily.title
+      : pathname === "/favorites" ? t.hub.favorites
+      : pathname === "/scores" ? t.hub.scoreboard
+      : pathname.startsWith("/rooms") ? t.rooms.navLink : null;
+    document.title = section ? section + " | " + t.app.title : t.app.title + " — " + t.app.vsLine;
+  }, [locale, pathname]);
 
   return (
     <LocaleContext.Provider value={{ locale, setLocale, t: dictionaries[locale] }}>

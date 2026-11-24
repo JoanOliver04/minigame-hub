@@ -23,7 +23,6 @@ export function PropertyBaronGame() {
         <BackLink />
         <HowToPlay title={t.gamesMeta["property-baron"].name}>{t.propertyBaron.rules}</HowToPlay>
         <div className="end-emoji">🏙️</div>
-        <h1>{t.gamesMeta["property-baron"].name}</h1>
         <p>{t.propertyBaron.tagline}</p>
         <span className="field-label">{t.common.aiDifficulty}</span>
         <SegPicker

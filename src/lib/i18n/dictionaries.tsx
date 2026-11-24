@@ -28,8 +28,14 @@ export interface Dictionary {
     search: string;
     searchPlaceholder: string;
     filters: string;
+    filterButton: string;
     all: string;
     multiplayer: string;
+    library: string;
+    favorites: string;
+    favoriteLabel: (name: string) => string;
+    emptyFavorites: string;
+    browse: string;
     clear: string;
     empty: string;
     results: (count: number) => string;
@@ -42,6 +48,19 @@ export interface Dictionary {
     ties: string;
     overall: string;
     tieDash: string;
+    matches: string;
+    played: string;
+    winRate: string;
+    history: string;
+    empty: string;
+    showAll: string;
+  };
+  daily: {
+    title: string; goal: string; play: string; resume: string; retry: string;
+    best: string; freePlay: string; timing: string;
+    target: (moves: number) => string;
+    comparison: (moves: number, minimum: number) => string;
+    firstMove: string; savedRun: string;
   };
   /** Keyed by GameDefinition.id ("guess" | "rps" | "ttt"). */
   gamesMeta: Record<string, GameMeta>;
@@ -878,6 +897,7 @@ export interface Dictionary {
   /** Multiplayer rooms (create/join by code) — RPS and Tic-Tac-Toe for now. */
   rooms: {
     navLink: string;
+    shortLink: string;
     title: string;
     tagline: string;
     yourNameLabel: string;
@@ -1038,14 +1058,20 @@ const en: Dictionary = {
     language: "Language",
   },
   hub: {
-    scoreboard: "Session scoreboard",
+    scoreboard: "My scoreboard",
     title: "Pick your next game",
     intro: "Play against the AI, tackle a solo challenge, or invite a friend to a room.",
     search: "Search games",
     searchPlaceholder: "Try cards, memory, or racing",
     filters: "Filter games by category",
+    filterButton: "Filters",
     all: "All games",
     multiplayer: "Multiplayer only",
+    library: "Game library",
+    favorites: "Favorites",
+    favoriteLabel: (name) => `Favorite · ${name}`,
+    emptyFavorites: "Select the star on a game to save it here.",
+    browse: "Browse games",
     clear: "Clear filters",
     empty: "No games match these filters.",
     results: (count) => `${count} ${count === 1 ? "game" : "games"}`,
@@ -1058,6 +1084,21 @@ const en: Dictionary = {
     ties: "Ties",
     overall: "Σ Overall",
     tieDash: "–",
+    matches: "Matches played",
+    played: "Games tried",
+    winRate: "Win rate",
+    history: "Solo results on this device",
+    empty: "Finish a solo game to see your first result here.",
+    showAll: "Include unplayed games",
+  },
+  daily: {
+    title: "Daily puzzle", goal: "Put the eight tiles in order in as few moves as possible. A new board every day.",
+    play: "Play today's puzzle", resume: "Resume puzzle", retry: "Beat your best",
+    best: "Personal best", freePlay: "Free play",
+    firstMove: "Slide a tile to start the clock.", savedRun: "Resume in this tab if you leave. The clock keeps running.",
+    target: (moves) => `The shortest solution takes ${moves} moves.`,
+    comparison: (moves, minimum) => moves === minimum ? "You found a shortest solution." : `The shortest solution takes ${minimum} moves. You used ${moves - minimum} more.`,
+    timing: "Time starts with your first move and keeps running if you leave. Return in this tab to resume. Fewer moves wins, with time as the tiebreaker.",
   },
   gamesMeta: {
     guess: {
@@ -2050,7 +2091,7 @@ const en: Dictionary = {
     boardLabel: "Sliding puzzle board",
     emptyTile: "Empty space",
     tileLabel: (tile) => `Tile ${tile}`,
-    moveHint: "Only highlighted neighbours can move into the gap.",
+    moveHint: "Select a highlighted tile, or focus the board and use the arrow keys to move the gap.",
     hintButton: "Show hint",
     suggestedTile: (tile) => `Try moving tile ${tile}.`,
   },
@@ -2718,6 +2759,7 @@ const en: Dictionary = {
   },
   rooms: {
     navLink: "Play with Friends",
+    shortLink: "Rooms",
     title: "Play with Friends",
     tagline: "Create a room, share the code, play live against a friend instead of the AI.",
     yourNameLabel: "Your name",
@@ -2911,14 +2953,20 @@ const es: Dictionary = {
     language: "Idioma",
   },
   hub: {
-    scoreboard: "Marcador de la sesión",
+    scoreboard: "Mi marcador",
     title: "Elige tu próxima partida",
     intro: "Juega contra la IA, prueba un reto individual o invita a un amigo a una sala.",
     search: "Buscar juegos",
     searchPlaceholder: "Prueba con cartas, memoria o carreras",
     filters: "Filtrar juegos por categoría",
+    filterButton: "Filtros",
     all: "Todos",
     multiplayer: "Solo multijugador",
+    library: "Catálogo",
+    favorites: "Favoritos",
+    favoriteLabel: (name) => `Favorito · ${name}`,
+    emptyFavorites: "Marca la estrella de un juego para guardarlo aquí.",
+    browse: "Explorar juegos",
     clear: "Limpiar filtros",
     empty: "No hay juegos que coincidan con estos filtros.",
     results: (count) => `${count} ${count === 1 ? "juego" : "juegos"}`,
@@ -2931,6 +2979,21 @@ const es: Dictionary = {
     ties: "Empates",
     overall: "Σ Total",
     tieDash: "–",
+    matches: "Partidas jugadas",
+    played: "Juegos probados",
+    winRate: "Victorias",
+    history: "Resultados individuales en este dispositivo",
+    empty: "Termina una partida individual para ver aquí tu primer resultado.",
+    showAll: "Incluir juegos sin estrenar",
+  },
+  daily: {
+    title: "Puzle del día", goal: "Ordena las ocho fichas en el menor número de movimientos. Cada día te espera un tablero nuevo.",
+    play: "Jugar el reto de hoy", resume: "Retomar el puzle", retry: "Mejorar mi marca",
+    best: "Mejor marca", freePlay: "Juego libre",
+    firstMove: "Desliza una ficha para iniciar el reloj.", savedRun: "Puedes retomar la partida en esta pestaña. El reloj sigue en marcha.",
+    target: (moves) => `El camino más corto tiene ${moves} movimientos.`,
+    comparison: (moves, minimum) => moves === minimum ? "Has encontrado una solución de longitud mínima." : `El mínimo era de ${minimum} movimientos. Has usado ${moves - minimum} más.`,
+    timing: "El reloj arranca con tu primer movimiento y sigue contando si sales. Vuelve en esta pestaña para retomar la partida. Gana la marca con menos movimientos y, en caso de empate, el menor tiempo.",
   },
   gamesMeta: {
     guess: {
@@ -3932,7 +3995,7 @@ const es: Dictionary = {
     boardLabel: "Tablero del rompecabezas",
     emptyTile: "Espacio vacío",
     tileLabel: (tile) => `Ficha ${tile}`,
-    moveHint: "Solo las fichas resaltadas junto al hueco pueden moverse.",
+    moveHint: "Elige una ficha resaltada o sitúa el foco en el tablero y usa las flechas para mover el hueco.",
     hintButton: "Mostrar pista",
     suggestedTile: (tile) => `Prueba a mover la ficha ${tile}.`,
   },
@@ -4627,6 +4690,7 @@ const es: Dictionary = {
   },
   rooms: {
     navLink: "Jugar con amigos",
+    shortLink: "Salas",
     title: "Jugar con amigos",
     tagline: "Crea una sala, comparte el código y juega en directo contra un amigo en vez de la IA.",
     yourNameLabel: "Tu nombre",
