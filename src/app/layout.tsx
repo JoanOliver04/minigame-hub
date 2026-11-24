@@ -11,8 +11,9 @@ export const metadata: Metadata = {
   description: "A hub of mini-games where you battle a scheming AI opponent.",
   icons: {
     icon: "/favicon.ico",
-    apple: "/logo.png",
+    apple: "/app-180.png",
   },
+  appleWebApp: { capable: true, title: "Mini-Game Hub", statusBarStyle: "default" },
   openGraph: {
     title: "Mini-Game Hub — You vs AI",
     description: "A hub of mini-games where you battle a scheming AI opponent.",
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  themeColor: "#0f1220",
   width: "device-width",
   initialScale: 1,
 };

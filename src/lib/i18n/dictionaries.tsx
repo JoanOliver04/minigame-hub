@@ -19,6 +19,9 @@ export interface Dictionary {
     vsLine: string;
     tagline: string;
     skipToContent: string;
+    install: string;
+    installMobile: string;
+    installDesktop: string;
     language: string;
   };
   hub: {
@@ -1055,6 +1058,9 @@ const en: Dictionary = {
     vsLine: "You vs AI",
     tagline: "Pick a game. Beat the machine.",
     skipToContent: "Skip to content",
+    install: "Install",
+    installMobile: "On iPhone or iPad, open Safari, tap Share, then Add to Home Screen. On Android, open the Chrome menu and choose Install app or Add to Home screen.",
+    installDesktop: "On a computer, use the install icon in Chrome or Edge. In Safari on Mac, choose File → Add to Dock.",
     language: "Language",
   },
   hub: {
@@ -2950,6 +2956,9 @@ const es: Dictionary = {
     vsLine: "Tú vs IA",
     tagline: "Elige un juego. Vence a la máquina.",
     skipToContent: "Saltar al contenido",
+    install: "Instalar",
+    installMobile: "En iPhone o iPad, abre Safari, toca Compartir y elige Añadir a pantalla de inicio. En Android, abre el menú de Chrome y elige Instalar aplicación o Añadir a pantalla de inicio.",
+    installDesktop: "En ordenador, usa el icono de instalación de Chrome o Edge. En Safari para Mac, elige Archivo → Añadir al Dock.",
     language: "Idioma",
   },
   hub: {

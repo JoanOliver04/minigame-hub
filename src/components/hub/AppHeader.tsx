@@ -5,6 +5,7 @@ import Image from "next/image";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import type { Locale } from "@/lib/i18n/dictionaries";
+import { InstallApp } from "./InstallApp";
 
 const LOCALE_OPTIONS = [
   { value: "en", label: "EN" },
@@ -23,6 +24,7 @@ export function AppHeader() {
         <span>{t.app.title}</span>
       </Link>
       <div className="app-header-actions">
+        <InstallApp />
         <Link href="/rooms" className="btn app-room-link" prefetch={false}>
           <span className="rooms-full">{t.rooms.navLink}</span><span className="rooms-short">{t.rooms.shortLink}</span>
         </Link>
