@@ -1,26 +1,33 @@
 importScripts("/offline-version.js");
 
 const prefix = "mini-game-hub-offline-";
-const cacheName = prefix + self.arcadeVersion;
+const cacheName = prefix + self.arcadeEdition.version;
+
+async function cachePage(cache, path, assets) {
+  const response = await fetch(path, { credentials: "omit", cache: "reload", redirect: "error" });
+  if (!response.ok || !response.headers.get("Content-Type")?.includes("text/html")) throw new Error("Offline page unavailable: " + path);
+  const html = await response.text();
+  for (const tag of html.matchAll(/<(?:script|link)\s[^>]*>/g)) {
+    const file = tag[0].match(/\s(?:src|href)="(\/[^"]*)"/)?.[1];
+    if (file && !file.startsWith("//")) assets.add(file.replaceAll("&amp;", "&"));
+  }
+  // The browser has decoded the body. Keep document policies, without compressed transfer headers or RSC Vary.
+  const headers = new Headers({ "Content-Type": "text/html; charset=utf-8" });
+  for (const name of ["Content-Security-Policy", "Permissions-Policy", "Referrer-Policy", "X-Content-Type-Options", "X-Frame-Options"]) {
+    const value = response.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+  await cache.put(path, new Response(html.replace("<html ", '<html data-offline-edition="" '), { headers }));
+}
 
 async function installArcade() {
-  const response = await fetch("/offline-arcade.json", { cache: "no-store" });
-  if (!response.ok) throw new Error("Offline edition unavailable");
-  const { version, documents, assets } = await response.json();
-  if (version !== self.arcadeVersion) throw new Error("Offline edition changed during installation");
-
   const cache = await caches.open(cacheName);
-  await cache.addAll(assets);
-  for (const [path, html] of Object.entries(documents)) {
-    await cache.put(path, new Response(html, { headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Content-Security-Policy": "base-uri 'self'; object-src 'none'; frame-ancestors 'none'",
-      "Referrer-Policy": "strict-origin-when-cross-origin",
-      "X-Content-Type-Options": "nosniff",
-      "X-Frame-Options": "DENY",
-      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    } }));
+  const assets = new Set(["/offline.html", "/hub-mark.webp", "/app-192.png", "/app-512.png", "/app-maskable.png"]);
+  const routes = self.arcadeEdition.routes;
+  for (let i = 0; i < routes.length; i += 4) {
+    await Promise.all(routes.slice(i, i + 4).map(path => cachePage(cache, path, assets)));
   }
+  await cache.addAll([...assets]);
 }
 
 self.addEventListener("install", event => {

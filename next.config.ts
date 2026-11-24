@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
         { key: "Content-Security-Policy", value: "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" },
       ],
     }, {
-      source: "/:file(sw.js|offline-version.js|offline-arcade.json)",
+      source: "/:file(sw.js|offline-version.js)",
       headers: [{ key: "Cache-Control", value: "no-cache" }],
     }];
   },
