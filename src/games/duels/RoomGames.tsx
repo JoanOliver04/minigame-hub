@@ -11,7 +11,11 @@ import { ReversiBoard } from "../mini-reversi/Board";
 import { DiceBoard } from "../dice-race/Board";
 import type { ReversiState } from "../mini-reversi/logic";
 import type { DiceMove, DiceState } from "../dice-race/logic";
-import { diceRoom, reversiRoom, roomVersion, type RoomMatch } from "./room";
+import { BoxesBoard } from "../dots-boxes/Board";
+import { MancalaBoard } from "../mancala/Board";
+import type { BoxesState } from "../dots-boxes/logic";
+import type { MancalaState } from "../mancala/logic";
+import { boxesRoom, diceRoom, mancalaRoom, reversiRoom, roomVersion, type RoomMatch } from "./room";
 import { duelCopy } from "./copy";
 import type { BoardProps, DuelId, DuelState } from "./types";
 
@@ -53,7 +57,7 @@ function RoomDuel<S extends DuelState, A>({ code, uid, room: snapshot, id, actio
       <h2 className="duel-status" role="status">{state.winner === null
         ? turn === uid ? t.rooms.turnYours : t.rooms.turnOpponent(name(state.active))
         : state.winner === "tie" ? copy.tie : won ? t.rooms.matchWinYou : t.rooms.matchWinOpponent(name(state.winner))}</h2>
-      <Board state={state} names={[name(0), name(1)]} onPlay={myTurn ? action =>
+      <Board state={state} names={[name(0), name(1)]} viewer={seats[1] === uid ? 1 : 0} onPlay={myTurn ? action =>
         void send(() => actions.move(code, uid, version, action)) : undefined} />
     </>}
     <div className="btn-row">
@@ -67,6 +71,12 @@ function RoomDuel<S extends DuelState, A>({ code, uid, room: snapshot, id, actio
 
 export function ReversiRoomGame(props: RoomViewProps) {
   return <RoomDuel<ReversiState, number> {...props} id="mini-reversi" actions={reversiRoom} Board={ReversiBoard} />;
+}
+export function BoxesRoomGame(props: RoomViewProps) {
+  return <RoomDuel<BoxesState, number> {...props} id="dots-boxes" actions={boxesRoom} Board={BoxesBoard} />;
+}
+export function MancalaRoomGame(props: RoomViewProps) {
+  return <RoomDuel<MancalaState, number> {...props} id="mancala" actions={mancalaRoom} Board={MancalaBoard} />;
 }
 export function DiceRoomGame(props: RoomViewProps) {
   return <RoomDuel<DiceState, DiceMove> {...props} id="dice-race" actions={diceRoom} Board={DiceBoard} />;

@@ -37,6 +37,14 @@ const TARGET_BOARD_SETTING: RoomSettingDefinition = {
  * mode yet.
  */
 export const ROOM_GAMES: Record<string, RoomGameModule> = {
+  "dots-boxes": {
+    loadLogic: () => import("./duels/room").then(module => module.boxesRoom),
+    RoomComponent: dynamic(() => import("./duels/RoomGames").then(module => module.BoxesRoomGame)),
+  },
+  mancala: {
+    loadLogic: () => import("./duels/room").then(module => module.mancalaRoom),
+    RoomComponent: dynamic(() => import("./duels/RoomGames").then(module => module.MancalaRoomGame)),
+  },
   "mini-reversi": {
     loadLogic: () => import("./duels/room").then(module => module.reversiRoom),
     RoomComponent: dynamic(() => import("./duels/RoomGames").then(module => module.ReversiRoomGame)),

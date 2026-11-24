@@ -11,6 +11,7 @@ async function start(page: Page, slug: string) {
 
 // Each route is exercised through a real game control on a narrow viewport.
 const controls: Record<string, string> = {
+  "dots-boxes": ".boxes-edge:enabled", mancala: ".sowing-pit:enabled",
   "mini-reversi": ".reversi-cell:enabled", "dice-race": ".race-roll:enabled",
   guess: ".arcade-tool", rps: ".rps-choice", ttt: ".ttt-cell:enabled",
   "higher-or-lower": ".hol-choice:enabled", "connect-four": ".connect-column:enabled",
@@ -70,7 +71,7 @@ test("all catalogue games can be opened and played offline after a single librar
   await expect(cold.locator(".app-header")).toBeVisible();
   await cold.goto("/scores");
   await cold.getByRole("checkbox").check();
-  await expect(cold.locator(".stats-table tbody tr:not(.overall)")).toHaveCount(31);
+  await expect(cold.locator(".stats-table tbody tr:not(.overall)")).toHaveCount(33);
   await cold.goto("/daily");
   await cold.locator(".sliding-tile.movable").first().click();
   await expect(cold.locator(".sliding-hud span").first()).toHaveText("1");

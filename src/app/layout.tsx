@@ -7,16 +7,16 @@ import { ScoresProvider } from "@/context/ScoresContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://minigame-hub-orcin.vercel.app"),
-  title: "Mini-Game Hub — You vs AI",
-  description: "A hub of mini-games where you battle a scheming AI opponent.",
+  title: "Mini-Game Hub — Play against AI or friends",
+  description: "Play mini-games against the AI or invite a friend to a private room.",
   icons: {
     icon: "/favicon.ico",
     apple: "/app-180.png",
   },
   appleWebApp: { capable: true, title: "Mini-Game Hub", statusBarStyle: "default" },
   openGraph: {
-    title: "Mini-Game Hub — You vs AI",
-    description: "A hub of mini-games where you battle a scheming AI opponent.",
+    title: "Mini-Game Hub — Play against AI or friends",
+    description: "Play mini-games against the AI or invite a friend to a private room.",
     url: "/",
     siteName: "Mini-Game Hub",
     images: [{ url: "/logo.png", width: 1024, height: 1024, alt: "Mini-Game Hub logo" }],

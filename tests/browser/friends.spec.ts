@@ -7,7 +7,7 @@ test("the friends link keeps its full name on mobile and a game invitation prese
   await expect(page.getByRole("heading", { name: "Jugar con amigos" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Unirse a una sala" })).toBeVisible();
   const defaultGame = await page.getByLabel("Juego", { exact: true }).inputValue();
-  for (const id of ["mini-reversi", "dice-race"]) {
+  for (const id of ["mini-reversi", "dice-race", "dots-boxes", "mancala"]) {
     await page.goto("/games/" + id);
     await expect(page.getByRole("button", { name: "Jugar contra la IA" })).toBeVisible();
     await page.getByRole("main").getByRole("link", { name: "Jugar con amigos" }).click();
@@ -16,6 +16,33 @@ test("the friends link keeps its full name on mobile and a game invitation prese
   }
   await page.goto("/rooms?game=sliding-puzzle");
   await expect(page.getByLabel("Juego", { exact: true })).toHaveValue(defaultGame);
+});
+
+test("friends can open the code form from home or invite from an existing game", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/");
+  await page.getByRole("link", { name: "Tengo un código" }).click();
+  await expect(page.locator("#join-room-code")).toBeVisible();
+  await page.goBack();
+  await page.getByRole("link", { name: "Invitar a un amigo" }).click();
+  await expect(page.locator("#room-game")).toBeVisible();
+  await page.goto("/games/connect-four");
+  await page.locator("header").getByRole("link", { name: "Jugar con amigos" }).click();
+  await expect(page.locator("#room-game")).toHaveValue("connect-four");
+});
+
+test("a seed landing in the store grants a second move and the boxes opponent draws a reply", async ({ page }) => {
+  await page.goto("/games/mancala");
+  await page.getByRole("button", { name: "Jugar contra la IA" }).click();
+  await page.getByRole("button", { name: /Hoyo 3, 4 semillas, cae/ }).click();
+  await expect(page.locator(".sowing-store b")).toHaveText(["0", "1"]);
+  await expect(page.locator(".duel-note")).toContainText("Turno extra");
+  await expect(page.locator(".sowing-pit:enabled")).toHaveCount(5);
+  await page.goto("/games/dots-boxes");
+  await page.getByRole("button", { name: "Jugar contra la IA" }).click();
+  await page.getByRole("button", { name: "Línea A1–B1" }).press("Enter");
+  await expect(page.locator('.boxes-edge[data-drawn="true"]')).toHaveCount(2);
+  await expect(page.locator(".boxes-edge:enabled")).toHaveCount(22);
 });
 
 test("the solo AI responds to a capture and plays its own dice turn", async ({ page }) => {

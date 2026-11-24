@@ -2,6 +2,8 @@ export const duelCopy = {
   en: {
     solo: "Play against the AI", tie: "Draw",
     rules: {
+      "dots-boxes": "Take turns drawing one line between neighbouring dots. Complete the fourth side to claim a box and play again. One line can close two boxes. Whoever owns the most of the nine boxes wins.",
+      mancala: "Choose a pit in your row. Drop its seeds one by one in the direction of the arrows, including your store and skipping your opponent’s store. Land in your store for another turn. Land in an empty pit of your own opposite a nonempty pit to capture both pits. When either row empties, each player banks the seeds left on their side. The larger store wins.",
       "mini-reversi": "Put a disc on a marked square. All opposing discs trapped in a straight line between yours flip, even diagonally. If one player has no move, the other plays again. When neither can move, the player with more discs wins.",
       "dice-race": "Reach 30 banked points first. Roll as many times as you like. A 2–6 adds to this turn’s pot. Bank it to end your turn safely. Roll a 1 and the whole pot goes to zero. Points already banked are safe.",
     },
@@ -15,6 +17,8 @@ export const duelCopy = {
   es: {
     solo: "Jugar contra la IA", tie: "Empate",
     rules: {
+      "dots-boxes": "Por turnos, traza una línea entre dos puntos vecinos. Si cierras el cuarto lado de una caja, te la quedas y vuelves a jugar. Una sola línea puede cerrar dos cajas. Gana quien consiga más de las nueve.",
+      mancala: "Elige un hoyo de tu fila. Reparte sus semillas de una en una siguiendo las flechas, pasando por tu granero y saltándote el rival. Si terminas en tu granero, repites. Si terminas en un hoyo propio vacío y hay semillas enfrente, te llevas las de ambos hoyos. Cuando una fila queda vacía, cada jugador guarda las semillas que queden en su lado. Gana quien reúna más.",
       "mini-reversi": "Coloca una ficha en una casilla marcada. Se dan la vuelta todas las fichas rivales que encierres en línea recta, también en diagonal. Si un jugador no puede mover, repite el otro. Cuando ninguno puede mover, gana quien tenga más fichas.",
       "dice-race": "Gana quien guarde 30 puntos primero. Puedes tirar varias veces. Del 2 al 6, sumas lo que salga a los puntos en juego. Plántate para guardarlos y pasar el turno. Si sacas un 1, pierdes los puntos de ese turno. Los que ya guardaste están a salvo.",
     },

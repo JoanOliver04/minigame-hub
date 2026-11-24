@@ -1,6 +1,6 @@
 export type Seat = 0 | 1;
 export type Level = "easy" | "medium" | "hard";
-export type DuelId = "mini-reversi" | "dice-race";
+export type DuelId = "mini-reversi" | "dice-race" | "dots-boxes" | "mancala";
 
 export interface DuelState {
   active: Seat;
@@ -18,6 +18,7 @@ export interface DuelRules<S extends DuelState, A> {
 export interface BoardProps<S, A> {
   state: S;
   names: [string, string];
+  viewer?: Seat;
   onPlay?: (action: A) => void;
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useSyncExternalStore } from "react";
 import { isSoundEnabled, setSoundEnabled, subscribeSound } from "@/lib/sound";
@@ -8,6 +9,7 @@ import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import type { Locale } from "@/lib/i18n/dictionaries";
 import { InstallApp } from "./InstallApp";
+import { getGame } from "@/games/registry";
 
 const LOCALE_OPTIONS = [
   { value: "en", label: "EN" },
@@ -30,6 +32,9 @@ function subscribeConnection(notify: () => void) {
 /** Shared navigation and the EN/ES language switch. */
 export function AppHeader() {
   const { locale, setLocale, t } = useLocale();
+  const path = usePathname();
+  const game = path.startsWith("/games/") ? getGame(path.slice("/games/".length)) : undefined;
+  const friendsHref = game?.supportsMultiplayer ? `/rooms?game=${game.id}` : "/rooms";
   const sound = useSyncExternalStore(subscribeSound, isSoundEnabled, () => true);
   const online = useSyncExternalStore(subscribeConnection,
     () => navigator.onLine && !document.documentElement.hasAttribute("data-offline-edition"), () => true);
@@ -42,7 +47,7 @@ export function AppHeader() {
         <span>{t.app.title}</span>
       </Link>
       <div className="app-header-actions">
-        <Link href="/rooms" className="btn friends-link" prefetch={false}>
+        <Link href={friendsHref} className="btn friends-link" prefetch={false} title={t.rooms.tagline}>
           <span aria-hidden="true">👥</span> {t.rooms.navLink}
         </Link>
         <InstallApp />

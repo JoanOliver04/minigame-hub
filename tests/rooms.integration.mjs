@@ -120,18 +120,22 @@ test("every multiplayer game's configured state can be created and joined", { ti
         assert.equal(room.gameId, id);
         assert.deepEqual(Object.keys(room.players).sort(), [host.uid, guest.uid].sort());
         assert.equal(typeof room.game, "object");
-        if (id === "mini-reversi" || id === "dice-race") {
+        const duels = {
+          "dots-boxes": ["boxesRoom", state => host.load("games/dots-boxes/logic").boxes.choose(state, "medium")],
+          mancala: ["mancalaRoom", state => host.load("games/mancala/logic").mancala.choose(state, "medium")],
+          "mini-reversi": ["reversiRoom", state => host.load("games/mini-reversi/logic").legalMoves(state.board, state.active)[0]],
+          "dice-race": ["diceRoom", state => state.pot >= 12 ? { kind: "bank" } : { kind: "roll", face: 6 }],
+        };
+        if (id in duels) {
           const { roomVersion } = host.load("games/duels/room");
-          const mod = id === "mini-reversi" ? "reversiRoom" : "diceRoom";
-          const { legalMoves } = host.load("games/mini-reversi/logic");
+          const [mod, choose] = duels[id];
           const opening = roomVersion(room);
           let current = room;
           while (current.status === "playing") {
             const actor = current.game.turn === host.uid ? host : guest;
             const actions = actor.load("games/duels/room")[mod];
             const state = current.game.state;
-            const move = id === "mini-reversi" ? legalMoves(state.board, state.active)[0]
-              : state.pot >= 12 ? { kind: "bank" } : { kind: "roll", face: 6 };
+            const move = choose(state);
             await actions.move(code, actor.uid, roomVersion(current), move);
             const next = await read();
             assert.equal(next.game.state.moves, state.moves + 1);

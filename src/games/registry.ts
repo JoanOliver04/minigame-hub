@@ -35,6 +35,8 @@ import { windlineArcheryGame } from "./windline-archery";
 import { wordGuessGame } from "./word-guess";
 
 export const GAMES = [
+  { id: "dots-boxes", icon: "⊞", category: "logic", hasTies: false, supportsMultiplayer: true },
+  { id: "mancala", icon: "🫘", category: "strategy", hasTies: true, supportsMultiplayer: true },
   guessGame,
   rpsGame,
   tttGame,

@@ -963,6 +963,9 @@ export interface Dictionary {
   /** Multiplayer rooms (create/join by code) — RPS and Tic-Tac-Toe for now. */
   rooms: {
     navLink: string;
+    homeHint: string;
+    inviteFriend: string;
+    haveCode: string;
     inviteLink: string;
     linkCopied: string;
     title: string;
@@ -1227,6 +1230,8 @@ const en: Dictionary = {
   },
   gamesMeta: {
     "mini-reversi": { name: "Mini Reversi", description: "Bracket discs to flip them. Can you hold the corners of this 6 × 6 board?" },
+    "dots-boxes": { name: "Dots and Boxes", description: "Draw the fourth side to claim a box and play again. How many can you chain in one turn?" },
+    mancala: { name: "Mancala", description: "Sow seeds around the board. Time your last drop to steal a pile or earn an extra turn." },
     "dice-race": { name: "Race to 30", description: "Roll to build a streak or bank your points before a one wipes out the turn." },
     guess: {
       name: "Number Duel",
@@ -2895,6 +2900,9 @@ const en: Dictionary = {
   },
   rooms: {
     navLink: "Play with Friends",
+    homeHint: "Challenge a friend in a private room for two.",
+    inviteFriend: "Invite a friend",
+    haveCode: "I have a code",
     inviteLink: "Copy invitation link",
     linkCopied: "Invitation link copied",
     title: "Play with Friends",
@@ -3192,6 +3200,8 @@ const es: Dictionary = {
   },
   gamesMeta: {
     "mini-reversi": { name: "Mini Reversi", description: "Atrapa fichas entre las tuyas para darles la vuelta. ¿Quién dominará las esquinas del tablero de 6 × 6?" },
+    "dots-boxes": { name: "Puntos y cajas", description: "Traza el cuarto lado de una caja para quedártela y volver a jugar. ¿Cuántas puedes encadenar?" },
+    mancala: { name: "Mancala", description: "Reparte semillas de hoyo en hoyo. Calcula dónde caerá la última para capturar las del rival o repetir turno." },
     "dice-race": { name: "Dados a 30", description: "Suma puntos con cada tirada y decide cuándo plantarte. Si sale un uno, pierdes lo acumulado en ese turno." },
     guess: {
       name: "Duelo de Números",
@@ -4896,6 +4906,9 @@ const es: Dictionary = {
   },
   rooms: {
     navLink: "Jugar con amigos",
+    homeHint: "Reta a un amigo en una sala privada para dos.",
+    inviteFriend: "Invitar a un amigo",
+    haveCode: "Tengo un código",
     inviteLink: "Copiar enlace de invitación",
     linkCopied: "Enlace de invitación copiado",
     title: "Jugar con amigos",

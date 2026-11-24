@@ -2,6 +2,8 @@ import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import type { RoomDoc } from "@/lib/rooms/types";
 import { diceRace } from "../dice-race/logic";
 import { reversi } from "../mini-reversi/logic";
+import { boxes } from "../dots-boxes/logic";
+import { mancala } from "../mancala/logic";
 import type { DuelRules, DuelState } from "./types";
 
 export interface RoomMatch<S> { state: S; seats: string[]; match: number; turn: string | null; }
@@ -48,3 +50,5 @@ function roomMode<S extends DuelState, A>(rules: DuelRules<S, A>) {
 
 export const reversiRoom = roomMode(reversi);
 export const diceRoom = roomMode(diceRace);
+export const boxesRoom = roomMode(boxes);
+export const mancalaRoom = roomMode(mancala);

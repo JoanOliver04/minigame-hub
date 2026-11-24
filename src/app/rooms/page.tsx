@@ -18,15 +18,21 @@ import { GAMES } from "@/games/registry";
 const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
 
 export default function RoomsPage() {
-  return <Suspense><RoomsForm /></Suspense>;
+  return <Suspense><RoomEntry /></Suspense>;
 }
 
-function RoomsForm() {
+function RoomEntry() {
+  const params = useSearchParams();
+  const initialTab = params.get("mode") === "join" ? "join" : "create";
+  const requested = params.get("game");
+  return <RoomsForm key={initialTab + "/" + requested} initialTab={initialTab} requested={requested} />;
+}
+
+function RoomsForm({ initialTab, requested }: { initialTab: "create" | "join"; requested: string | null }) {
   const { t } = useLocale();
   const router = useRouter();
   const [name, setName] = usePlayerName();
-  const [tab, setTab] = useState<"create" | "join">("create");
-  const requested = useSearchParams().get("game");
+  const [tab, setTab] = useState(initialTab);
   const [chosen, setGameId] = useState<string | null>(null);
   const gameId = chosen ?? multiplayerGames.find(game => game.id === requested)?.id ?? multiplayerGames[0].id;
   const [codeInput, setCodeInput] = useState("");

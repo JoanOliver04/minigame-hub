@@ -5,6 +5,63 @@ import { createSourceLoader } from "./load-typescript.mjs";
 const load = createSourceLoader();
 const { opening, captures, countDiscs, legalMoves, place, reversi } = load("games/mini-reversi/logic");
 const { diceRace } = load("games/dice-race/logic");
+const { boxes, boxScores } = load("games/dots-boxes/logic");
+const { mancala } = load("games/mancala/logic");
+
+test("one shared line closes two boxes and keeps the turn", () => {
+  let state = boxes.start();
+  for (const edge of [0, 1, 3, 4, 12, 14]) state = boxes.play(state, edge);
+  const seat = state.active;
+  assert.equal(boxes.choose(state, "medium"), 13);
+  const next = boxes.play(state, 13);
+  assert.equal(next.gained, 2);
+  assert.equal(next.active, seat);
+  assert.equal(boxScores(next.owners)[seat], 2);
+  for (const edge of [13, 24, -1, 2.5]) assert.equal(boxes.play(next, edge), next);
+});
+
+test("Mancala sows past the opposite store, captures only across occupied pits, and sweeps the last row", () => {
+  const setup = cups => ({ ...mancala.start(), cups });
+  const opening = mancala.start();
+  assert.equal(mancala.play(opening, 2).again, true);
+  for (const pit of [6, 7, -1, 1.2]) assert.equal(mancala.play(opening, pit), opening);
+  const lap = mancala.play(setup([15,1,1,1,1,1,0,1,1,1,1,1,1,0]), 0);
+  assert.equal(lap.cups[13], 0);
+  assert.equal(lap.cups[6], 1);
+  assert.equal(lap.landed, 2);
+  const before = setup([1,0,0,0,0,1,0,1,0,0,0,4,0,0]);
+  const capture = mancala.play(before, 0);
+  assert.equal(capture.captured, 5);
+  assert.equal(capture.cups[6], 5);
+  assert.equal(before.cups[11], 4);
+  const empty = mancala.play(setup([1,0,0,0,0,1,0,1,0,0,0,0,0,0]), 0);
+  assert.equal(empty.captured, 0);
+  assert.equal(empty.cups[1], 1);
+  const end = mancala.play(setup([0,0,0,0,0,1,23,4,8,12,0,0,0,0]), 5);
+  assert.equal(end.winner, "tie");
+  assert.equal(end.again, false);
+  assert.deepEqual([end.cups[6], end.cups[13]], [24, 24]);
+});
+
+test("all three opponents play both boards to completion and conserve boxes and seeds", () => {
+  for (const game of [boxes, mancala]) {
+    for (const level of ["easy", "medium", "hard"]) {
+      let state = game.start();
+      while (state.winner === null) {
+        assert.ok(state.moves < 300);
+        const next = game.play(state, game.choose(state, level));
+        assert.equal(next.moves, state.moves + 1);
+        if (game === mancala) assert.equal(next.cups.reduce((a, b) => a + b), 48);
+        state = next;
+      }
+      if (game === boxes) {
+        assert.equal(state.moves, 24);
+        assert.equal(boxScores(state.owners).reduce((a, b) => a + b), 9);
+      } else assert.equal(state.cups[6] + state.cups[13], 48);
+      assert.equal(game.play(state, 0), state);
+    }
+  }
+});
 
 test("Reversi brackets in eight directions without wrapping at the edge", () => {
   const board = Array(36).fill(0);

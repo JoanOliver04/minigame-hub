@@ -31,7 +31,16 @@ export function HubScreen({ view = "library" }: { view?: View }) {
           {item.label}{item.view === "favorites" && favorites.size > 0 && <span>{favorites.size}</span>}
         </Link>)}
       </nav>
-      {view === "library" && <DailyFeature />}
+      {view === "library" && <>
+        <DailyFeature />
+        <section className="friends-entry" aria-labelledby="friends-entry-title">
+          <div><h2 id="friends-entry-title">{t.rooms.navLink}</h2><p>{t.rooms.homeHint}</p></div>
+          <div className="friends-entry-actions">
+            <Link className="btn primary" href="/rooms" prefetch={false}>{t.rooms.inviteFriend}</Link>
+            <Link className="btn" href="/rooms?mode=join" prefetch={false}>{t.rooms.haveCode}</Link>
+          </div>
+        </section>
+      </>}
       <h1 id="hub-title" tabIndex={-1} className="library-title">{nav.find((entry) => entry.view === view)?.label}</h1>
       {view === "scores" ? <StatsTable /> : <Catalogue favorites={favorites} onlyFavorites={view === "favorites"} />}
     </section>
