@@ -4,6 +4,14 @@ type Area = "local" | "session";
 const fallbacks = { local: new Map<string, string | null>(), session: new Map<string, string | null>() };
 const changeEvent = "minihub-storage";
 
+export function localKeysWithPrefix(prefix: string): string[] {
+  const keys = new Set(fallbacks.local.keys());
+  try {
+    for (const key of Object.keys(window.localStorage)) keys.add(key);
+  } catch { /* The in-memory store remains available for this visit. */ }
+  return [...keys].filter(key => key.startsWith(prefix) && readValue(key) !== null);
+}
+
 export function readValue(key: string, area: Area = "local"): string | null {
   if (typeof window === "undefined") return null;
   if (fallbacks[area].has(key)) return fallbacks[area].get(key) ?? null;

@@ -4,7 +4,25 @@ import { createSourceLoader } from "./load-typescript.mjs";
 
 const load = createSourceLoader();
 const { dailyBoard, localDay, readBest, betterResult, readDailyRun } = load("games/sliding-puzzle/daily");
-const { arrowTarget, canMoveTile, moveSlidingTile, shortestSmallPuzzle, suggestSlidingTile } = load("games/sliding-puzzle/logic");
+const { arrowTarget, canMoveTile, createSlidingPuzzle, moveSlidingTile, shortestSmallPuzzle, suggestSlidingTile } = load("games/sliding-puzzle/logic");
+const { isPlayableBoard, readFreeRun } = load("games/sliding-puzzle/savedPuzzle");
+
+test("free saves validate reachable boards of every size and recover separately from invalid undo data", () => {
+  for (const size of [3, 4, 5]) {
+    const board = createSlidingPuzzle(size, () => 0.37);
+    const index = board.tiles.findIndex((_, i) => canMoveTile(board, i) && !moveSlidingTile(board, i).solved);
+    const game = moveSlidingTile(board, index);
+    const run = { game, undoIndex: board.emptyIndex, elapsedMs: 1234 };
+    assert.deepEqual(readFreeRun(JSON.stringify(run)), run);
+    assert.equal(readFreeRun(JSON.stringify({ ...run, undoIndex: game.emptyIndex })).undoIndex, null);
+    assert.equal(readFreeRun(JSON.stringify({ ...run, elapsedMs: -1 })), null);
+    const tiles = [...game.tiles];
+    const a = tiles.indexOf(1), b = tiles.indexOf(2);
+    [tiles[a], tiles[b]] = [tiles[b], tiles[a]];
+    assert.equal(isPlayableBoard({ ...game, tiles }), false);
+  }
+  for (const raw of [null, "bad", "{}", "null"]) assert.equal(readFreeRun(raw), null);
+});
 
 test("dates use local calendar boundaries and reproduce the same legal starting board", () => {
   assert.equal(localDay(new Date(2026, 11, 31, 23, 59)), "2026-12-31");

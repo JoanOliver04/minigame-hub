@@ -3,7 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { readValue, subscribeValue, writeValue } from "./browserStorage";
 
-type LocalRecord = { revision: number; value: string };
+type LocalRecord = { revision: number; value: string; applied?: string[] };
 const cache = new Map<string, LocalRecord>();
 const storeName = "records";
 let connection: Promise<IDBDatabase> | undefined;
@@ -60,8 +60,17 @@ export function useBrowserRecord(key: string | null) {
 }
 
 /** Keep the read and update in the same transaction, including the first import of a legacy value. */
-export async function updateBrowserRecord(key: string, update: (value: string | null) => string) {
+export async function updateBrowserRecord(key: string, update: (value: string | null) => string, pendingKey?: string) {
   let next: LocalRecord | undefined;
+  function apply(current: LocalRecord | undefined, raw: string | null) {
+    if (pendingKey && (readValue(pendingKey) === null || current?.applied?.includes(pendingKey))) return current;
+    const value = update(raw);
+    const revision = (current?.revision ?? 0) + 1;
+    if (!pendingKey) return { revision, value };
+    // A second tab may replay an interrupted write before its receipt is removed.
+    const applied = (current?.applied ?? []).filter(id => readValue(id) !== null);
+    return { revision, value, applied: [...applied, pendingKey] };
+  }
   try {
     const db = await database();
     await new Promise<void>((resolve, reject) => {
@@ -71,8 +80,8 @@ export async function updateBrowserRecord(key: string, update: (value: string | 
       previous.onsuccess = () => {
         remember(key, previous.result);
         const current = cache.get(key);
-        next = { revision: (current?.revision ?? 0) + 1, value: update(current?.value ?? readValue(key)) };
-        store.put(next, key);
+        next = apply(current, current?.value ?? readValue(key));
+        if (next && next !== current) store.put(next, key);
       };
       txn.oncomplete = () => resolve();
       txn.onabort = () => reject(txn.error);
@@ -80,11 +89,12 @@ export async function updateBrowserRecord(key: string, update: (value: string | 
   } catch {
     // Private and storage-restricted contexts still support results within the visit.
     const current = cache.get(key);
-    next = { revision: (current?.revision ?? 0) + 1, value: update(readValue(key) ?? current?.value ?? null) };
+    next = apply(current, readValue(key) ?? current?.value ?? null);
   }
   if (next) {
     remember(key, next);
     // Retain the existing format for older versions and signal subscribers in other tabs.
     writeValue(key, cache.get(key)!.value);
   }
+  if (pendingKey) writeValue(pendingKey, null);
 }

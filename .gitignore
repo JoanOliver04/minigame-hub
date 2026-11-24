@@ -17,6 +17,8 @@
 
 # next.js
 /.next/
+/public/offline-arcade.json
+/public/offline-version.js
 /out/
 
 # production

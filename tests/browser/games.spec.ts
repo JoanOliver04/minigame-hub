@@ -28,24 +28,53 @@ const controls: Record<string, string> = {
   "hex-dominion": ".hex-cell.empty", spellstorm: ".storm-word-card input",
 };
 
+async function playOne(page: Page, slug: string, control: string) {
+  await start(page, slug);
+  const action = page.locator(control).first();
+  if (slug === "spellstorm") {
+    const word = await page.locator(".storm-word-card strong").first().innerText();
+    await action.fill(word);
+  } else {
+    await action.click();
+  }
+}
+
 for (const [slug, control] of Object.entries(controls)) {
   test(`mobile solo game · ${slug}`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     const errors: string[] = [];
     page.on("pageerror", e => errors.push(e.message));
-    await start(page, slug);
-    const action = page.locator(control).first();
-    if (slug === "spellstorm") {
-      const word = await page.locator(".storm-word-card strong").first().innerText();
-      await action.fill(word);
-    } else {
-      await action.click();
-    }
+    await playOne(page, slug, control);
     await expect(page.locator("main section.card").first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     expect(errors).toEqual([]);
   });
 }
+
+test("all 29 games can be opened and played offline after a single library visit", async ({ context, page }) => {
+  test.setTimeout(180_000);
+  await page.goto("/");
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  const slugs = await page.locator(".game-card").evaluateAll(cards => cards.map(card => card.getAttribute("href")!.split("/").pop()));
+  expect(slugs.sort()).toEqual(Object.keys(controls).sort());
+  await context.setOffline(true);
+  const cold = await context.newPage();
+  await page.close();
+  const errors: string[] = [];
+  cold.on("pageerror", e => errors.push(e.message));
+  for (const [slug, control] of Object.entries(controls)) {
+    await test.step(slug, () => playOne(cold, slug, control));
+  }
+  await cold.goto("/favorites");
+  await expect(cold.locator(".app-header")).toBeVisible();
+  await cold.goto("/scores");
+  await cold.getByRole("checkbox").check();
+  await expect(cold.locator(".stats-table tbody tr:not(.overall)")).toHaveCount(29);
+  await cold.goto("/daily");
+  await cold.locator(".sliding-tile.movable").first().click();
+  await expect(cold.locator(".sliding-hud span").first()).toHaveText("1");
+  expect(errors).toEqual([]);
+});
 
 test("quick memory has six pairs and no-repeat RPS locks the last hand", async ({ page }) => {
   await page.goto("/games/memory-match");
@@ -64,13 +93,28 @@ test("quick memory has six pairs and no-repeat RPS locks the last hand", async (
   await expect(page.locator(".throw-strip li")).toHaveCount(1);
 });
 
-test("free puzzle restores the board and fleet placement previews and undoes one ship", async ({ page }) => {
+test("free puzzle resumes the board and its undo after reopening", async ({ page }) => {
   await start(page, "sliding-puzzle");
   const before = await page.locator(".sliding-tile").allTextContents();
   await page.locator(".sliding-tile.movable").first().click();
+  const after = await page.locator(".sliding-tile").allTextContents();
+  await page.goto("/daily");
+  await page.locator(".sliding-tile.movable").first().click();
+  await page.goto("/games/sliding-puzzle");
+  await expect(page.locator(".puzzle-resume")).toContainText("4 × 4");
+  await page.getByRole("button", { name: "Continuar puzle" }).click();
+  await expect(page.locator(".sliding-tile")).toHaveText(after);
+  await expect(page.locator(".sliding-hud span").first()).toHaveText("1");
   await page.getByRole("button", { name: /Deshacer/ }).click();
   await expect(page.locator(".sliding-tile")).toHaveText(before);
   await expect(page.getByRole("button", { name: /Deshacer/ })).toBeDisabled();
+  await page.reload();
+  await page.getByRole("button", { name: "Continuar puzle" }).click();
+  await expect(page.getByRole("button", { name: /Deshacer/ })).toBeDisabled();
+  await expect(page.locator(".sliding-hud span").first()).toHaveText("0");
+});
+
+test("fleet placement previews and undoes one ship", async ({ page }) => {
   await page.goto("/games/fleet-command");
   const origin = page.locator(".fleet-cell").first();
   await origin.focus();

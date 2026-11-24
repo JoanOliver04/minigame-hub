@@ -443,7 +443,9 @@ All twenty-nine solo games work immediately with no configuration — they have 
 
 ### Install on a phone or computer
 
-Open the production site and select **Install** (**Instalar** in Spanish). Chrome and Edge can install it from the address bar. On iPhone or iPad, open the site in Safari and use **Share → Add to Home Screen**. The installed app opens in its own window. Opening it offline shows a retry screen. The service worker runs on production builds served over HTTPS or localhost.
+Open the production site and select **Install** (**Instalar** in Spanish). Chrome and Edge can install it from the address bar. On iPhone or iPad, open the site in Safari and use **Share → Add to Home Screen**. The installed app opens in its own window.
+
+The first online visit downloads the solo library in the background. Once it finishes, all 29 games, the daily puzzle, favorites and scores open offline, including games you have never opened. Multiplayer rooms require internet. Free sliding puzzles save the current board and its last undo on this device. Choose **Continue puzzle** when you return. The service worker runs on production builds served over HTTPS or localhost.
 
 ### Multiplayer setup (optional)
 

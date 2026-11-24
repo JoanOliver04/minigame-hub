@@ -1211,6 +1211,9 @@ body {
   text-decoration: none;
 }
 .app-brand img { border-radius: 10px; }
+.offline-status { flex-basis: 100%; color: var(--text-dim); font-size: .875rem; }
+.puzzle-resume { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: .9rem; margin: 1rem 0; background: var(--surface-2); border-radius: var(--radius-sm); }
+.puzzle-resume p { margin: 0; }
 .app-header .app-room-link { font-size: 0.88rem; padding: 9px 12px; }
 .app-header .hub-sound { min-width: 44px; min-height: 44px; padding: 6px; }
 .rooms-short { display: none; }

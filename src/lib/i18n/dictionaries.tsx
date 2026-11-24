@@ -76,6 +76,7 @@ export interface Dictionary {
     install: string;
     installMobile: string;
     installDesktop: string;
+    offline: string;
     language: string;
   };
   hub: {
@@ -591,6 +592,9 @@ export interface Dictionary {
   slidingPuzzle: {
     rules: ReactNode;
     tagline: string;
+    savedBoard: (size: number) => string;
+    resume: string;
+    newBoard: string;
     boardSize: string;
     sizeLabels: Record<3 | 4 | 5, string>;
     sizeDescription: Record<3 | 4 | 5, string>;
@@ -1174,6 +1178,7 @@ const en: Dictionary = {
     install: "Install",
     installMobile: "On iPhone or iPad, open Safari, tap Share, then Add to Home Screen. On Android, open the Chrome menu and choose Install app or Add to Home screen.",
     installDesktop: "On a computer, use the install icon in Chrome or Edge. In Safari on Mac, choose File → Add to Dock.",
+    offline: "Offline · Solo play",
     language: "Language",
   },
   hub: {
@@ -2196,6 +2201,9 @@ const en: Dictionary = {
       </>
     ),
     tagline: "Read the gap, plan the row, bring every tile home.",
+    savedBoard: (size) => `Saved board · ${size} × ${size}`,
+    resume: "Continue puzzle",
+    newBoard: "Start a new board",
     boardSize: "Board size",
     sizeLabels: { 3: "3 × 3", 4: "4 × 4", 5: "5 × 5" },
     sizeDescription: {
@@ -3132,6 +3140,7 @@ const es: Dictionary = {
     install: "Instalar",
     installMobile: "En iPhone o iPad, abre Safari, toca Compartir y elige Añadir a pantalla de inicio. En Android, abre el menú de Chrome y elige Instalar aplicación o Añadir a pantalla de inicio.",
     installDesktop: "En ordenador, usa el icono de instalación de Chrome o Edge. En Safari para Mac, elige Archivo → Añadir al Dock.",
+    offline: "Sin conexión · Juego en solitario",
     language: "Idioma",
   },
   hub: {
@@ -4163,6 +4172,9 @@ const es: Dictionary = {
       </>
     ),
     tagline: "Lee el hueco, planifica la fila y devuelve cada ficha a su sitio.",
+    savedBoard: (size) => `Tablero guardado · ${size} × ${size}`,
+    resume: "Continuar puzle",
+    newBoard: "Empezar otro tablero",
     boardSize: "Tamaño del tablero",
     sizeLabels: { 3: "3 × 3", 4: "4 × 4", 5: "5 × 5" },
     sizeDescription: {

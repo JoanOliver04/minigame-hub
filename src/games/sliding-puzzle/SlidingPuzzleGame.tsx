@@ -16,7 +16,7 @@ type PuzzleBoardStyle = CSSProperties & { "--puzzle-size": number };
 
 export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
   const { t, locale } = useLocale();
-  const { phase, game, seconds, start, move, canUndo, undo, playAgain, toSetup } = useSlidingPuzzle(dailyDay);
+  const { phase, game, seconds, start, move, canUndo, undo, playAgain, toSetup, saved, resume } = useSlidingPuzzle(dailyDay);
   const { best } = useDailyStatus(dailyDay ?? null);
   const board = useRef<HTMLDivElement>(null);
   const focusResult = useCallback((heading: HTMLHeadingElement | null) => heading?.focus(), []);
@@ -35,6 +35,10 @@ export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
           ))}
         </div>
         <p className="sliding-tagline">{t.slidingPuzzle.tagline}</p>
+        {saved && <div className="puzzle-resume">
+          <p>{t.slidingPuzzle.savedBoard(saved.game.size)} · {t.slidingPuzzle.result(saved.game.moves, Math.floor(saved.elapsedMs / 1000))}</p>
+          <button className="btn primary" onClick={resume}>{t.slidingPuzzle.resume}</button>
+        </div>}
         <span className="field-label">{t.slidingPuzzle.boardSize}</span>
         <SegPicker
           options={[
@@ -47,7 +51,9 @@ export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
         />
         <p className="sliding-note">{t.slidingPuzzle.sizeDescription[size]}</p>
         <div className="btn-row" style={{ marginTop: 22 }}>
-          <button className="btn primary" onClick={() => start({ size })}>{t.common.startMatch}</button>
+          <button className={saved ? "btn" : "btn primary"} onClick={() => start({ size })}>
+            {saved ? t.slidingPuzzle.newBoard : t.common.startMatch}
+          </button>
         </div>
       </section>
     );

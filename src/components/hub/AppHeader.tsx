@@ -14,10 +14,25 @@ const LOCALE_OPTIONS = [
   { value: "es", label: "ES" },
 ];
 
+function subscribeConnection(notify: () => void) {
+  const reconnected = () => {
+    document.documentElement.removeAttribute("data-offline-edition");
+    notify();
+  };
+  window.addEventListener("online", reconnected);
+  window.addEventListener("offline", notify);
+  return () => {
+    window.removeEventListener("online", reconnected);
+    window.removeEventListener("offline", notify);
+  };
+}
+
 /** Shared navigation and the EN/ES language switch. */
 export function AppHeader() {
   const { locale, setLocale, t } = useLocale();
   const sound = useSyncExternalStore(subscribeSound, isSoundEnabled, () => true);
+  const online = useSyncExternalStore(subscribeConnection,
+    () => navigator.onLine && !document.documentElement.hasAttribute("data-offline-edition"), () => true);
 
   return (
     <header className="app-header">
@@ -43,6 +58,7 @@ export function AppHeader() {
           />
         </div>
       </div>
+      {!online && <div className="offline-status" role="status">{t.app.offline}</div>}
     </header>
   );
 }
