@@ -22,7 +22,7 @@
 
 <br/>
 
-<a href="docs/screenshots/01-library.webp"><img src="docs/screenshots/01-library.webp" alt="The library with 37 games, category filters and today’s puzzle" width="820" /></a>
+<a href="docs/screenshots/01-library.png"><img src="docs/screenshots/01-library.png" alt="The library with 37 games, category filters and today’s puzzle" width="820" /></a>
 
 </div>
 
@@ -178,9 +178,9 @@ All 22 captures show the English interface. Select an image to open it at its or
 Star games, draw from your filtered favorites with **Surprise me**, or jump back into an unfinished duel. The scoreboard includes a completed win and a draw.
 
 <p>
-  <a href="docs/screenshots/02-favorites.webp"><img src="docs/screenshots/02-favorites.webp" alt="Six starred games and the Surprise me button in Favorites" width="298" /></a>
-  <a href="docs/screenshots/05-continue-playing.webp"><img src="docs/screenshots/05-continue-playing.webp" alt="Continue playing links back to the saved Mancala and Curling boards" width="298" /></a>
-  <a href="docs/screenshots/08-scoreboard.webp"><img src="docs/screenshots/08-scoreboard.webp" alt="A win and a draw from two completed games on the personal scoreboard" width="298" /></a>
+  <a href="docs/screenshots/02-favorites.png"><img src="docs/screenshots/02-favorites.png" alt="Six starred games and the Surprise me button in Favorites" width="298" /></a>
+  <a href="docs/screenshots/05-continue-playing.png"><img src="docs/screenshots/05-continue-playing.png" alt="Continue playing links back to the saved Mancala and Curling boards" width="298" /></a>
+  <a href="docs/screenshots/08-scoreboard.png"><img src="docs/screenshots/08-scoreboard.png" alt="A win and a draw from two completed games on the personal scoreboard" width="298" /></a>
 </p>
 
 ### AI opponents and match review
@@ -188,15 +188,15 @@ Star games, draw from your filtered favorites with **Surprise me**, or jump back
 Read the ice, sow seeds and connect both edges of the hex board. After a duel, step through the original moves. Connect Four also keeps the winning line on its final board.
 
 <p>
-  <a href="docs/screenshots/03-pocket-curling.webp"><img src="docs/screenshots/03-pocket-curling.webp" alt="Pocket Curling with two stones in the house and the next delivery lined up" width="298" /></a>
-  <a href="docs/screenshots/04-mancala.webp"><img src="docs/screenshots/04-mancala.webp" alt="Mancala after sowing, with seed counts in the pits and stores" width="298" /></a>
-  <a href="docs/screenshots/13-hex-dominion.webp"><img src="docs/screenshots/13-hex-dominion.webp" alt="Blue and red chains competing to connect opposite sides in Hex Dominion" width="298" /></a>
-  <a href="docs/screenshots/06-match-review.webp"><img src="docs/screenshots/06-match-review.webp" alt="Scrubbing through a finished game of Exact Fifteen, one pick at a time" width="298" /></a>
-  <a href="docs/screenshots/07-connect-four.webp"><img src="docs/screenshots/07-connect-four.webp" alt="The four winning discs highlighted on the final Connect Four board" width="298" /></a>
-  <a href="docs/screenshots/09-ice-floe.webp"><img src="docs/screenshots/09-ice-floe.webp" alt="Two penguins on a shrinking ice field with legal jumps marked" width="298" /></a>
-  <a href="docs/screenshots/10-pirate-loot.webp"><img src="docs/screenshots/10-pirate-loot.webp" alt="Pirate Loot with treasure available at either end of the row" width="298" /></a>
-  <a href="docs/screenshots/11-dots-boxes.webp"><img src="docs/screenshots/11-dots-boxes.webp" alt="A claimed box and the last edge drawn in Dots and Boxes" width="298" /></a>
-  <a href="docs/screenshots/12-mini-reversi.webp"><img src="docs/screenshots/12-mini-reversi.webp" alt="Mini Reversi with legal moves showing how many discs they flip" width="298" /></a>
+  <a href="docs/screenshots/03-pocket-curling.png"><img src="docs/screenshots/03-pocket-curling.png" alt="Pocket Curling with two stones in the house and the next delivery lined up" width="298" /></a>
+  <a href="docs/screenshots/04-mancala.png"><img src="docs/screenshots/04-mancala.png" alt="Mancala after sowing, with seed counts in the pits and stores" width="298" /></a>
+  <a href="docs/screenshots/13-hex-dominion.png"><img src="docs/screenshots/13-hex-dominion.png" alt="Blue and red chains competing to connect opposite sides in Hex Dominion" width="298" /></a>
+  <a href="docs/screenshots/06-match-review.png"><img src="docs/screenshots/06-match-review.png" alt="Scrubbing through a finished game of Exact Fifteen, one pick at a time" width="298" /></a>
+  <a href="docs/screenshots/07-connect-four.png"><img src="docs/screenshots/07-connect-four.png" alt="The four winning discs highlighted on the final Connect Four board" width="298" /></a>
+  <a href="docs/screenshots/09-ice-floe.png"><img src="docs/screenshots/09-ice-floe.png" alt="Two penguins on a shrinking ice field with legal jumps marked" width="298" /></a>
+  <a href="docs/screenshots/10-pirate-loot.png"><img src="docs/screenshots/10-pirate-loot.png" alt="Pirate Loot with treasure available at either end of the row" width="298" /></a>
+  <a href="docs/screenshots/11-dots-boxes.png"><img src="docs/screenshots/11-dots-boxes.png" alt="A claimed box and the last edge drawn in Dots and Boxes" width="298" /></a>
+  <a href="docs/screenshots/12-mini-reversi.png"><img src="docs/screenshots/12-mini-reversi.png" alt="Mini Reversi with legal moves showing how many discs they flip" width="298" /></a>
 </p>
 
 ### Dice, targets and tiles
@@ -204,10 +204,10 @@ Read the ice, sow seeds and connect both edges of the hex board. After a duel, s
 Choose a die upgrade, plot a shot against the wind, search enemy waters and build melds on the table.
 
 <p>
-  <a href="docs/screenshots/14-diceforge-arena.webp"><img src="docs/screenshots/14-diceforge-arena.webp" alt="Choosing a die-face upgrade after a round in Diceforge Arena" width="298" /></a>
-  <a href="docs/screenshots/15-windline-archery.webp"><img src="docs/screenshots/15-windline-archery.webp" alt="Windline Archery with the target, wind reading and shot result" width="298" /></a>
-  <a href="docs/screenshots/16-fleet-command.webp"><img src="docs/screenshots/16-fleet-command.webp" alt="Fleet Command showing enemy waters and the player’s own ships" width="298" /></a>
-  <a href="docs/screenshots/17-tile-rummy.webp"><img src="docs/screenshots/17-tile-rummy.webp" alt="Tile Rummy with melds on the table and tiles left on the rack" width="298" /></a>
+  <a href="docs/screenshots/14-diceforge-arena.png"><img src="docs/screenshots/14-diceforge-arena.png" alt="Choosing a die-face upgrade after a round in Diceforge Arena" width="298" /></a>
+  <a href="docs/screenshots/15-windline-archery.png"><img src="docs/screenshots/15-windline-archery.png" alt="Windline Archery with the target, wind reading and shot result" width="298" /></a>
+  <a href="docs/screenshots/16-fleet-command.png"><img src="docs/screenshots/16-fleet-command.png" alt="Fleet Command showing enemy waters and the player’s own ships" width="298" /></a>
+  <a href="docs/screenshots/17-tile-rummy.png"><img src="docs/screenshots/17-tile-rummy.png" alt="Tile Rummy with melds on the table and tiles left on the rack" width="298" /></a>
 </p>
 
 ### Play with friends
@@ -215,8 +215,8 @@ Choose a die upgrade, plot a shot against the wind, search enemy waters and buil
 Choose a game when creating a room. A friend can join by code or invitation link. The Exact Fifteen board below shows four live moves played from two browsers using the Firebase emulators.
 
 <p>
-  <a href="docs/screenshots/18-invite-a-friend.webp"><img src="docs/screenshots/18-invite-a-friend.webp" alt="Creating a private room with Pocket Curling selected" width="298" /></a>
-  <a href="docs/screenshots/22-friends-match.webp"><img src="docs/screenshots/22-friends-match.webp" alt="Alex and Sam drafting numbers in a private Exact Fifteen room" width="298" /></a>
+  <a href="docs/screenshots/18-invite-a-friend.png"><img src="docs/screenshots/18-invite-a-friend.png" alt="Creating a private room with Pocket Curling selected" width="298" /></a>
+  <a href="docs/screenshots/22-friends-match.png"><img src="docs/screenshots/22-friends-match.png" alt="Alex and Sam drafting numbers in a private Exact Fifteen room" width="298" /></a>
 </p>
 
 ### On a phone
@@ -224,9 +224,9 @@ Choose a game when creating a room. A friend can join by code or invitation link
 The room-code form, daily puzzle with a hint, and treasure draft use the mobile layout.
 
 <p>
-  <a href="docs/screenshots/19-join-on-mobile.webp"><img src="docs/screenshots/19-join-on-mobile.webp" alt="Joining a friend by room code on a phone" width="230" /></a>
-  <a href="docs/screenshots/20-daily-puzzle.webp"><img src="docs/screenshots/20-daily-puzzle.webp" alt="The daily sliding puzzle on a phone, with a suggested tile" width="230" /></a>
-  <a href="docs/screenshots/21-mobile-treasure.webp"><img src="docs/screenshots/21-mobile-treasure.webp" alt="The Pirate Loot treasure draft arranged for a phone screen" width="230" /></a>
+  <a href="docs/screenshots/19-join-on-mobile.png"><img src="docs/screenshots/19-join-on-mobile.png" alt="Joining a friend by room code on a phone" width="230" /></a>
+  <a href="docs/screenshots/20-daily-puzzle.png"><img src="docs/screenshots/20-daily-puzzle.png" alt="The daily sliding puzzle on a phone, with a suggested tile" width="230" /></a>
+  <a href="docs/screenshots/21-mobile-treasure.png"><img src="docs/screenshots/21-mobile-treasure.png" alt="The Pirate Loot treasure draft arranged for a phone screen" width="230" /></a>
 </p>
 
 ---
