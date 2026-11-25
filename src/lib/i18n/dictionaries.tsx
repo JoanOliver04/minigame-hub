@@ -965,6 +965,8 @@ export interface Dictionary {
     navLink: string;
     homeHint: string;
     inviteFriend: string;
+    playWithFriend: string;
+    navHint: string;
     haveCode: string;
     inviteLink: string;
     linkCopied: string;
@@ -1231,6 +1233,8 @@ const en: Dictionary = {
   gamesMeta: {
     "mini-reversi": { name: "Mini Reversi", description: "Bracket discs to flip them. Can you hold the corners of this 6 × 6 board?" },
     "dots-boxes": { name: "Dots and Boxes", description: "Draw the fourth side to claim a box and play again. How many can you chain in one turn?" },
+    "ice-floe": { name: "Ice Floe", description: "Jump before the ice gives way. Cut off the other penguin’s escape route while keeping one for yourself." },
+    "pirate-loot": { name: "Pirate Loot", description: "Split a haul of coins, keys and chests. Every prize you take uncovers a new choice for your rival." },
     mancala: { name: "Mancala", description: "Sow seeds around the board. Time your last drop to steal a pile or earn an extra turn." },
     "dice-race": { name: "Race to 30", description: "Roll to build a streak or bank your points before a one wipes out the turn." },
     guess: {
@@ -2902,6 +2906,8 @@ const en: Dictionary = {
     navLink: "Play with Friends",
     homeHint: "Challenge a friend in a private room for two.",
     inviteFriend: "Invite a friend",
+    playWithFriend: "Play with a friend",
+    navHint: "Create or join a room",
     haveCode: "I have a code",
     inviteLink: "Copy invitation link",
     linkCopied: "Invitation link copied",
@@ -3201,6 +3207,8 @@ const es: Dictionary = {
   gamesMeta: {
     "mini-reversi": { name: "Mini Reversi", description: "Atrapa fichas entre las tuyas para darles la vuelta. ¿Quién dominará las esquinas del tablero de 6 × 6?" },
     "dots-boxes": { name: "Puntos y cajas", description: "Traza el cuarto lado de una caja para quedártela y volver a jugar. ¿Cuántas puedes encadenar?" },
+    "ice-floe": { name: "Hielo a la deriva", description: "Cada salto hunde un trozo de hielo. Corta el paso al otro pingüino y reserva una salida para el tuyo." },
+    "pirate-loot": { name: "Botín pirata", description: "Reparte monedas, llaves y cofres. Cada tesoro que te llevas deja otro al alcance de tu rival." },
     mancala: { name: "Mancala", description: "Reparte semillas de hoyo en hoyo. Calcula dónde caerá la última para capturar las del rival o repetir turno." },
     "dice-race": { name: "Dados a 30", description: "Suma puntos con cada tirada y decide cuándo plantarte. Si sale un uno, pierdes lo acumulado en ese turno." },
     guess: {
@@ -4908,6 +4916,8 @@ const es: Dictionary = {
     navLink: "Jugar con amigos",
     homeHint: "Reta a un amigo en una sala privada para dos.",
     inviteFriend: "Invitar a un amigo",
+    playWithFriend: "Jugar con un amigo",
+    navHint: "Crear o unirse a una sala",
     haveCode: "Tengo un código",
     inviteLink: "Copiar enlace de invitación",
     linkCopied: "Enlace de invitación copiado",

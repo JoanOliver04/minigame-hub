@@ -37,6 +37,14 @@ const TARGET_BOARD_SETTING: RoomSettingDefinition = {
  * mode yet.
  */
 export const ROOM_GAMES: Record<string, RoomGameModule> = {
+  "ice-floe": {
+    loadLogic: () => import("./duels/room").then(module => module.iceRoom),
+    RoomComponent: dynamic(() => import("./duels/RoomGames").then(module => module.IceRoomGame)),
+  },
+  "pirate-loot": {
+    loadLogic: () => import("./duels/room").then(module => module.lootRoom),
+    RoomComponent: dynamic(() => import("./duels/RoomGames").then(module => module.LootRoomGame)),
+  },
   "dots-boxes": {
     loadLogic: () => import("./duels/room").then(module => module.boxesRoom),
     RoomComponent: dynamic(() => import("./duels/RoomGames").then(module => module.BoxesRoomGame)),

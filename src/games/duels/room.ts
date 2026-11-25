@@ -4,6 +4,8 @@ import { diceRace } from "../dice-race/logic";
 import { reversi } from "../mini-reversi/logic";
 import { boxes } from "../dots-boxes/logic";
 import { mancala } from "../mancala/logic";
+import { ice } from "../ice-floe/logic";
+import { loot } from "../pirate-loot/logic";
 import type { DuelRules, DuelState } from "./types";
 
 export interface RoomMatch<S> { state: S; seats: string[]; match: number; turn: string | null; }
@@ -52,3 +54,5 @@ export const reversiRoom = roomMode(reversi);
 export const diceRoom = roomMode(diceRace);
 export const boxesRoom = roomMode(boxes);
 export const mancalaRoom = roomMode(mancala);
+export const iceRoom = roomMode(ice);
+export const lootRoom = roomMode(loot);

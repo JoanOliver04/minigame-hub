@@ -22,6 +22,13 @@ export function GameCard({ game, favorite, onlyFavorites }: { game: GameDefiniti
         <span className="name">{meta.name}</span>
         <span className="desc">{meta.description}</span>
       </Link>
+      {game.supportsMultiplayer && (
+        <Link href={`/rooms?game=${game.id}`} className="game-friend-action" prefetch={false}
+          aria-label={`${t.rooms.playWithFriend} · ${meta.name}`}>
+          <span aria-hidden="true">👥</span> {t.rooms.playWithFriend}
+          <span className="friend-arrow" aria-hidden="true">→</span>
+        </Link>
+      )}
       <button type="button" className="favorite-star" aria-label={t.hub.favoriteLabel(meta.name)}
         title={t.hub.favoriteLabel(meta.name)} aria-pressed={favorite} onClick={(event) => {
           if (onlyFavorites) {

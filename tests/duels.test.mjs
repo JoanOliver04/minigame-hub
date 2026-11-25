@@ -7,6 +7,60 @@ const { opening, captures, countDiscs, legalMoves, place, reversi } = load("game
 const { diceRace } = load("games/dice-race/logic");
 const { boxes, boxScores } = load("games/dots-boxes/logic");
 const { mancala } = load("games/mancala/logic");
+const { ice, iceOpening, jumps } = load("games/ice-floe/logic");
+const { loot, lootOpening } = load("games/pirate-loot/logic");
+
+test("ice sinks after each jump, prevents wrapping, and ends when the other penguin is trapped", () => {
+  const water = (2 ** 25 - 1) ^ ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 5));
+  const start = { ...iceOpening(4), pawns: [0, 2], water };
+  assert.deepEqual(jumps(start, 0), [1, 5]);
+  for (const pos of [0, 2, 4, -1, 1.3]) assert.equal(ice.play(start, pos), start);
+  assert.equal(ice.choose(start, "hard"), 1);
+  const next = ice.play(start, 1);
+  assert.equal(next.winner, 0);
+  assert.deepEqual(next.pawns, [1, 2]);
+  assert.equal(next.water, water | 1);
+  assert.equal(ice.play(next, 5), next);
+});
+
+test("treasure keys belong to the picker, are consumed by one chest, and either end may be taken", () => {
+  const start = { ...lootOpening(4), deck: ["key", "chest", 2, "chest"], right: 3 };
+  assert.equal(loot.play(start, 1), start);
+  let next = loot.play(start, 0);
+  assert.deepEqual(next.keys, [1, 0]);
+  next = loot.play(next, 3);
+  assert.deepEqual(next.gold, [1, 2]);
+  next = loot.play(next, 1);
+  assert.deepEqual(next.keys, [0, 0]);
+  assert.deepEqual(next.gold, [11, 2]);
+  next = loot.play(next, 2);
+  assert.equal(next.winner, 0);
+  assert.equal(next.moves, 4);
+  assert.equal(loot.play(next, 2), next);
+  const tied = loot.play({ ...lootOpening(1), deck: [3], right: 0, gold: [0, 3] }, 0);
+  assert.equal(tied.winner, "tie");
+  const bait = { ...lootOpening(1), deck: [5, 7, 2, 4], right: 3 };
+  assert.equal(loot.choose(bait, "hard"), 3);
+});
+
+test("both seeded openings replay and all three AIs legally finish varied matches", () => {
+  for (const [rules, opening, limit] of [[ice, iceOpening, 22], [loot, lootOpening, 12]]) {
+    for (const seed of [1, 27, 99]) {
+      assert.deepEqual(opening(seed), opening(seed));
+      for (const level of ["easy", "medium", "hard"]) {
+        let state = opening(seed);
+        while (state.winner === null) {
+          const next = rules.play(state, rules.choose(state, level));
+          assert.equal(next.moves, state.moves + 1);
+          assert.ok(next.moves <= limit);
+          state = next;
+        }
+        if (rules === loot) assert.equal(state.moves, 12);
+        else assert.deepEqual(jumps(state, state.active), []);
+      }
+    }
+  }
+});
 
 test("one shared line closes two boxes and keeps the turn", () => {
   let state = boxes.start();

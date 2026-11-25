@@ -1,5 +1,41 @@
 import { expect, test } from "@playwright/test";
 
+test("the catalogue and favorites offer game-specific friend rooms alongside solo play", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/");
+  await expect(page.locator("header .friends-link")).toHaveAccessibleDescription("Crear o unirse a una sala");
+  const tile = page.locator(".game-tile").filter({ has: page.locator('a[href="/games/pirate-loot"]') });
+  await tile.locator(".favorite-star").click();
+  await tile.getByRole("link", { name: "Jugar con un amigo · Botín pirata" }).click();
+  await expect(page.locator("#room-game")).toHaveValue("pirate-loot");
+  await page.goto("/favorites");
+  await expect(page.locator(".game-friend-action")).toHaveAttribute("href", "/rooms?game=pirate-loot");
+  await page.goto("/");
+  await expect(page.locator(".game-friend-action")).toHaveCount(34);
+  await expect(page.locator('.game-tile:has([href="/games/sliding-puzzle"]) .game-friend-action')).toHaveCount(0);
+});
+
+test("penguins and pirates respond to the player and complete replayable solo games", async ({ page }) => {
+  test.setTimeout(90_000);
+  for (const [id, control] of [["ice-floe", ".ice-tile"], ["pirate-loot", ".loot-card"]]) {
+    await page.goto("/games/" + id);
+    await page.getByRole("button", { name: "Jugar contra la IA" }).click();
+    const replay = page.getByRole("button", { name: "Jugar de nuevo" });
+    const action = page.locator(control + ":enabled").first();
+    for (let turn = 0; turn < 14; turn++) {
+      await expect(action.or(replay).first()).toBeVisible();
+      if (await replay.isVisible()) break;
+      await action.click();
+    }
+    await replay.click();
+    await expect(action).toBeEnabled();
+    if (id === "pirate-loot") await expect(page.locator('.loot-card[data-taken="true"]')).toHaveCount(0);
+    else await expect(page.locator('.ice-tile[data-water="true"]')).toHaveCount(2);
+  }
+  await page.goto("/scores");
+  await expect(page.locator(".score-totals dd").first()).toHaveText("2");
+});
+
 test("the friends link keeps its full name on mobile and a game invitation preselects the right room", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/");
@@ -7,7 +43,7 @@ test("the friends link keeps its full name on mobile and a game invitation prese
   await expect(page.getByRole("heading", { name: "Jugar con amigos" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Unirse a una sala" })).toBeVisible();
   const defaultGame = await page.getByLabel("Juego", { exact: true }).inputValue();
-  for (const id of ["mini-reversi", "dice-race", "dots-boxes", "mancala"]) {
+  for (const id of ["mini-reversi", "dice-race", "dots-boxes", "mancala", "ice-floe", "pirate-loot"]) {
     await page.goto("/games/" + id);
     await expect(page.getByRole("button", { name: "Jugar contra la IA" })).toBeVisible();
     await page.getByRole("main").getByRole("link", { name: "Jugar con amigos" }).click();

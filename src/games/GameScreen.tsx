@@ -7,6 +7,8 @@ import { useLocale } from "@/context/LocaleContext";
 
 // Keep the import paths literal so Next.js can split each game into its own chunks.
 const gameScreens = {
+  "ice-floe": dynamic(() => import("./ice-floe/Game").then(module => module.Game)),
+  "pirate-loot": dynamic(() => import("./pirate-loot/Game").then(module => module.Game)),
   "dots-boxes": dynamic(() => import("./dots-boxes/Game").then(module => module.Game)),
   mancala: dynamic(() => import("./mancala/Game").then(module => module.Game)),
   "mini-reversi": dynamic(() => import("./mini-reversi/Game").then(module => module.Game)),

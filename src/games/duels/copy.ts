@@ -2,6 +2,8 @@ export const duelCopy = {
   en: {
     solo: "Play against the AI", tie: "Draw",
     rules: {
+      "ice-floe": "Jump one tile in any direction, including diagonals. Your old tile sinks immediately. You cannot land on water or the other penguin. Leave your opponent without a legal jump to win.",
+      "pirate-loot": "Take the first or last prize from the row of twelve, reading left to right, top to bottom. Coins score their face value. Each key gives 1 gold and opens one future chest. A chest pays 10 gold with a key or 2 without. After the last pick, whoever has more gold wins.",
       "dots-boxes": "Take turns drawing one line between neighbouring dots. Complete the fourth side to claim a box and play again. One line can close two boxes. Whoever owns the most of the nine boxes wins.",
       mancala: "Choose a pit in your row. Drop its seeds one by one in the direction of the arrows, including your store and skipping your opponent’s store. Land in your store for another turn. Land in an empty pit of your own opposite a nonempty pit to capture both pits. When either row empties, each player banks the seeds left on their side. The larger store wins.",
       "mini-reversi": "Put a disc on a marked square. All opposing discs trapped in a straight line between yours flip, even diagonally. If one player has no move, the other plays again. When neither can move, the player with more discs wins.",
@@ -17,6 +19,8 @@ export const duelCopy = {
   es: {
     solo: "Jugar contra la IA", tie: "Empate",
     rules: {
+      "ice-floe": "Salta una casilla en cualquier dirección, también en diagonal. La casilla que dejas se hunde. No puedes saltar al agua ni sobre el otro pingüino. Ganas si dejas al rival sin ningún salto posible.",
+      "pirate-loot": "Elige el primer o el último tesoro de los doce, leyendo de izquierda a derecha y de arriba abajo. Las monedas suman su valor. Cada llave da 1 de oro y abre un futuro cofre. Un cofre da 10 de oro si gastas una llave y 2 si lo tomas cerrado. Gana quien termine con más oro.",
       "dots-boxes": "Por turnos, traza una línea entre dos puntos vecinos. Si cierras el cuarto lado de una caja, te la quedas y vuelves a jugar. Una sola línea puede cerrar dos cajas. Gana quien consiga más de las nueve.",
       mancala: "Elige un hoyo de tu fila. Reparte sus semillas de una en una siguiendo las flechas, pasando por tu granero y saltándote el rival. Si terminas en tu granero, repites. Si terminas en un hoyo propio vacío y hay semillas enfrente, te llevas las de ambos hoyos. Cuando una fila queda vacía, cada jugador guarda las semillas que queden en su lado. Gana quien reúna más.",
       "mini-reversi": "Coloca una ficha en una casilla marcada. Se dan la vuelta todas las fichas rivales que encierres en línea recta, también en diagonal. Si un jugador no puede mover, repite el otro. Cuando ninguno puede mover, gana quien tenga más fichas.",

@@ -15,7 +15,11 @@ import { BoxesBoard } from "../dots-boxes/Board";
 import { MancalaBoard } from "../mancala/Board";
 import type { BoxesState } from "../dots-boxes/logic";
 import type { MancalaState } from "../mancala/logic";
-import { boxesRoom, diceRoom, mancalaRoom, reversiRoom, roomVersion, type RoomMatch } from "./room";
+import { IceBoard } from "../ice-floe/Board";
+import { LootBoard } from "../pirate-loot/Board";
+import type { IceState } from "../ice-floe/logic";
+import type { LootState } from "../pirate-loot/logic";
+import { boxesRoom, diceRoom, iceRoom, lootRoom, mancalaRoom, reversiRoom, roomVersion, type RoomMatch } from "./room";
 import { duelCopy } from "./copy";
 import type { BoardProps, DuelId, DuelState } from "./types";
 
@@ -71,6 +75,12 @@ function RoomDuel<S extends DuelState, A>({ code, uid, room: snapshot, id, actio
 
 export function ReversiRoomGame(props: RoomViewProps) {
   return <RoomDuel<ReversiState, number> {...props} id="mini-reversi" actions={reversiRoom} Board={ReversiBoard} />;
+}
+export function IceRoomGame(props: RoomViewProps) {
+  return <RoomDuel<IceState, number> {...props} id="ice-floe" actions={iceRoom} Board={IceBoard} />;
+}
+export function LootRoomGame(props: RoomViewProps) {
+  return <RoomDuel<LootState, number> {...props} id="pirate-loot" actions={lootRoom} Board={LootBoard} />;
 }
 export function BoxesRoomGame(props: RoomViewProps) {
   return <RoomDuel<BoxesState, number> {...props} id="dots-boxes" actions={boxesRoom} Board={BoxesBoard} />;
