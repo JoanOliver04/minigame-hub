@@ -4,9 +4,9 @@ const start = (page: Page) => page.locator("main section.card button.btn.primary
 
 test("word replay rotates the pool and incompatible guesses leave the budget untouched", async ({ page }) => {
   await page.goto("/games/word-guess");
-  await page.locator("header").getByRole("button", { name: "EN" }).click();
+  await page.locator("header").getByRole("button", { name: "EN", exact: true }).click();
   await expect(page.locator("main .seg").last().locator("[aria-pressed=true]")).toHaveText("English");
-  await page.locator("header").getByRole("button", { name: "ES" }).click();
+  await page.locator("header").getByRole("button", { name: "ES", exact: true }).click();
   await expect(page.locator("main .seg").last().locator("[aria-pressed=true]")).toHaveText("Castellano");
   await page.evaluate(() => { Math.random = () => 0; });
   await start(page);
