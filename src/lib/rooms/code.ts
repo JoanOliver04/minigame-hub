@@ -13,3 +13,17 @@ export function normalizeRoomCode(value: string): string | null {
   const code = value.trim();
   return ROOM_CODE.test(code) ? code.toUpperCase() : null;
 }
+
+/** Always return a local room code, never an invitation's destination URL. */
+export function roomCodeFromInvite(value: string, origin: string): string | null {
+  const code = normalizeRoomCode(value);
+  if (code) return code;
+  try {
+    const url = new URL(value.trim());
+    if (url.origin !== origin || url.username || url.password) return null;
+    const path = /^\/rooms\/([^/]+)\/?$/.exec(url.pathname);
+    return path ? normalizeRoomCode(path[1]) : null;
+  } catch {
+    return null;
+  }
+}

@@ -5,7 +5,7 @@ import { createSourceLoader } from "./load-typescript.mjs";
 const load = createSourceLoader();
 const { filterGames } = load("games/filter");
 const { sanitizeScores, decodeScoreSnapshot, recordScore } = load("lib/scoreStore");
-const { generateRoomCode, normalizeRoomCode } = load("lib/rooms/code");
+const { generateRoomCode, normalizeRoomCode, roomCodeFromInvite } = load("lib/rooms/code");
 
 test("search combines accent-insensitive words with category and multiplayer filters", () => {
   const games = [
@@ -57,6 +57,13 @@ test("recording starts from current storage or legacy results and preserves earl
 });
 
 test("room links accept canonical codes and reject malformed strings", () => {
+  const origin = "https://mini.example";
+  assert.equal(roomCodeFromInvite("  k7rxpq ", origin), "K7RXPQ");
+  assert.equal(roomCodeFromInvite(origin + "/rooms/k7rxpq/?via=chat", origin), "K7RXPQ");
+  for (const url of ["https://other.example/rooms/K7RXPQ", origin + "/games/K7RXPQ", origin + "/rooms/ABC",
+    origin + "/rooms/K7RXPQ/another", "https://x@mini.example/rooms/K7RXPQ"]) {
+    assert.equal(roomCodeFromInvite(url, origin), null);
+  }
   assert.equal(normalizeRoomCode(" k7rxpq "), "K7RXPQ");
   for (const code of ["", "BO25AA", "IX25AA", "AB25A1", "AB25A0", "AB/25A", "AB25", "AB25ABC", "AB 25A"]) {
     assert.equal(normalizeRoomCode(code), null, code);

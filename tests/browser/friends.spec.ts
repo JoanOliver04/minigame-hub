@@ -1,9 +1,56 @@
 import { expect, test } from "@playwright/test";
 
+test("the friends button opens both paths and accepts a pasted invitation without truncating it", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.goto("/games/pocket-curling");
+  const friends = page.locator("header .friends-link");
+  await friends.click();
+  await expect(friends).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#friends-options a").first()).toHaveAttribute("href", "/rooms?game=pocket-curling");
+  await page.keyboard.press("Escape");
+  await expect(friends).toBeFocused();
+  await friends.click();
+  await page.getByRole("link", { name: "Usar una invitación" }).click();
+  await page.locator("#room-player-name").fill("Invitado");
+  const field = page.getByLabel("Código de sala o enlace de invitación");
+  await field.fill("invitación incompleta");
+  await page.locator("form button[type=submit]").click();
+  await expect(page.getByRole("alert").filter({ hasText: "seis caracteres" })).toBeVisible();
+  const link = new URL("/rooms/k7rxpq?via=chat", page.url()).href;
+  await page.route(/https:\/\/(?:firestore|identitytoolkit)\.googleapis\.com\//, route => route.abort());
+  await field.fill(link);
+  await expect(field).toHaveValue(link);
+  await page.locator("form button[type=submit]").click();
+  await expect(page).toHaveURL(/\/rooms\/K7RXPQ$/);
+});
+
+test("curling and exact fifteen play through against AI and record one finish each", async ({ page }) => {
+  test.setTimeout(90_000);
+  for (const [id, control] of [["pocket-curling", ".curl-throw"], ["exact-fifteen", ".fifteen-number"]]) {
+    await page.goto("/games/" + id);
+    await page.getByRole("button", { name: "Jugar contra la IA" }).click();
+    if (id === "pocket-curling") {
+      await page.locator(".curl-controls select").selectOption("1");
+      await page.locator(".curl-controls input").first().press("ArrowLeft");
+    }
+    const next = page.locator(control + ":enabled").first();
+    const replay = page.getByRole("button", { name: "Jugar de nuevo" });
+    for (let i = 0; i < 12; i++) {
+      await expect(next.or(replay).first()).toBeVisible();
+      if (await replay.isVisible()) break;
+      await next.click();
+    }
+    await replay.click();
+    await expect(next).toBeEnabled();
+  }
+  await page.goto("/scores");
+  await expect(page.locator(".score-totals dd").first()).toHaveText("2");
+});
+
 test("the catalogue and favorites offer game-specific friend rooms alongside solo play", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/");
-  await expect(page.locator("header .friends-link")).toHaveAccessibleDescription("Crear o unirse a una sala");
+  await expect(page.locator("header .friends-link")).toHaveAccessibleDescription("Invitar o unirse");
   const tile = page.locator(".game-tile").filter({ has: page.locator('a[href="/games/pirate-loot"]') });
   await tile.locator(".favorite-star").click();
   await tile.getByRole("link", { name: "Jugar con un amigo · Botín pirata" }).click();
@@ -11,7 +58,7 @@ test("the catalogue and favorites offer game-specific friend rooms alongside sol
   await page.goto("/favorites");
   await expect(page.locator(".game-friend-action")).toHaveAttribute("href", "/rooms?game=pirate-loot");
   await page.goto("/");
-  await expect(page.locator(".game-friend-action")).toHaveCount(34);
+  await expect(page.locator(".game-friend-action")).toHaveCount(36);
   await expect(page.locator('.game-tile:has([href="/games/sliding-puzzle"]) .game-friend-action')).toHaveCount(0);
 });
 
@@ -39,11 +86,12 @@ test("penguins and pirates respond to the player and complete replayable solo ga
 test("the friends link keeps its full name on mobile and a game invitation preselects the right room", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/");
-  await page.getByRole("link", { name: "Jugar con amigos", exact: true }).click();
+  await page.getByRole("button", { name: "Jugar con amigos", exact: true }).click();
+  await page.locator("header").getByRole("link", { name: "Invitar a un amigo" }).click();
   await expect(page.getByRole("heading", { name: "Jugar con amigos" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Unirse a una sala" })).toBeVisible();
   const defaultGame = await page.getByLabel("Juego", { exact: true }).inputValue();
-  for (const id of ["mini-reversi", "dice-race", "dots-boxes", "mancala", "ice-floe", "pirate-loot"]) {
+  for (const id of ["mini-reversi", "dice-race", "dots-boxes", "mancala", "ice-floe", "pirate-loot", "pocket-curling", "exact-fifteen"]) {
     await page.goto("/games/" + id);
     await expect(page.getByRole("button", { name: "Jugar contra la IA" })).toBeVisible();
     await page.getByRole("main").getByRole("link", { name: "Jugar con amigos" }).click();
@@ -63,7 +111,8 @@ test("friends can open the code form from home or invite from an existing game",
   await page.getByRole("link", { name: "Invitar a un amigo" }).click();
   await expect(page.locator("#room-game")).toBeVisible();
   await page.goto("/games/connect-four");
-  await page.locator("header").getByRole("link", { name: "Jugar con amigos" }).click();
+  await page.locator("header").getByRole("button", { name: "Jugar con amigos" }).click();
+  await page.locator("header").getByRole("link", { name: "Invitar a un amigo" }).click();
   await expect(page.locator("#room-game")).toHaveValue("connect-four");
 });
 

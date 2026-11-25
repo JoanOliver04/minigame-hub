@@ -35,6 +35,8 @@ import { windlineArcheryGame } from "./windline-archery";
 import { wordGuessGame } from "./word-guess";
 
 export const GAMES = [
+  { id: "pocket-curling", icon: "🥌", category: "action", hasTies: true, supportsMultiplayer: true },
+  { id: "exact-fifteen", icon: "🔢", category: "logic", hasTies: true, supportsMultiplayer: true },
   { id: "ice-floe", icon: "🐧", category: "strategy", hasTies: false, supportsMultiplayer: true },
   { id: "pirate-loot", icon: "🪙", category: "cards", hasTies: true, supportsMultiplayer: true },
   { id: "dots-boxes", icon: "⊞", category: "logic", hasTies: false, supportsMultiplayer: true },

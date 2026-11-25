@@ -128,6 +128,8 @@ export function RoomClient({ code }: { code: string }) {
   if (needsToJoin && !name.trim()) {
     return (
       <section className="card screen">
+        <h1>{t.rooms.navLink}</h1>
+        <p>{t.rooms.invitedBy(room.players[room.hostUid].name, t.gamesMeta[room.gameId]?.name ?? room.gameId)}</p>
         <form onSubmit={(event) => {
           event.preventDefault();
           if (nameDraft.trim()) void handleJoin(nameDraft.trim());

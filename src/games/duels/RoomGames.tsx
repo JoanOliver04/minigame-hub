@@ -19,7 +19,11 @@ import { IceBoard } from "../ice-floe/Board";
 import { LootBoard } from "../pirate-loot/Board";
 import type { IceState } from "../ice-floe/logic";
 import type { LootState } from "../pirate-loot/logic";
-import { boxesRoom, diceRoom, iceRoom, lootRoom, mancalaRoom, reversiRoom, roomVersion, type RoomMatch } from "./room";
+import { CurlingBoard } from "../pocket-curling/Board";
+import { FifteenBoard } from "../exact-fifteen/Board";
+import type { CurlingState, Shot } from "../pocket-curling/logic";
+import type { FifteenState } from "../exact-fifteen/logic";
+import { boxesRoom, curlingRoom, diceRoom, fifteenRoom, iceRoom, lootRoom, mancalaRoom, reversiRoom, roomVersion, type RoomMatch } from "./room";
 import { duelCopy } from "./copy";
 import type { BoardProps, DuelId, DuelState } from "./types";
 
@@ -75,6 +79,12 @@ function RoomDuel<S extends DuelState, A>({ code, uid, room: snapshot, id, actio
 
 export function ReversiRoomGame(props: RoomViewProps) {
   return <RoomDuel<ReversiState, number> {...props} id="mini-reversi" actions={reversiRoom} Board={ReversiBoard} />;
+}
+export function CurlingRoomGame(props: RoomViewProps) {
+  return <RoomDuel<CurlingState, Shot> {...props} id="pocket-curling" actions={curlingRoom} Board={CurlingBoard} />;
+}
+export function FifteenRoomGame(props: RoomViewProps) {
+  return <RoomDuel<FifteenState, number> {...props} id="exact-fifteen" actions={fifteenRoom} Board={FifteenBoard} />;
 }
 export function IceRoomGame(props: RoomViewProps) {
   return <RoomDuel<IceState, number> {...props} id="ice-floe" actions={iceRoom} Board={IceBoard} />;

@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/ui/BackLink";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import { normalizeRoomCode, ROOM_CODE_LENGTH } from "@/lib/rooms/code";
+import { roomCodeFromInvite } from "@/lib/rooms/code";
 import { MAX_PLAYER_NAME_LENGTH, usePlayerName } from "@/lib/rooms/usePlayerName";
 import { GAMES } from "@/games/registry";
 
@@ -76,7 +76,7 @@ function RoomsForm({ initialTab, requested }: { initialTab: "create" | "join"; r
       setError(t.rooms.nameRequired);
       return;
     }
-    const code = normalizeRoomCode(codeInput);
+    const code = roomCodeFromInvite(codeInput, window.location.origin);
     if (code === null) {
       setError(codeInput.trim() ? t.rooms.invalidCode : t.rooms.codeRequired);
       return;
@@ -131,15 +131,15 @@ function RoomsForm({ initialTab, requested }: { initialTab: "create" | "join"; r
           </>
         ) : (
           <>
-            <label className="field-label" htmlFor="join-room-code">{t.rooms.roomCodeLabel}</label>
+            <label className="field-label" htmlFor="join-room-code">{t.rooms.inviteField}</label>
             <input
               id="join-room-code"
               className="text-input"
               value={codeInput}
-              onChange={(event) => setCodeInput(event.target.value.toUpperCase())}
+              onChange={(event) => setCodeInput(event.target.value)}
               placeholder={t.rooms.codePlaceholder}
-              maxLength={ROOM_CODE_LENGTH}
-              autoCapitalize="characters"
+              autoCapitalize="none"
+              spellCheck={false}
               autoComplete="off"
             />
           </>

@@ -2,6 +2,8 @@ export const duelCopy = {
   en: {
     solo: "Play against the AI", tie: "Draw",
     rules: {
+      "exact-fifteen": "Take turns claiming a number from 1 to 9. Each number can only be taken once. The first player with three different numbers that add up to exactly 15 wins. They can be anywhere on the board. If all nine are taken with no winning trio, the game is a draw.",
+      "pocket-curling": "Adjust the angle, power and curl. The dots show your path on empty ice. Hit a stone and both can move. Each player delivers two stones per end. Only stones touching the target count. The side closest to its centre scores one point for each stone closer than the opponent’s best. An exact tie scores zero. Play three ends, alternating the first throw.",
       "ice-floe": "Jump one tile in any direction, including diagonals. Your old tile sinks immediately. You cannot land on water or the other penguin. Leave your opponent without a legal jump to win.",
       "pirate-loot": "Take the first or last prize from the row of twelve, reading left to right, top to bottom. Coins score their face value. Each key gives 1 gold and opens one future chest. A chest pays 10 gold with a key or 2 without. After the last pick, whoever has more gold wins.",
       "dots-boxes": "Take turns drawing one line between neighbouring dots. Complete the fourth side to claim a box and play again. One line can close two boxes. Whoever owns the most of the nine boxes wins.",
@@ -19,6 +21,8 @@ export const duelCopy = {
   es: {
     solo: "Jugar contra la IA", tie: "Empate",
     rules: {
+      "exact-fifteen": "Por turnos, elige un número libre del 1 al 9. Ganas si tres de los números que has elegido suman exactamente 15, estén donde estén en el tablero. Si se agotan los nueve sin que nadie lo consiga, hay empate.",
+      "pocket-curling": "Ajusta el ángulo, la potencia y el efecto. Los puntos marcan la trayectoria en hielo libre. Si chocas con otra piedra, puedes desplazarla. Cada jugador lanza dos piedras por manga. Solo cuentan las que tocan la diana. Quien esté más cerca del centro suma un punto por cada piedra más próxima que la mejor del rival. Si las dos mejores quedan a la misma distancia, nadie puntúa. Se juegan tres mangas y se alterna el primer lanzamiento.",
       "ice-floe": "Salta una casilla en cualquier dirección, también en diagonal. La casilla que dejas se hunde. No puedes saltar al agua ni sobre el otro pingüino. Ganas si dejas al rival sin ningún salto posible.",
       "pirate-loot": "Elige el primer o el último tesoro de los doce, leyendo de izquierda a derecha y de arriba abajo. Las monedas suman su valor. Cada llave da 1 de oro y abre un futuro cofre. Un cofre da 10 de oro si gastas una llave y 2 si lo tomas cerrado. Gana quien termine con más oro.",
       "dots-boxes": "Por turnos, traza una línea entre dos puntos vecinos. Si cierras el cuarto lado de una caja, te la quedas y vuelves a jugar. Una sola línea puede cerrar dos cajas. Gana quien consiga más de las nueve.",

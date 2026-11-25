@@ -8,6 +8,60 @@ const { diceRace } = load("games/dice-race/logic");
 const { boxes, boxScores } = load("games/dots-boxes/logic");
 const { mancala } = load("games/mancala/logic");
 const { ice, iceOpening, jumps } = load("games/ice-floe/logic");
+const { curling, slide, endScore } = load("games/pocket-curling/logic");
+const { fifteen, NUMBERS, winningTrio } = load("games/exact-fifteen/logic");
+
+test("a fifteen belongs to a single seat and hard defends against human opening lines", () => {
+  let state = fifteen.start();
+  for (const n of [8, 2, 1, 4, 6]) state = fifteen.play(state, n);
+  assert.equal(state.winner, 0);
+  assert.deepEqual(winningTrio(state.owners, 0), [1, 6, 8]);
+  assert.equal(fifteen.play(state, 9), state);
+  const initial = fifteen.play(fifteen.start(), 5);
+  for (const n of [0, 1.5, 5, 10]) assert.equal(fifteen.play(initial, n), initial);
+  function allHumanReplies(position) {
+    if (position.winner !== null) { assert.notEqual(position.winner, 0); return; }
+    const moves = position.active === 1 ? [fifteen.choose(position, "hard")] : NUMBERS.filter(n => !position.owners[n - 1]);
+    for (const n of moves) allHumanReplies(fifteen.play(position, n));
+  }
+  allHumanReplies(fifteen.start());
+});
+
+test("curling resolves collisions, curl direction, touching the house, blanks and multi-point ends", () => {
+  const shot = { angle: 0, power: 86, spin: 0 };
+  const initial = [{ x: 100, y: 50, seat: 1, id: 1 }];
+  const hit = slide(initial, 0, shot, 2);
+  assert.ok(hit[0].x > 108);
+  assert.ok(hit[1].x < hit[0].x);
+  assert.equal(initial[0].x, 100);
+  assert.deepEqual(hit, slide(initial, 0, shot, 2));
+  assert.ok(slide([], 0, { ...shot, spin: -1 }, 1)[0].y < 50);
+  assert.ok(slide([], 0, { ...shot, spin: 1 }, 1)[0].y > 50);
+  const stone = (x, seat) => ({ x, y: 50, seat, id: 0 });
+  assert.equal(endScore([stone(130, 1)]), -1);
+  assert.equal(endScore([stone(130.1, 1)]), 0);
+  assert.equal(endScore([stone(100, 0), stone(110, 1)]), 0);
+  assert.equal(endScore([stone(106, 0), stone(102, 0), stone(120, 1)]), 2);
+});
+
+test("curling alternates the opening seat and settles exactly three ends at every difficulty", () => {
+  for (const level of ["easy", "medium", "hard"]) {
+    let state = curling.start();
+    const first = [];
+    for (let i = 0; i < 12; i++) {
+      if (i % 4 === 0) { first.push(state.active); assert.deepEqual(state.stones, []); }
+      const shot = curling.choose(state, level);
+      assert.equal(curling.play(state, { ...shot, power: 101 }), state);
+      state = curling.play(state, shot);
+      assert.equal(state.moves, i + 1);
+      assert.equal(state.ends.length, Math.floor((i + 1) / 4));
+    }
+    assert.deepEqual(first, [0, 1, 0]);
+    const margin = state.ends.reduce((sum, n) => sum + n, 0);
+    assert.equal(state.winner, margin === 0 ? "tie" : margin > 0 ? 0 : 1);
+    assert.equal(curling.play(state, { angle: 0, power: 65, spin: 0 }), state);
+  }
+});
 const { loot, lootOpening } = load("games/pirate-loot/logic");
 
 test("ice sinks after each jump, prevents wrapping, and ends when the other penguin is trapped", () => {

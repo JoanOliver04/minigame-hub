@@ -121,6 +121,8 @@ test("every multiplayer game's configured state can be created and joined", { ti
         assert.deepEqual(Object.keys(room.players).sort(), [host.uid, guest.uid].sort());
         assert.equal(typeof room.game, "object");
         const duels = {
+          "pocket-curling": ["curlingRoom", state => host.load("games/pocket-curling/logic").curling.choose(state, "medium")],
+          "exact-fifteen": ["fifteenRoom", state => host.load("games/exact-fifteen/logic").fifteen.choose(state, "medium")],
           "ice-floe": ["iceRoom", state => host.load("games/ice-floe/logic").ice.choose(state, "medium")],
           "pirate-loot": ["lootRoom", state => host.load("games/pirate-loot/logic").loot.choose(state, "medium")],
           "dots-boxes": ["boxesRoom", state => host.load("games/dots-boxes/logic").boxes.choose(state, "medium")],

@@ -1,6 +1,6 @@
 export type Seat = 0 | 1;
 export type Level = "easy" | "medium" | "hard";
-export type DuelId = "mini-reversi" | "dice-race" | "dots-boxes" | "mancala" | "ice-floe" | "pirate-loot";
+export type DuelId = "mini-reversi" | "dice-race" | "dots-boxes" | "mancala" | "ice-floe" | "pirate-loot" | "exact-fifteen" | "pocket-curling";
 
 export interface DuelState {
   active: Seat;
