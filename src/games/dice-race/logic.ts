@@ -16,7 +16,7 @@ export const diceRace: DuelRules<DiceState, DiceMove> = {
   id: "dice-race",
   start: () => ({ active: 0, winner: null, moves: 0, scores: [0, 0], pot: 0, lastFace: 0, lastBank: 0, lost: 0 }),
   play(state, move) {
-    if (state.winner !== null) return state;
+    if (state.winner !== null || !move) return state;
     const { active, pot } = state;
     const moves = state.moves + 1;
     if (move.kind === "bank") {
@@ -26,7 +26,7 @@ export const diceRace: DuelRules<DiceState, DiceMove> = {
       return { ...state, scores, pot: 0, moves, active: otherSeat(active),
         winner: scores[active] >= GOAL ? active : null, lastBank: pot, lost: 0 };
     }
-    if (!Number.isInteger(move.face) || move.face < 1 || move.face > 6) return state;
+    if (move.kind !== "roll" || !Number.isInteger(move.face) || move.face < 1 || move.face > 6) return state;
     const bust = move.face === 1;
     return { ...state, active: bust ? otherSeat(active) : active, pot: bust ? 0 : pot + move.face,
       moves, lastFace: move.face, lastBank: 0, lost: bust ? pot : 0 };

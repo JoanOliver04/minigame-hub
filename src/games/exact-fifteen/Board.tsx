@@ -15,13 +15,14 @@ export function FifteenBoard({ state, names, onPlay }: BoardProps<FifteenState, 
       {NUMBERS.map(n => {
         const owner = state.owners[n - 1], mark = owner === 1 ? "●" : "◆";
         const label = owner ? names[owner - 1] : es ? "Disponible" : "Available";
-        return <button type="button" key={n} className="fifteen-number" data-owner={owner} data-win={win?.includes(n)}
+        return <button type="button" key={n} className="fifteen-number" data-owner={owner} data-win={win?.includes(n)} data-last={state.last === n}
           aria-label={n + " · " + label} disabled={Boolean(owner) || !onPlay} onClick={() => onPlay?.(n)}>
           {n}{owner > 0 && <small aria-hidden="true">{mark}</small>}
         </button>;
       })}
     </div>
-    <p className="duel-note" role="status">{win ? win.join(" + ") + " = 15" : es
-      ? "Elige un número libre. Ganas con tres de los tuyos que sumen 15." : "Claim a free number. Win with any three of yours that add up to 15."}</p>
+    <p className="duel-note" role="status">{win ? win.join(" + ") + " = 15" : state.last
+      ? names[state.owners[state.last - 1] - 1] + " · " + state.last
+      : es ? "Ganas con tres de tus números que sumen 15." : "Win with any three of your numbers that add up to 15."}</p>
   </>;
 }

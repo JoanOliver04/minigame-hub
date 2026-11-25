@@ -2,7 +2,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { otherSeat, type BoardProps } from "../duels/types";
 import { pitsOf, storeOf, type MancalaState } from "./logic";
 
-export function MancalaBoard({ state, names, onPlay, viewer = 0 }: BoardProps<MancalaState, number>) {
+export function MancalaBoard({ state, names, onPlay, viewer = 0, reviewing }: BoardProps<MancalaState, number>) {
   const { locale } = useLocale();
   const es = locale === "es";
   const rows = [otherSeat(viewer), viewer];
@@ -34,10 +34,10 @@ export function MancalaBoard({ state, names, onPlay, viewer = 0 }: BoardProps<Ma
         </section>;
       })}
     </div>
-    <p className="duel-note" role="status">{state.captured
+    {(!reviewing || state.captured > 0 || state.again) && <p className="duel-note" role="status">{state.captured
       ? es ? `Captura de ${state.captured} semillas.` : `${state.captured} seeds captured.`
       : state.again ? es ? "Última semilla en el granero. ¡Turno extra!" : "Last seed in the store. Extra turn!"
       : es ? "Siembra desde un hoyo de tu fila. ↻ indica que la última semilla caerá en tu granero."
-        : "Sow from a pit in your row. ↻ means the last seed lands in your store."}</p>
+        : "Sow from a pit in your row. ↻ means the last seed lands in your store."}</p>}
   </>;
 }

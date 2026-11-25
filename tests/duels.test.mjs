@@ -64,6 +64,35 @@ test("curling alternates the opening seat and settles exactly three ends at ever
 });
 const { loot, lootOpening } = load("games/pirate-loot/logic");
 
+test("all eight saved duels reproduce every original board, extra turn and roll", () => {
+  const { restoreDuel } = load("games/duels/savedDuel");
+  for (const rules of [ice, loot, curling, fifteen, mancala, boxes, reversi, diceRace]) {
+    const save = { id: "test-run", seed: 1742, level: "medium", actions: [], finished: false, updatedAt: 1000 };
+    const frames = [rules.start(save.seed)];
+    while (frames.at(-1).winner === null) {
+      const before = frames.at(-1);
+      const action = rules === diceRace ? (before.pot >= 12 ? { kind: "bank" } : { kind: "roll", face: 6 }) : rules.choose(before, "medium");
+      frames.push(rules.play(before, action));
+      save.actions.push(action);
+      assert.ok(save.actions.length < 300, rules.id);
+      if (save.actions.length === 3) assert.deepEqual(restoreDuel(rules, JSON.stringify(save)).frames, frames, rules.id);
+    }
+    save.finished = true;
+    assert.deepEqual(restoreDuel(rules, JSON.stringify(save)).frames, frames, rules.id);
+    assert.equal(restoreDuel(rules, JSON.stringify({ ...save, finished: false })), null);
+    assert.equal(restoreDuel(rules, JSON.stringify({ ...save, actions: [...save.actions, save.actions[0]] })), null);
+  }
+});
+
+test("invalid saved actions cannot credit results or produce a broken board", () => {
+  const { restoreDuel } = load("games/duels/savedDuel");
+  const save = { id: "run", seed: 0, level: "hard", updatedAt: 0, finished: false };
+  for (const [rules, actions] of [[diceRace, [null]], [diceRace, [{ kind: "unknown", face: 5 }]], [fifteen, [2, 2]], [curling, [0]]]) {
+    assert.equal(restoreDuel(rules, JSON.stringify({ ...save, actions })), null);
+  }
+  assert.equal(restoreDuel(ice, "broken"), null);
+});
+
 test("ice sinks after each jump, prevents wrapping, and ends when the other penguin is trapped", () => {
   const water = (2 ** 25 - 1) ^ ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 5));
   const start = { ...iceOpening(4), pawns: [0, 2], water };

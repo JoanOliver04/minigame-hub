@@ -2,6 +2,7 @@
 
 import { useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLocale } from "@/context/LocaleContext";
 import { filterGames } from "@/games/filter";
 import { GAMES } from "@/games/registry";
@@ -10,6 +11,8 @@ import { readValue, subscribeStorage, writeValue } from "@/lib/browserStorage";
 import { GameCard } from "./GameCard";
 import { StatsTable } from "./StatsTable";
 import { DailyFeature } from "./DailyFeature";
+import { SavedGames } from "./SavedGames";
+import { drawCatalogueGame } from "@/games/surprise";
 import { useFavorites } from "./useFavorites";
 
 const categories = ["all", ...GAME_CATEGORIES] as const;
@@ -32,6 +35,7 @@ export function HubScreen({ view = "library" }: { view?: View }) {
         </Link>)}
       </nav>
       {view === "library" && <>
+        <SavedGames />
         <DailyFeature />
         <section className="friends-entry" aria-labelledby="friends-entry-title">
           <div><h2 id="friends-entry-title">{t.rooms.navLink}</h2><p>{t.rooms.homeHint}</p></div>
@@ -49,6 +53,7 @@ export function HubScreen({ view = "library" }: { view?: View }) {
 
 function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyFavorites: boolean }) {
   const { t } = useLocale();
+  const router = useRouter();
   const storageKey = onlyFavorites ? "miniHubFavoriteFilters" : "miniHubLibraryFilters";
   const stored = useSyncExternalStore(subscribeStorage, () => readValue(storageKey, "session"), () => null);
   const filters = new URLSearchParams(stored ?? "");
@@ -72,6 +77,17 @@ function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyF
   function clearFilters() {
     writeValue(storageKey, null, "session");
     searchRef.current?.focus();
+  }
+
+  function surprise() {
+    const ids = games.map(game => game.id);
+    const key = (onlyFavorites ? "miniHubFavoriteDraws:" : "miniHubLibraryDraws:") + ids.join(",");
+    const pick = drawCatalogueGame(ids, readValue(key, "session"));
+    if (!pick) return;
+    const href = "/games/" + pick.id;
+    writeValue(key, pick.history, "session");
+    writeValue("miniHubFavoriteOrigin", onlyFavorites ? href : null, "session");
+    router.push(href);
   }
 
   if (onlyFavorites && !favorites.size) {
@@ -123,7 +139,12 @@ function Catalogue({ favorites, onlyFavorites }: { favorites: Set<string>; onlyF
 
       <div className="hub-results">
         <p role="status">{t.hub.results(games.length)}</p>
-        {filtered && <button type="button" className="hub-clear" onClick={clearFilters}>{t.hub.clear}</button>}
+        <div className="hub-result-actions">
+          {filtered && <button type="button" className="hub-clear" onClick={clearFilters}>{t.hub.clear}</button>}
+          {games.length > 1 && <button type="button" className="btn hub-surprise" onClick={surprise}>
+            <span aria-hidden="true">⚄</span> {t.hub.surprise}
+          </button>}
+        </div>
       </div>
 
       {games.length > 0 ? (

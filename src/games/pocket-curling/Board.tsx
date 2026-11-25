@@ -4,10 +4,10 @@ import { isMotionReduced } from "@/lib/motion";
 import type { BoardProps } from "../duels/types";
 import { HOUSE, START, endScore, slide, type CurlingState, type Shot, type Stone } from "./logic";
 
-function Stones({ state }: { state: CurlingState }) {
+function Stones({ state, settled, reviewing }: { state: CurlingState; settled: Stone[]; reviewing?: boolean }) {
   const [frame, setFrame] = useState<Stone[] | null>(null);
   useEffect(() => {
-    if (!state.last || isMotionReduced()) return;
+    if (!state.last || reviewing || isMotionReduced()) return;
     const frames: Stone[][] = [];
     const { before, seat, shot } = state.last;
     slide(before, seat, shot, state.moves, frames);
@@ -21,12 +21,12 @@ function Stones({ state }: { state: CurlingState }) {
     }
     request = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(request);
-  }, [state.last, state.moves]);
-  return (frame ?? state.stones).map(s => <span key={s.id} className="curl-stone" data-seat={s.seat}
+  }, [state.last, state.moves, reviewing]);
+  return (frame ?? settled).map(s => <span key={s.id} className="curl-stone" data-seat={s.seat}
     style={{ left: `${s.x / 1.5}%`, top: `${s.y}%` }} aria-hidden="true">{s.seat === 0 ? "A" : "B"}</span>);
 }
 
-export function CurlingBoard({ state, names, onPlay }: BoardProps<CurlingState, Shot>) {
+export function CurlingBoard({ state, names, onPlay, reviewing }: BoardProps<CurlingState, Shot>) {
   const { locale } = useLocale();
   const es = locale === "es";
   const [angle, setAngle] = useState(0), [power, setPower] = useState(60), [spin, setSpin] = useState(0);
@@ -35,27 +35,32 @@ export function CurlingBoard({ state, names, onPlay }: BoardProps<CurlingState, 
     slide([], 0, { angle, power, spin }, 0, frames);
     return frames.filter((frame, i) => frame.length && (i % 2 === 0 || i === frames.length - 1)).map(frame => frame[0]);
   }, [angle, power, spin]);
-  const round = Math.min(3, state.ends.length + 1);
-  const points = endScore(state.stones);
+  const stones = useMemo(() => {
+    // Live play clears the ice between ends. Show the scored layout when reviewing that delivery.
+    if (!reviewing || !state.last || state.moves % 4 !== 0 || state.winner !== null) return state.stones;
+    return slide(state.last.before, state.last.seat, state.last.shot, state.moves);
+  }, [reviewing, state]);
+  const delivery = reviewing ? Math.max(1, state.moves) : Math.min(12, state.moves + 1);
+  const points = endScore(stones);
   const totals = [state.ends.reduce((s,n) => s + Math.max(0,n), 0), state.ends.reduce((s,n) => s + Math.max(0,-n), 0)];
   return <>
     <div className="duel-scores">{names.map((name, i) => <div key={i}><span>{i === 0 ? "A" : "B"} · {name}</span><strong>{totals[i]}</strong></div>)}</div>
-    <p className="curl-round">{es ? "Manga" : "End"} {round}/3 · {es ? "Piedra" : "Stone"} {Math.min(state.moves, 11) % 4 + 1}/4</p>
-    <div className="curl-rink" role="img" aria-label={[es ? "Pista de curling" : "Curling sheet", ...state.stones.map(s =>
+    <p className="curl-round">{es ? "Manga" : "End"} {Math.ceil(delivery / 4)}/3 · {es ? "Piedra" : "Stone"} {(delivery - 1) % 4 + 1}/4</p>
+    <div className="curl-rink" role="img" aria-label={[es ? "Pista de curling" : "Curling sheet", ...stones.map(s =>
       `${names[s.seat]} · ${Math.round(Math.hypot(s.x - HOUSE.x, s.y - HOUSE.y))} ${es ? "del centro" : "from centre"}`)].join(". ")}>
       <span className="curl-house" style={{ left: `${HOUSE.x / 1.5}%`, top: `${HOUSE.y}%`, width: `${2 * HOUSE.radius / 1.5}%` }} />
       {onPlay && <span aria-hidden="true" className="curl-guide">{guide.map((p, i) =>
         <i key={i} style={{ left: `${p.x / 1.5}%`, top: `${p.y}%` }} />)}</span>}
       {onPlay && <span className="curl-stone" aria-hidden="true" data-seat={state.active}
         style={{ left: `${START.x / 1.5}%`, top: `${START.y}%` }}>{state.active === 0 ? "A" : "B"}</span>}
-      <Stones key={state.moves} state={state} />
+      <Stones key={state.moves + "/" + Boolean(reviewing)} state={state} settled={stones} reviewing={reviewing} />
     </div>
     <p className="duel-note" role="status">{points ? (es ? "Puntúa" : "Scoring") + " · " + names[points > 0 ? 0 : 1] + " +" + Math.abs(points)
       : es ? "Sin ventaja en la diana" : "Neither side leads in the house"}</p>
     {state.ends.length > 0 && <p className="curl-results">{state.ends.map((n, i) => <span key={i}>
       {es ? "Manga" : "End"} {i + 1} · {n ? `${n > 0 ? "A" : "B"} +${Math.abs(n)}` : "0–0"}
     </span>)}</p>}
-    {state.winner === null && <fieldset className="curl-controls" disabled={!onPlay}>
+    {state.winner === null && !reviewing && <fieldset className="curl-controls" disabled={!onPlay}>
       <legend>{es ? "Prepara tu lanzamiento" : "Set your delivery"}</legend>
       <label>{es ? "Ángulo" : "Angle"} <b>{angle}°</b><input type="range" min="-25" max="25" value={angle} onChange={e => setAngle(Number(e.target.value))} /></label>
       <label>{es ? "Potencia" : "Power"} <b>{power}%</b><input type="range" min="30" max="100" value={power} onChange={e => setPower(Number(e.target.value))} /></label>

@@ -5,7 +5,7 @@ import { boxScores, type BoxesState } from "./logic";
 const pointName = (row: number, col: number) => String.fromCharCode(65 + col) + (row + 1);
 const marks = ["", "×", "○"];
 
-export function BoxesBoard({ state, names, onPlay }: BoardProps<BoxesState, number>) {
+export function BoxesBoard({ state, names, onPlay, reviewing }: BoardProps<BoxesState, number>) {
   const { locale } = useLocale();
   const es = locale === "es";
   const scores = boxScores(state.owners);
@@ -32,10 +32,10 @@ export function BoxesBoard({ state, names, onPlay }: BoardProps<BoxesState, numb
           aria-label={(es ? "Línea " : "Line ") + ends} onClick={() => onPlay?.(edge)} />;
       })}
     </div>
-    <p className="duel-note" role="status">{state.gained > 0 && state.winner === null
+    {(!reviewing || (state.gained > 0 && state.winner === null)) && <p className="duel-note" role="status">{state.gained > 0 && state.winner === null
       ? es ? `${names[state.active]} cierra ${state.gained === 1 ? "una caja" : "dos cajas"} y repite turno.`
         : `${names[state.active]} closed ${state.gained === 1 ? "one box" : "two boxes"} and plays again.`
       : es ? "Elige una línea de puntos. El cuarto lado de una caja te da un punto y otro turno."
-        : "Choose a dotted line. Drawing the fourth side of a box earns a point and another turn."}</p>
+        : "Choose a dotted line. Drawing the fourth side of a box earns a point and another turn."}</p>}
   </>;
 }

@@ -55,6 +55,14 @@ test("curling and exact fifteen play through against AI and record one finish ea
       if (await replay.isVisible()) break;
       await next.click();
     }
+    if (id === "pocket-curling") {
+      await page.getByRole("button", { name: "Revisar partida" }).click();
+      const timeline = page.getByRole("slider", { name: "Revisar partida" });
+      for (let shot = 0; shot < 4; shot++) await timeline.press("ArrowRight");
+      await expect(page.locator(".curl-round")).toHaveText("Manga 1/3 · Piedra 4/4");
+      await expect(page.locator(".curl-rink .curl-stone").first()).toBeVisible();
+      await expect(page.locator(".curl-controls")).toHaveCount(0);
+    }
     await replay.click();
     await expect(next).toBeEnabled();
   }

@@ -1,5 +1,9 @@
 export const duelCopy = {
   en: {
+    temporary: "Saved for this visit only",
+    review: "Review match", closeReview: "Back to result", previous: "Previous move", next: "Next move",
+    opening: "Starting position", reviewMove: (n: number, total: number, who: string) => `Move ${n} of ${total} · ${who}`,
+    saved: "Saved on this device", replace: "Replace saved game", progress: (n: number) => `Saved game · ${n} ${n === 1 ? "move" : "moves"}`,
     solo: "Play against the AI", tie: "Draw",
     rules: {
       "exact-fifteen": "Take turns claiming a number from 1 to 9. Each number can only be taken once. The first player with three different numbers that add up to exactly 15 wins. They can be anywhere on the board. If all nine are taken with no winning trio, the game is a draw.",
@@ -19,6 +23,10 @@ export const duelCopy = {
     bust: (name: string, n: number) => `${name} rolled a 1 and lost ${n} this turn.`,
   },
   es: {
+    temporary: "Guardada solo durante esta visita",
+    review: "Revisar partida", closeReview: "Volver al resultado", previous: "Jugada anterior", next: "Jugada siguiente",
+    opening: "Posición inicial", reviewMove: (n: number, total: number, who: string) => `Jugada ${n} de ${total} · ${who}`,
+    saved: "Guardada en este dispositivo", replace: "Reemplazar partida guardada", progress: (n: number) => `Partida guardada · ${n} ${n === 1 ? "jugada" : "jugadas"}`,
     solo: "Jugar contra la IA", tie: "Empate",
     rules: {
       "exact-fifteen": "Por turnos, elige un número libre del 1 al 9. Ganas si tres de los números que has elegido suman exactamente 15, estén donde estén en el tablero. Si se agotan los nueve sin que nadie lo consiga, hay empate.",

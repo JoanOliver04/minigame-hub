@@ -7,6 +7,22 @@ const { filterGames } = load("games/filter");
 const { sanitizeScores, decodeScoreSnapshot, recordScore } = load("lib/scoreStore");
 const { generateRoomCode, normalizeRoomCode, roomCodeFromInvite } = load("lib/rooms/code");
 
+test("surprise draws exhaust the visible selection before repeating and respect a new filter", () => {
+  const { drawCatalogueGame } = load("games/surprise");
+  let history = null;
+  function draw(ids) {
+    const pick = drawCatalogueGame(ids, history, () => 0.99);
+    history = pick.history;
+    return pick.id;
+  }
+  assert.equal(drawCatalogueGame([], null), null);
+  assert.deepEqual(["c", "b", "a"], Array.from({length: 3}, () => draw(["a", "b", "c"])));
+  assert.notEqual(draw(["a", "b", "c"]), "a");
+  assert.equal(draw(["a", "d"]), "d");
+  assert.equal(draw(["a", "d"]), "a");
+  assert.equal(draw(["b"]), "b");
+});
+
 test("search combines accent-insensitive words with category and multiplayer filters", () => {
   const games = [
     { id: "parchis", category: "strategy", supportsMultiplayer: true },

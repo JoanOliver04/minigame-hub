@@ -87,6 +87,8 @@ export interface Dictionary {
     searchPlaceholder: string;
     filters: string;
     filterButton: string;
+    continuePlaying: string;
+    surprise: string;
     all: string;
     multiplayer: string;
     library: string;
@@ -1208,6 +1210,8 @@ const en: Dictionary = {
     searchPlaceholder: "Try cards, memory, or racing",
     filters: "Filter games by category",
     filterButton: "Filters",
+    continuePlaying: "Continue playing",
+    surprise: "Surprise me",
     all: "All games",
     multiplayer: "Multiplayer only",
     library: "Game library",
@@ -3197,6 +3201,8 @@ const es: Dictionary = {
     searchPlaceholder: "Prueba con cartas, memoria o carreras",
     filters: "Filtrar juegos por categoría",
     filterButton: "Filtros",
+    continuePlaying: "Seguir jugando",
+    surprise: "Sorpréndeme",
     all: "Todos",
     multiplayer: "Solo multijugador",
     library: "Catálogo",

@@ -35,8 +35,8 @@ export function LootBoard({ state, names, onPlay }: BoardProps<LootState, number
         </button>;
       })}
     </div>
-    <p className="duel-note loot-tip">{es ? "Elige un extremo. Una llave abre el próximo cofre que tomes por 10 de oro. Cerrado vale 2."
-      : "Pick either end. A key opens the next chest you take for 10 gold. A locked chest is worth 2."}</p>
+    {onPlay && <p className="duel-note loot-tip">{es ? "Elige un extremo. Una llave abre el próximo cofre que tomes por 10 de oro. Cerrado vale 2."
+      : "Pick either end. A key opens the next chest you take for 10 gold. A locked chest is worth 2."}</p>}
     {state.last >= 0 && <p className="loot-receipt" role="status">
       {names[otherSeat(state.active)]} · {prizeName(state.deck[state.last], es)} · +{state.gain} {es ? "de oro" : "gold"}
     </p>}

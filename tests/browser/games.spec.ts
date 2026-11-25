@@ -137,6 +137,9 @@ test("free puzzle resumes the board and its undo after reopening", async ({ page
   await page.getByRole("button", { name: "Continuar puzle" }).click();
   await expect(page.getByRole("button", { name: /Deshacer/ })).toBeDisabled();
   await expect(page.locator(".sliding-hud span").first()).toHaveText("0");
+  await page.goto("/");
+  await page.locator('.hub-saved a[href="/games/sliding-puzzle#resume"]').click();
+  await expect(page.locator(".sliding-tile")).toHaveText(before);
 });
 
 test("fleet placement previews and undoes one ship", async ({ page }) => {

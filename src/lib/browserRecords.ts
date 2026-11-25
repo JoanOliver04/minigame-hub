@@ -5,6 +5,7 @@ import { readValue, subscribeValue, writeValue } from "./browserStorage";
 
 type LocalRecord = { revision: number; value: string; applied?: string[] };
 const cache = new Map<string, LocalRecord>();
+const temporary = new Set<string>();
 const storeName = "records";
 let connection: Promise<IDBDatabase> | undefined;
 
@@ -29,42 +30,51 @@ function remember(key: string, record: LocalRecord | undefined) {
 }
 
 const empty = () => null;
-export function useBrowserRecord(key: string | null) {
-  const subscribe = useCallback((notify: () => void) => {
-    if (key === null) return () => {};
-    let active = true;
-    const refresh = async () => {
-      notify();
-      try {
-        const db = await database();
+export function readBrowserRecord(key: string) { return cache.get(key)?.value ?? readValue(key); }
+export function isTemporaryRecord(key: string) { return temporary.has(key); }
+
+export function subscribeBrowserRecord(key: string, notify: () => void) {
+  let active = true;
+  const refresh = async () => {
+    notify();
+    try {
+      const db = await database();
+      if (!active) return;
+      const request = db.transaction(storeName).objectStore(storeName).get(key);
+      request.onsuccess = () => {
         if (!active) return;
-        const request = db.transaction(storeName).objectStore(storeName).get(key);
-        request.onsuccess = () => {
-          if (!active) return;
-          remember(key, request.result);
-          notify();
-        };
-      } catch {
-        if (active) {
-          // Let storage events update the fallback snapshot across tabs as well.
-          cache.delete(key);
-          notify();
-        }
+        remember(key, request.result);
+        notify();
+      };
+    } catch {
+      if (active) {
+        // Let storage events update the fallback snapshot across tabs as well.
+        cache.delete(key);
+        notify();
       }
-    };
-    const unsubscribe = subscribeValue(key, refresh);
-    void refresh();
-    return () => { active = false; unsubscribe(); };
-  }, [key]);
-  return useSyncExternalStore(subscribe, () => key === null ? null : cache.get(key)?.value ?? readValue(key), empty);
+    }
+  };
+  const unsubscribe = subscribeValue(key, refresh);
+  void refresh();
+  return () => { active = false; unsubscribe(); };
+}
+
+export function useBrowserRecord(key: string | null) {
+  const subscribe = useCallback((notify: () => void) => key === null ? () => {} : subscribeBrowserRecord(key, notify), [key]);
+  return useSyncExternalStore(subscribe, () => key === null ? null : readBrowserRecord(key), empty);
 }
 
 /** Keep the read and update in the same transaction, including the first import of a legacy value. */
-export async function updateBrowserRecord(key: string, update: (value: string | null) => string, pendingKey?: string) {
+export async function updateBrowserRecord(key: string, update: (value: string | null) => string | undefined, pendingKey?: string) {
   let next: LocalRecord | undefined;
+  let appliedChange = false;
+  let committed = false;
   function apply(current: LocalRecord | undefined, raw: string | null) {
+    appliedChange = false;
     if (pendingKey && (readValue(pendingKey) === null || current?.applied?.includes(pendingKey))) return current;
     const value = update(raw);
+    if (value === undefined) return current;
+    appliedChange = true;
     const revision = (current?.revision ?? 0) + 1;
     if (!pendingKey) return { revision, value };
     // A second tab may replay an interrupted write before its receipt is removed.
@@ -83,7 +93,7 @@ export async function updateBrowserRecord(key: string, update: (value: string | 
         next = apply(current, current?.value ?? readValue(key));
         if (next && next !== current) store.put(next, key);
       };
-      txn.oncomplete = () => resolve();
+      txn.oncomplete = () => { committed = true; resolve(); };
       txn.onabort = () => reject(txn.error);
     });
   } catch {
@@ -94,7 +104,10 @@ export async function updateBrowserRecord(key: string, update: (value: string | 
   if (next) {
     remember(key, next);
     // Retain the existing format for older versions and signal subscribers in other tabs.
-    writeValue(key, cache.get(key)!.value);
+    const mirrored = writeValue(key, cache.get(key)!.value);
+    if (committed || mirrored) temporary.delete(key);
+    else temporary.add(key);
   }
   if (pendingKey) writeValue(pendingKey, null);
+  return appliedChange;
 }

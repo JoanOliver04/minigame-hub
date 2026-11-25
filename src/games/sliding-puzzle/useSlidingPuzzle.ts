@@ -6,12 +6,11 @@ import { readValue, subscribeValue, writeValue } from "@/lib/browserStorage";
 import { playSound } from "@/lib/sound";
 import { dailyBoard } from "./daily";
 import { createSlidingPuzzle, moveSlidingTile } from "./logic";
-import { readFreeRun, type FreeRun } from "./savedPuzzle";
+import { freePuzzleKey as freeKey, readFreeRun, type FreeRun } from "./savedPuzzle";
 import type { SlidingPuzzleConfig } from "./types";
 import { loadDailyRun, saveDailyBest, saveDailyRun } from "./useDailyChallenge";
 
 type Match = FreeRun & { startedAt: number | null };
-const freeKey = "miniHubFreePuzzle_v1";
 const subscribeFree = (notify: () => void) => subscribeValue(freeKey, notify);
 const getFree = () => readValue(freeKey);
 const empty = () => null;
@@ -24,15 +23,18 @@ function serialize(match: Match, time: number) {
   return JSON.stringify({ game: match.game, undoIndex: match.undoIndex, elapsedMs: elapsed(match, time) });
 }
 
-export function useSlidingPuzzle(dailyDay?: string) {
+export function useSlidingPuzzle(dailyDay?: string, resumeSaved = false) {
   const [match, setMatch] = useState<Match | null>(() => {
-    if (!dailyDay) return null;
+    if (!dailyDay) {
+      const run = resumeSaved ? readFreeRun(getFree()) : null;
+      return run ? { ...run, startedAt: run.game.moves ? Date.now() : null } : null;
+    }
     const run = loadDailyRun(dailyDay);
     return { game: run?.game ?? dailyBoard(dailyDay), startedAt: run?.startedAt ?? null, elapsedMs: 0, undoIndex: null };
   });
   const [now, setNow] = useState(Date.now);
-  const activeFree = useRef<Match | null>(null);
-  const lastSaved = useRef<string | null>(null);
+  const activeFree = useRef<Match | null>(dailyDay ? null : match);
+  const lastSaved = useRef<string | null>(resumeSaved ? getFree() : null);
   const raw = useSyncExternalStore(subscribeFree, getFree, empty);
   const saved = useMemo(() => !match && !dailyDay ? readFreeRun(raw) : null, [match, dailyDay, raw]);
   const { record } = useScores();

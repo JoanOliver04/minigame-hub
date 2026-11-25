@@ -23,15 +23,18 @@ export function readValue(key: string, area: Area = "local"): string | null {
 }
 
 export function writeValue(key: string, value: string | null, area: Area = "local") {
+  let stored = true;
   try {
     const storage = window[area === "local" ? "localStorage" : "sessionStorage"];
     if (value === null) storage.removeItem(key);
     else storage.setItem(key, value);
     fallbacks[area].delete(key);
   } catch {
+    stored = false;
     fallbacks[area].set(key, value);
   }
   window.dispatchEvent(new CustomEvent(changeEvent, { detail: key }));
+  return stored;
 }
 
 export function subscribeStorage(listener: () => void) {

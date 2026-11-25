@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/ui/BackLink";
 import { HowToPlay } from "@/components/ui/HowToPlay";
@@ -14,9 +14,19 @@ import { useDailyStatus } from "./useDailyChallenge";
 
 type PuzzleBoardStyle = CSSProperties & { "--puzzle-size": number };
 
+function subscribeHash(notify: () => void) {
+  window.addEventListener("hashchange", notify);
+  return () => window.removeEventListener("hashchange", notify);
+}
+
 export function SlidingPuzzleGame({ dailyDay }: { dailyDay?: string } = {}) {
+  const resume = useSyncExternalStore(subscribeHash, () => !dailyDay && location.hash === "#resume", () => false);
+  return <PuzzleScreen key={String(resume)} dailyDay={dailyDay} resumeSaved={resume} />;
+}
+
+function PuzzleScreen({ dailyDay, resumeSaved }: { dailyDay?: string; resumeSaved: boolean }) {
   const { t, locale } = useLocale();
-  const { phase, game, seconds, start, move, canUndo, undo, playAgain, toSetup, saved, resume } = useSlidingPuzzle(dailyDay);
+  const { phase, game, seconds, start, move, canUndo, undo, playAgain, toSetup, saved, resume } = useSlidingPuzzle(dailyDay, resumeSaved);
   const { best } = useDailyStatus(dailyDay ?? null);
   const board = useRef<HTMLDivElement>(null);
   const focusResult = useCallback((heading: HTMLHeadingElement | null) => heading?.focus(), []);

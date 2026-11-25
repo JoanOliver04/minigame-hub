@@ -27,6 +27,6 @@ export function IceBoard({ state, names, onPlay }: BoardProps<IceState, number>)
         </button>;
       })}
     </div>
-    <p className="duel-note">{es ? "Salta a una casilla marcada. El hielo que dejas se hunde." : "Jump to a marked tile. The ice you leave sinks."}</p>
+    {onPlay && <p className="duel-note">{es ? "Salta a una casilla marcada. El hielo que dejas se hunde." : "Jump to a marked tile. The ice you leave sinks."}</p>}
   </>;
 }

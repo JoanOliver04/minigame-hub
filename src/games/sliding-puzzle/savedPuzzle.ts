@@ -1,6 +1,8 @@
 import { canMoveTile, isSlidingPuzzleSolved } from "./logic";
 import type { SlidingPuzzleState } from "./types";
 
+export const freePuzzleKey = "miniHubFreePuzzle_v1";
+
 export function isPlayableBoard(value: unknown): value is SlidingPuzzleState {
   if (!value || typeof value !== "object") return false;
   const game = value as Partial<SlidingPuzzleState>;
