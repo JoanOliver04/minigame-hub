@@ -4,7 +4,7 @@
 
 # 🎮 Mini-Game Hub — You vs AI
 
-### **Thirty-seven browser mini-games sharing one hub, one scoreboard and one bilingual UI — most played against an AI opponent built on a genuinely different algorithm, from XOR nim-sum game theory to Monte Carlo tree search. Thirty-six of them can also be played live against a friend over a room code.**
+### 37 browser games with local AI, daily puzzles and private rooms for friends
 
 [![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React_19-149ECA?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
@@ -15,20 +15,20 @@
 ![Status](https://img.shields.io/badge/status-active-2ea44f?style=flat-square)
 ![Games](https://img.shields.io/badge/mini--games-37-1d3a5f?style=flat-square)
 ![Multiplayer](https://img.shields.io/badge/multiplayer_rooms-36_games-6f42c1?style=flat-square)
-![Dependencies](https://img.shields.io/badge/dependencies-Next%2FReact_%2B_Firebase_(rooms_only)-blue?style=flat-square)
+![Offline](https://img.shields.io/badge/solo_play-offline_ready-176548?style=flat-square)
 ![License](https://img.shields.io/badge/license-proprietary-lightgrey?style=flat-square)
 
-**[▶ Live demo](https://minigame-hub-orcin.vercel.app/)**
+**[▶ Live demo](https://minigame-hub-orcin.vercel.app/)** · [Portfolio gallery](https://joan-portfolio-alpha.vercel.app/#minigame-hub)
 
 <br/>
 
-<img src="docs/screenshots/home-hub.png" alt="Mini-Game Hub — main menu" width="720" />
+<a href="docs/screenshots/01-library.webp"><img src="docs/screenshots/01-library.webp" alt="The library with 37 games, category filters and today’s puzzle" width="820" /></a>
 
 </div>
 
 ---
 
-Mini-Game Hub is a Next.js application built around a simple idea repeated thirty-seven different ways: given a small, well-defined game, design a focused interaction or an opponent whose difficulty tiers come from an actual algorithm — minimax with alpha-beta pruning, combinatorial game theory, A* pathfinding, Monte Carlo tree search, expectimax, Bayesian-ish placement inference, exact card counting, meld evaluation — not a random-number fudge factor. All thirty-seven solo games are **fully client-side**: gameplay runs in the browser, with IndexedDB for score records and localStorage for preferences. Thirty-six of them *also* support a **live multiplayer room** — a friend joins with a short code and you play head-to-head in real time — backed by a thin Firebase layer (Cloud Firestore + Anonymous Auth) that is the project's only backend of any kind, and its only dependency beyond Next.js/React. The room layer is game-agnostic; each multiplayer game plugs in with a small `room.ts`/`use<Name>Room.ts`/`<Name>RoomGame.tsx` triple that **reuses the same pure rules the solo AI mode uses** and adds only uid-keyed bookkeeping. See [§2](#2-multiplayer-rooms) for how that layer works and the sync patterns the room games fall into.
+All 37 games run locally in the browser. Opponents use the rules of their game to make decisions, from counting cards in Higher or Lower to searching possible paths in Hex Dominion. The installable app keeps solo scores and saved duels on your device. In 36 games, two friends can share a private room by link or code. Firebase Anonymous Auth and Cloud Firestore handle the online session. See [Multiplayer rooms](#2-multiplayer-rooms).
 
 **Author:** Joan V. Oliver Rosell
 **License:** Proprietary — source is public for portfolio/evaluation purposes only, see [LICENSE](LICENSE)
@@ -54,7 +54,11 @@ Mini-Game Hub is a Next.js application built around a simple idea repeated thirt
 
 ## 1. Games & AI opponents
 
-The catalogue includes 27 games with AI opponents, a fixed-rule Blackjack dealer with an Easy-mode coach, and Sliding Puzzle with three board sizes and an optional move hint. Strategies run locally and use the state available to the player or opponent.
+All 37 games run in the browser. They include opponents that plan moves, a fixed-rule Blackjack dealer with an Easy-mode coach, and Sliding Puzzle with three board sizes and an optional move hint. Strategies run locally and use the state available to the player or opponent.
+
+Eight turn-based duels save each move on this device. **Continue playing** on the home screen restores the game and its difficulty. **Review match** lets you step through a finished duel, including the original dice rolls and AI moves. The same home section also resumes a free sliding puzzle with its last undo.
+
+**Surprise me** draws from the visible games in the library or Favorites and cycles through the selection before repeating a game.
 
 Star games to keep them in [Favorites](https://minigame-hub-orcin.vercel.app/favorites). [My scoreboard](https://minigame-hub-orcin.vercel.app/scores) shows completed solo matches, wins, losses and ties on this browser, including results from older versions.
 
@@ -161,59 +165,69 @@ There is no server to hide secret state, so for the games with hidden informatio
 
 ### Scope
 
-The room layer (`src/lib/rooms/`, `src/games/roomTypes.ts`, `src/games/roomRegistry.ts`) is generic and game-agnostic by design, and **36 games** now plug into it. Adding a room mode to a game is the same additive change every time — a `room.ts`/`use<Name>Room.ts`/`<Name>RoomGame.tsx` triple plus one registry entry and a `supportsMultiplayer: true` flag — and it never touches the game's existing solo files ([§8](#8-adding-a-new-mini-game)).
+The room registry connects 36 games to Cloud Firestore. Eight turn-based duels use the shared adapter in `src/games/duels/room.ts` and the same rules as their solo games. Other games have their own room state and controls. See [Adding a new mini-game](#8-adding-a-new-mini-game).
 
 ---
 
 ## 3. Screenshots
 
-### The hub
+All 22 captures show the English interface. Select an image to open it at its original resolution.
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/home-hub.png" alt="Hub — main menu with the game grid" /><br/><sub><b>Hub</b> — the registry-driven game grid</sub></td>
-    <td width="50%"><img src="docs/screenshots/session-scoreboard.png" alt="Personal scoreboard with matches played, games tried and win rate" /><br/><sub><b>My scoreboard</b> — solo results saved on this device</sub></td>
-  </tr>
-</table>
+### Library and personal progress
 
-### Playing solo vs the AI
+Star games, draw from your filtered favorites with **Surprise me**, or jump back into an unfinished duel. The scoreboard includes a completed win and a draw.
 
-<table>
-  <tr>
-    <td width="33%"><img src="docs/screenshots/number-duel-setup.png" alt="Number Duel setup screen" /><br/><sub><b>Number Duel</b> — setup</sub></td>
-    <td width="33%"><img src="docs/screenshots/number-duel-play.png" alt="Number Duel in progress" /><br/><sub><b>Number Duel</b> — binary-search race</sub></td>
-    <td width="33%"><img src="docs/screenshots/number-duel-win.png" alt="Number Duel victory screen" /><br/><sub><b>Number Duel</b> — win</sub></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/rps-play.png" alt="Rock Paper Scissors in progress" /><br/><sub><b>Rock · Paper · Scissors</b> — blended predictor</sub></td>
-    <td><img src="docs/screenshots/tic-tac-toe-setup.png" alt="Tic-Tac-Toe setup screen" /><br/><sub><b>Tic-Tac-Toe</b> — minimax + αβ</sub></td>
-    <td><img src="docs/screenshots/connect-four-play.png" alt="Connect Four in progress" /><br/><sub><b>Connect Four</b> — 6-ply search</sub></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/higher-or-lower-play.png" alt="Higher or Lower in progress" /><br/><sub><b>Higher or Lower</b> — card counting</sub></td>
-    <td><img src="docs/screenshots/memory-match-play.png" alt="Memory Match in progress" /><br/><sub><b>Memory Match</b> — fallible AI memory</sub></td>
-    <td><img src="docs/screenshots/word-guess-play.png" alt="Word Guess in progress" /><br/><sub><b>Word Guess</b> — information-gain letters</sub></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/blackjack-play.png" alt="Blackjack in progress" /><br/><sub><b>Blackjack</b> — fixed dealer rule</sub></td>
-    <td><img src="docs/screenshots/penalty-shootout-play.png" alt="Penalty Shootout in progress" /><br/><sub><b>Penalty Shootout</b> — pre-commit keeper</sub></td>
-    <td><img src="docs/screenshots/basket-challenge-play.png" alt="Basket Challenge in progress" /><br/><sub><b>Basket Challenge</b> — release-timing meter</sub></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/windline-archery-play.png" alt="Windline Archery in progress" /><br/><sub><b>Windline Archery</b> — aim against the wind</sub></td>
-    <td></td>
-    <td></td>
-  </tr>
-</table>
+<p>
+  <a href="docs/screenshots/02-favorites.webp"><img src="docs/screenshots/02-favorites.webp" alt="Six starred games and the Surprise me button in Favorites" width="298" /></a>
+  <a href="docs/screenshots/05-continue-playing.webp"><img src="docs/screenshots/05-continue-playing.webp" alt="Continue playing links back to the saved Mancala and Curling boards" width="298" /></a>
+  <a href="docs/screenshots/08-scoreboard.webp"><img src="docs/screenshots/08-scoreboard.webp" alt="A win and a draw from two completed games on the personal scoreboard" width="298" /></a>
+</p>
 
-### Multiplayer rooms
+### AI opponents and match review
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/create-room.png" alt="Create a multiplayer room and share the code" /><br/><sub><b>Create a room</b> — pick a game, share the 6-char code</sub></td>
-    <td width="50%"><img src="docs/screenshots/join-room.png" alt="Join a multiplayer room by code" /><br/><sub><b>Join a room</b> — a name and a code is the whole flow</sub></td>
-  </tr>
-</table>
+Read the ice, sow seeds and connect both edges of the hex board. After a duel, step through the original moves. Connect Four also keeps the winning line on its final board.
+
+<p>
+  <a href="docs/screenshots/03-pocket-curling.webp"><img src="docs/screenshots/03-pocket-curling.webp" alt="Pocket Curling with two stones in the house and the next delivery lined up" width="298" /></a>
+  <a href="docs/screenshots/04-mancala.webp"><img src="docs/screenshots/04-mancala.webp" alt="Mancala after sowing, with seed counts in the pits and stores" width="298" /></a>
+  <a href="docs/screenshots/13-hex-dominion.webp"><img src="docs/screenshots/13-hex-dominion.webp" alt="Blue and red chains competing to connect opposite sides in Hex Dominion" width="298" /></a>
+  <a href="docs/screenshots/06-match-review.webp"><img src="docs/screenshots/06-match-review.webp" alt="Scrubbing through a finished game of Exact Fifteen, one pick at a time" width="298" /></a>
+  <a href="docs/screenshots/07-connect-four.webp"><img src="docs/screenshots/07-connect-four.webp" alt="The four winning discs highlighted on the final Connect Four board" width="298" /></a>
+  <a href="docs/screenshots/09-ice-floe.webp"><img src="docs/screenshots/09-ice-floe.webp" alt="Two penguins on a shrinking ice field with legal jumps marked" width="298" /></a>
+  <a href="docs/screenshots/10-pirate-loot.webp"><img src="docs/screenshots/10-pirate-loot.webp" alt="Pirate Loot with treasure available at either end of the row" width="298" /></a>
+  <a href="docs/screenshots/11-dots-boxes.webp"><img src="docs/screenshots/11-dots-boxes.webp" alt="A claimed box and the last edge drawn in Dots and Boxes" width="298" /></a>
+  <a href="docs/screenshots/12-mini-reversi.webp"><img src="docs/screenshots/12-mini-reversi.webp" alt="Mini Reversi with legal moves showing how many discs they flip" width="298" /></a>
+</p>
+
+### Dice, targets and tiles
+
+Choose a die upgrade, plot a shot against the wind, search enemy waters and build melds on the table.
+
+<p>
+  <a href="docs/screenshots/14-diceforge-arena.webp"><img src="docs/screenshots/14-diceforge-arena.webp" alt="Choosing a die-face upgrade after a round in Diceforge Arena" width="298" /></a>
+  <a href="docs/screenshots/15-windline-archery.webp"><img src="docs/screenshots/15-windline-archery.webp" alt="Windline Archery with the target, wind reading and shot result" width="298" /></a>
+  <a href="docs/screenshots/16-fleet-command.webp"><img src="docs/screenshots/16-fleet-command.webp" alt="Fleet Command showing enemy waters and the player’s own ships" width="298" /></a>
+  <a href="docs/screenshots/17-tile-rummy.webp"><img src="docs/screenshots/17-tile-rummy.webp" alt="Tile Rummy with melds on the table and tiles left on the rack" width="298" /></a>
+</p>
+
+### Play with friends
+
+Choose a game when creating a room. A friend can join by code or invitation link. The Exact Fifteen board below shows four live moves played from two browsers using the Firebase emulators.
+
+<p>
+  <a href="docs/screenshots/18-invite-a-friend.webp"><img src="docs/screenshots/18-invite-a-friend.webp" alt="Creating a private room with Pocket Curling selected" width="298" /></a>
+  <a href="docs/screenshots/22-friends-match.webp"><img src="docs/screenshots/22-friends-match.webp" alt="Alex and Sam drafting numbers in a private Exact Fifteen room" width="298" /></a>
+</p>
+
+### On a phone
+
+The room-code form, daily puzzle with a hint, and treasure draft use the mobile layout.
+
+<p>
+  <a href="docs/screenshots/19-join-on-mobile.webp"><img src="docs/screenshots/19-join-on-mobile.webp" alt="Joining a friend by room code on a phone" width="230" /></a>
+  <a href="docs/screenshots/20-daily-puzzle.webp"><img src="docs/screenshots/20-daily-puzzle.webp" alt="The daily sliding puzzle on a phone, with a suggested tile" width="230" /></a>
+  <a href="docs/screenshots/21-mobile-treasure.webp"><img src="docs/screenshots/21-mobile-treasure.webp" alt="The Pirate Loot treasure draft arranged for a phone screen" width="230" /></a>
+</p>
 
 ---
 
@@ -488,7 +502,7 @@ Firestore's Node dependency uses a scoped `@grpc/grpc-js` override for [GHSA-f59
 - **Structured game history.** Games that show move logs store semantic events where needed and format them through the active locale, so switching English/Spanish changes the history text without renaming board spaces that are intentionally branded.
 - **SSR-safe client state.** The server render uses fixed defaults. Client subscriptions then restore local records and preferences.
 - **Backend checks for room access.** Firestore Security Rules enforce seat membership, room expiry, rematch authorization and allowed room transitions. Game rules and hidden game state follow the casual-play [trust model](#trust-model).
-- **Minimal, deliberate dependencies.** The thirty-seven solo games add nothing beyond Next.js/React. Multiplayer adds exactly one dependency, `firebase`, chosen because it's a serverless BaaS that needs no infrastructure of the project's own to run or operate.
+- **Runtime dependencies.** The solo games run on Next.js and React. Firebase powers multiplayer rooms, and the app shell includes Vercel Analytics.
 
 ---
 
