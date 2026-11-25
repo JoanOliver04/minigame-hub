@@ -40,7 +40,7 @@ function roomMode<S extends DuelState, A>(rules: DuelRules<S, A>) {
     async rematch(code: string, uid: string, expected: Version) {
       await runRoomUpdate<RoomMatch<S>>(code, rules.id, room => {
         if (room.status !== "finished" || !matches(room, expected) || !room.players[uid] || room.rematchVotes[uid]) return null;
-        return { rematchVotes: { ...room.rematchVotes, [uid]: true } };
+        return { [`rematchVotes.${uid}`]: true as const };
       });
       await runRoomUpdate<RoomMatch<S>>(code, rules.id, room => {
         if (room.status !== "finished" || !matches(room, expected) || !room.game.seats.every(id => room.rematchVotes[id])) return null;

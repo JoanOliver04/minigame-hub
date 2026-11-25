@@ -149,9 +149,14 @@ test("every multiplayer game's configured state can be created and joined", { ti
           }
           assert.notEqual(current.game.state.winner, null);
           const end = roomVersion(current);
-          await host.load("games/duels/room")[mod].rematch(code, host.uid, end);
-          assert.equal((await read()).status, "finished");
-          await guest.load("games/duels/room")[mod].rematch(code, guest.uid, end);
+          const vote = player => player.load("games/duels/room")[mod].rematch(code, player.uid, end);
+          if (id === "ice-floe" || id === "pirate-loot") {
+            await Promise.all([vote(host), vote(guest)]);
+          } else {
+            await vote(host);
+            assert.equal((await read()).status, "finished");
+            await vote(guest);
+          }
           const replay = await read();
           assert.equal(replay.status, "playing");
           assert.equal(replay.game.turn, guest.uid);

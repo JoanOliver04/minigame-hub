@@ -191,6 +191,7 @@ export async function voteRematch(code: string, uid: string): Promise<void> {
 }
 
 type GameFieldPatch = Record<`game.${string}`, unknown>;
+type RematchVotePatch = Record<`rematchVotes.${string}`, true>;
 
 /** Validate the active game in the same transaction as the field updates. */
 export async function updateRoomGameFields(
@@ -218,7 +219,7 @@ export async function updateRoomGameFields(
 export async function runRoomUpdate<TGame>(
   code: string,
   gameId: GameId,
-  mutate: (room: RoomDoc<TGame>) => Partial<RoomDoc<TGame>> | GameFieldPatch | null,
+  mutate: (room: RoomDoc<TGame>) => Partial<RoomDoc<TGame>> | GameFieldPatch | RematchVotePatch | null,
 ): Promise<void> {
   const ref = roomRef(code);
   await runTransaction(getDb(), async (tx) => {
