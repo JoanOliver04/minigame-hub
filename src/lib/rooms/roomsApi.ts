@@ -22,6 +22,7 @@ import { getDb } from "@/lib/firebase/client";
 import type { GameId } from "@/games/registry";
 import { generateRoomCode } from "./code";
 import { isRoomExpired } from "./expiry";
+import { forgetRoom } from "./recentRoom";
 import type { RoomDoc, RoomStatus } from "./types";
 
 const ROOMS_COLLECTION = "rooms";
@@ -171,16 +172,22 @@ export function subscribeRoom<TGame>(
   code: string,
   onChange: (room: RoomDoc<TGame> | null) => void,
   onError?: (error: Error) => void,
+  waitForServerOnMissing = false,
 ): Unsubscribe {
   return onSnapshot(
     roomRef(code),
-    (snap) => onChange(snap.exists() ? (snap.data() as RoomDoc<TGame>) : null),
+    { includeMetadataChanges: waitForServerOnMissing },
+    (snap) => {
+      if (waitForServerOnMissing && !snap.exists() && snap.metadata.fromCache) return;
+      onChange(snap.exists() ? (snap.data() as RoomDoc<TGame>) : null);
+    },
     (error) => onError?.(error),
   );
 }
 
 export async function leaveRoom(code: string): Promise<void> {
   await deleteDoc(roomRef(code));
+  forgetRoom(code);
 }
 
 export async function voteRematch(code: string, uid: string): Promise<void> {

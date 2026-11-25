@@ -120,6 +120,19 @@ test("every multiplayer game's configured state can be created and joined", { ti
         assert.equal(room.gameId, id);
         assert.deepEqual(Object.keys(room.players).sort(), [host.uid, guest.uid].sort());
         assert.equal(typeof room.game, "object");
+        if (id === "connect-four") {
+          const drop = (client, column) => client.load("games/connect-four/room").submitConnectMove(code, client.uid, column);
+          for (let move = 0; move < 7; move++) await drop(move % 2 === 0 ? host : guest, move % 2);
+          const next = await read();
+          assert.ok(next.game.cells.every(cell => cell === null));
+          assert.equal(next.game.previousCells.filter(Boolean).length, 7);
+          assert.equal(next.game.lastOutcome.line.length, 4);
+          assert.equal(next.game.turn, guest.uid);
+          await guest.load("games/connect-four/room").submitConnectMove(code, guest.uid, 2, room.updatedAt);
+          assert.deepEqual((await read()).game.cells, next.game.cells);
+          await drop(guest, 3);
+          assert.deepEqual((await read()).game.previousCells, next.game.previousCells);
+        }
         const duels = {
           "pocket-curling": ["curlingRoom", state => host.load("games/pocket-curling/logic").curling.choose(state, "medium")],
           "exact-fifteen": ["fifteenRoom", state => host.load("games/exact-fifteen/logic").fifteen.choose(state, "medium")],

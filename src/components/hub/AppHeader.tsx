@@ -10,6 +10,7 @@ import { useLocale } from "@/context/LocaleContext";
 import type { Locale } from "@/lib/i18n/dictionaries";
 import { InstallApp } from "./InstallApp";
 import { getGame } from "@/games/registry";
+import { RecentRoomLink } from "./RecentRoomLink";
 
 const LOCALE_OPTIONS = [
   { value: "en", label: "EN" },
@@ -29,7 +30,7 @@ function subscribeConnection(notify: () => void) {
   };
 }
 
-function FriendsNav({ href }: { href: string }) {
+function FriendsNav({ href, path }: { href: string; path: string }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const nav = useRef<HTMLElement>(null);
@@ -57,6 +58,7 @@ function FriendsNav({ href }: { href: string }) {
         <small id="friends-link-purpose">{t.rooms.navHint}</small></span><span aria-hidden="true">▾</span>
     </button>
     <div id="friends-options" className="friends-options" hidden={!open}>
+      <RecentRoomLink currentPath={path} onClick={() => setOpen(false)} />
       <Link href={href} prefetch={false} onClick={() => setOpen(false)}>{t.rooms.inviteFriend}</Link>
       <Link href="/rooms?mode=join" prefetch={false} onClick={() => setOpen(false)}>{t.rooms.useInvite}</Link>
     </div>
@@ -80,7 +82,7 @@ export function AppHeader() {
         <span>{t.app.title}</span>
       </Link>
       <div className="app-header-actions">
-        <FriendsNav key={path} href={friendsHref} />
+        <FriendsNav key={path} href={friendsHref} path={path} />
         <InstallApp />
         <button type="button" className="btn hub-sound" aria-label={t.play.gameSound}
           title={t.play.gameSound} aria-pressed={sound} onClick={() => setSoundEnabled(!sound)}>

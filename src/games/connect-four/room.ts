@@ -17,6 +17,7 @@
 "use client";
 
 import type { RoomGameSettings } from "@/games/roomTypes";
+import type { RoomDoc } from "@/lib/rooms/types";
 import { runRoomUpdate } from "@/lib/rooms/roomsApi";
 import {
   COLUMNS,
@@ -24,7 +25,6 @@ import {
   checkBoardOutcome,
   createBoard,
   dropPiece,
-  getDropRow,
 } from "./logic";
 import type { ConnectBoard, ConnectCell, ConnectPiece, ConnectRoundOutcome } from "./types";
 
@@ -64,6 +64,7 @@ export interface ConnectRoomGame {
   target: number;
   /** Result of the most recently finished board, kept for the UI. */
   lastOutcome: ConnectRoundOutcome | null;
+  previousCells?: FlatCells;
 }
 
 const HOST_PIECE: ConnectPiece = "R"; // mirrors solo PLAYER_PIECE
@@ -110,10 +111,11 @@ export function seedConnectRoomGame(
   };
 }
 
-export async function submitConnectMove(code: string, uid: string, column: number): Promise<void> {
+export async function submitConnectMove(code: string, uid: string, column: number, expectedUpdate?: RoomDoc["updatedAt"]): Promise<void> {
   await runRoomUpdate<ConnectRoomGame>(code, "connect-four", (room) => {
     const g = room.game;
     if (room.status !== "playing" || g.finished || g.turn !== uid) return null;
+    if (expectedUpdate && !expectedUpdate.isEqual(room.updatedAt)) return null;
 
     const myPiece = g.pieces[uid];
     if (!myPiece) return null;
@@ -155,11 +157,12 @@ export async function submitConnectMove(code: string, uid: string, column: numbe
     }
 
     // Next board: fresh cells, alternate who starts (pieces stay fixed).
-    const nextStarter = uids[rounds % uids.length];
+    const nextStarter = rounds % 2 === 0 ? room.hostUid : uids.find(id => id !== room.hostUid)!;
     return {
       game: {
         ...g,
         cells: emptyCells(),
+        previousCells: nextCells,
         scores,
         draws,
         rounds,
@@ -197,9 +200,4 @@ export async function resetConnectRoomForRematch(code: string): Promise<void> {
       rematchVotes: {},
     };
   });
-}
-
-/** Convenience for the view: is a column full? */
-export function columnFull(cells: FlatCells, column: number): boolean {
-  return getDropRow(toBoard(cells), column) === null;
 }

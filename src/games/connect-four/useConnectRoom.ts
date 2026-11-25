@@ -83,8 +83,8 @@ export function useConnectRoom(code: string): UseConnectRoomResult {
     (column: number) => {
       if (!uid || !room || room.status !== "playing" || isRoomExpired(room)) return;
       const g = room.game;
-      if (g.finished || g.turn !== uid) return;
-      submitConnectMove(code, uid, column).catch((error) => console.warn("submitConnectMove", error));
+      if (g.finished || g.turn !== uid || !room.updatedAt) return;
+      submitConnectMove(code, uid, column, room.updatedAt).catch((error) => console.warn("submitConnectMove", error));
     },
     [uid, room, code],
   );

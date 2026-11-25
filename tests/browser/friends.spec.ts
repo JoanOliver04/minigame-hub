@@ -1,5 +1,20 @@
 import { expect, test } from "@playwright/test";
 
+test("a returning player can find their last room until its expiry", async ({ page }) => {
+  await page.clock.install();
+  await page.goto("/rooms");
+  const room = { code: "K7RXPQ", gameId: "connect-four", expiresAt: await page.evaluate(() => Date.now() + 60_000) };
+  await page.evaluate(saved => localStorage.setItem("miniHubRecentRoom", JSON.stringify(saved)), room);
+  await page.reload();
+  const resume = page.locator("main").getByRole("link", { name: /Volver a tu sala/ });
+  await expect(resume).toHaveAttribute("href", "/rooms/K7RXPQ");
+  await page.locator("header .friends-link").click();
+  await expect(page.locator("header").getByRole("link", { name: /Volver a tu sala/ })).toHaveText(/Cuatro en Raya/i);
+  await page.clock.fastForward(61_000);
+  await expect(resume).toHaveCount(0);
+  await expect(page.locator("header").getByRole("link", { name: /Volver a tu sala/ })).toHaveCount(0);
+});
+
 test("the friends button opens both paths and accepts a pasted invitation without truncating it", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 760 });
   await page.goto("/games/pocket-curling");

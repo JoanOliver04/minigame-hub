@@ -8,8 +8,8 @@
 
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
-import { COLUMNS, ROWS } from "./logic";
-import { columnFull, toBoard, type ConnectRoomGame } from "./room";
+import { ConnectGrid, RoundReview } from "./ConnectGrid";
+import { toBoard, type ConnectRoomGame } from "./room";
 import { useConnectRoom } from "./useConnectRoom";
 
 export function ConnectRoomGame({ code }: { code: string }) {
@@ -70,7 +70,7 @@ export function ConnectRoomGame({ code }: { code: string }) {
   const myScore = game.scores[uid] ?? 0;
   const opponentScore = game.scores[opponentUid] ?? 0;
   const myPiece = game.pieces[uid];
-  const pieceClass = (piece: string) => (piece === myPiece ? "red" : "yellow");
+  const opponent = opponentName ?? "?";
 
   if (stage === "finished") {
     const iWon = myScore > opponentScore;
@@ -92,6 +92,7 @@ export function ConnectRoomGame({ code }: { code: string }) {
             <div className="value">{game.rounds}</div>
           </div>
         </div>
+        <RoundReview round={game.rounds} board={toBoard(game.cells)} myPiece={myPiece} opponent={opponent} outcome={game.lastOutcome} />
         <div className="btn-row">
           <button className="btn primary" onClick={playAgain} disabled={iVoted}>
             {iVoted ? t.rooms.rematchWaiting : t.rooms.rematchButton}
@@ -106,9 +107,6 @@ export function ConnectRoomGame({ code }: { code: string }) {
 
   /* ================= PLAYING ================= */
   const board = toBoard(game.cells);
-  const line = game.lastOutcome?.line ?? null;
-  const isWinningCell = (row: number, column: number) =>
-    line?.some((p) => p.row === row && p.column === column) ?? false;
 
   const feedback = isMyTurn ? t.rooms.turnYours : t.rooms.turnOpponent(opponentName ?? "?");
 
@@ -130,34 +128,11 @@ export function ConnectRoomGame({ code }: { code: string }) {
         <span className="them">{opponentName}: {opponentScore}</span>
       </div>
 
-      <div className="feedback">{feedback}</div>
-      {lastRoundMsg && <div className="feedback">{lastRoundMsg}</div>}
-
-      <div className="connect-board" role="group" aria-label={t.connectFour.boardLabel}>
-        {Array.from({ length: COLUMNS }, (_, column) => {
-          const full = columnFull(game.cells, column);
-          return (
-            <button
-              key={column}
-              className="connect-column"
-              disabled={!isMyTurn || full}
-              onClick={() => playColumn(column)}
-              aria-label={t.connectFour.columnLabel(column + 1)}
-            >
-              <span className="connect-preview" aria-hidden="true" />
-              {Array.from({ length: ROWS }, (_, row) => {
-                const piece = board[row][column];
-                const winning = isWinningCell(row, column);
-                return (
-                  <span key={`${row}-${column}`} className={`connect-slot${winning ? " winning" : ""}`}>
-                    {piece && <span className={`connect-piece ${pieceClass(piece)}`} />}
-                  </span>
-                );
-              })}
-            </button>
-          );
-        })}
-      </div>
+      <div className="feedback" role="status">{feedback}</div>
+      <ConnectGrid board={board} myPiece={myPiece} opponent={opponent} canPlay={isMyTurn} onPlay={playColumn} />
+      {lastRoundMsg && <p>{lastRoundMsg}</p>}
+      {game.previousCells && <RoundReview key={game.rounds} round={game.rounds} board={toBoard(game.previousCells)}
+        myPiece={myPiece} opponent={opponent} outcome={game.lastOutcome} />}
 
       <div className="btn-row">
         <button className="btn" onClick={leave}>

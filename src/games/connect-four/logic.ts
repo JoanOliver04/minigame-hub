@@ -27,7 +27,7 @@ export function availableColumns(board: ConnectBoard): number[] {
 }
 
 export function getDropRow(board: ConnectBoard, column: number): number | null {
-  if (column < 0 || column >= COLUMNS) return null;
+  if (!Number.isInteger(column) || column < 0 || column >= COLUMNS) return null;
   for (let row = ROWS - 1; row >= 0; row--) {
     if (board[row][column] === null) return row;
   }

@@ -35,6 +35,9 @@ export function useConnectFour() {
   const [board, setBoard] = useState<ConnectBoard>(createBoard());
   const [lastMove, setLastMove] = useState<BoardPosition | null>(null);
   const [lastOutcome, setLastOutcome] = useState<ConnectRoundOutcome | null>(null);
+  const [previousRound, setPreviousRound] = useState<{
+    round: number; board: ConnectBoard; outcome: ConnectRoundOutcome;
+  } | null>(null);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { record } = useScores();
 
@@ -55,6 +58,7 @@ export function useConnectFour() {
   function startMatch(difficulty: ConnectDifficulty, target: number) {
     clearTimers();
     setMatch(createConnectMatch(difficulty, target));
+    setPreviousRound(null);
     setBoard(createBoard());
     setLastMove(null);
     setLastOutcome(null);
@@ -62,7 +66,7 @@ export function useConnectFour() {
     setPhase("playing");
   }
 
-  function finishRound(current: ConnectMatchState, outcome: ConnectRoundOutcome) {
+  function finishRound(current: ConnectMatchState, outcome: ConnectRoundOutcome, finalBoard: ConnectBoard) {
     setStage("over");
     setLastOutcome(outcome);
     playSound(
@@ -87,6 +91,7 @@ export function useConnectFour() {
       if (nextMatch.finished) {
         setPhase("end");
       } else {
+        setPreviousRound({ round: nextMatch.rounds, board: finalBoard, outcome });
         setBoard(createBoard());
         setLastMove(null);
         setLastOutcome(null);
@@ -106,7 +111,7 @@ export function useConnectFour() {
 
     const playerOutcome = checkBoardOutcome(playerDrop.board);
     if (playerOutcome) {
-      finishRound(match, playerOutcome);
+      finishRound(match, playerOutcome, playerDrop.board);
       return;
     }
 
@@ -121,7 +126,7 @@ export function useConnectFour() {
 
       const aiOutcome = checkBoardOutcome(aiDrop.board);
       if (aiOutcome) {
-        finishRound(match, aiOutcome);
+        finishRound(match, aiOutcome, aiDrop.board);
       } else {
         playSound("blip");
         setStage("player");
@@ -150,6 +155,7 @@ export function useConnectFour() {
     board,
     lastMove,
     lastOutcome,
+    previousRound,
     startMatch,
     playColumn,
     playAgain,

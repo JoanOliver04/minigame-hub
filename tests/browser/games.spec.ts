@@ -9,6 +9,27 @@ async function start(page: Page, slug: string) {
   await setup.locator("button.btn.primary").last().click();
 }
 
+test("Connect Four keeps the winning board for review and resets it on replay", async ({ page }) => {
+  await page.goto("/games/connect-four");
+  await page.getByRole("button", { name: "Fácil", exact: true }).click();
+  await page.getByRole("button", { name: "Ronda única" }).click();
+  await page.evaluate(() => { Math.random = () => 0.98; });
+  await page.getByRole("button", { name: "Iniciar partida", exact: true }).click();
+  const first = page.getByRole("button", { name: "Columna 1", exact: true });
+  await first.focus();
+  await first.press("ArrowLeft");
+  await expect(page.getByRole("button", { name: "Columna 7" })).toBeFocused();
+  for (let turn = 0; turn < 4; turn++) await first.click();
+  await page.locator(".connect-review summary").click();
+  await expect(page.locator(".connect-review p")).toHaveText("Cuatro en vertical · Columna 1");
+  await expect(page.locator(".connect-review .winning .red")).toHaveCount(4);
+  await expect(page.locator(".connect-review .yellow")).toHaveCount(3);
+  await expect(page.getByRole("img", { name: /Columna 1/ })).toHaveAccessibleName(/cuatro en raya/);
+  await page.locator(".end-card button.primary").click();
+  await expect(page.locator(".connect-review")).toHaveCount(0);
+  await expect(page.locator(".connect-piece")).toHaveCount(0);
+});
+
 // Each route is exercised through a real game control on a narrow viewport.
 const controls: Record<string, string> = {
   "pocket-curling": ".curl-throw:enabled", "exact-fifteen": ".fifteen-number:enabled",

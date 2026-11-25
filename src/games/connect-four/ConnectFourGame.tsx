@@ -7,13 +7,8 @@ import { HowToPlay } from "@/components/ui/HowToPlay";
 import { InfoTip } from "@/components/ui/InfoTip";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
-import {
-  AI_PIECE,
-  COLUMNS,
-  PLAYER_PIECE,
-  ROWS,
-  getDropRow,
-} from "./logic";
+import { AI_PIECE, PLAYER_PIECE } from "./logic";
+import { ConnectGrid, RoundReview } from "./ConnectGrid";
 import type { ConnectDifficulty } from "./types";
 import { useConnectFour } from "./useConnectFour";
 
@@ -26,6 +21,7 @@ export function ConnectFourGame() {
     board,
     lastMove,
     lastOutcome,
+    previousRound,
     startMatch,
     playColumn,
     playAgain,
@@ -113,6 +109,7 @@ export function ConnectFourGame() {
             <div className="value">{match.rounds}</div>
           </div>
         </div>
+        <RoundReview round={match.rounds} board={board} outcome={lastOutcome} myPiece={PLAYER_PIECE} opponent={t.common.ai} />
         <div className="btn-row">
           <button className="btn primary" onClick={playAgain}>
             {t.common.playAgain}
@@ -154,11 +151,6 @@ export function ConnectFourGame() {
     }
   }
 
-  const isWinningCell = (row: number, column: number) =>
-    lastOutcome?.line?.some(
-      (position) => position.row === row && position.column === column,
-    ) ?? false;
-
   return (
     <section className="card screen connect-screen">
       <BackLink />
@@ -171,50 +163,10 @@ export function ConnectFourGame() {
         <span className="them">{t.connectFour.tallyAi(match.aiScore)}</span>
       </div>
 
-      <div className={`feedback${feedbackClass}`}>{feedback}</div>
-
-      <div className="connect-board" role="group" aria-label={t.connectFour.boardLabel}>
-        {Array.from({ length: COLUMNS }, (_, column) => {
-          const landing = getDropRow(board, column);
-          const full = landing === null;
-          return (
-            <button
-              key={column}
-              className="connect-column"
-              disabled={stage !== "player" || full}
-              onKeyDown={event => {
-                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-                const columns = Array.from(event.currentTarget.parentElement!.querySelectorAll<HTMLButtonElement>("button:enabled"));
-                const next = columns.indexOf(event.currentTarget) + (event.key === "ArrowLeft" ? -1 : 1);
-                event.preventDefault();
-                columns[(next + columns.length) % columns.length]?.focus();
-              }}
-              onClick={() => playColumn(column)}
-              aria-label={t.connectFour.columnLabel(column + 1)}
-            >
-              <span className="connect-preview" aria-hidden="true" />
-              {Array.from({ length: ROWS }, (_, row) => {
-                const piece = board[row][column];
-                const latest =
-                  lastMove?.row === row && lastMove.column === column;
-                const winning = isWinningCell(row, column);
-                return (
-                  <span
-                    key={`${row}-${column}`}
-                    className={`connect-slot${winning ? " winning" : ""}${row === landing ? " landing" : ""}`}
-                  >
-                    {piece && (
-                      <span
-                        className={`connect-piece ${piece === PLAYER_PIECE ? "red" : "yellow"}${latest ? " dropping" : ""}`}
-                      />
-                    )}
-                  </span>
-                );
-              })}
-            </button>
-          );
-        })}
-      </div>
+      <div className={`feedback${feedbackClass}`} role="status">{feedback}</div>
+      <ConnectGrid board={board} myPiece={PLAYER_PIECE} opponent={t.common.ai} outcome={lastOutcome}
+        lastMove={lastMove} canPlay={stage === "player"} onPlay={playColumn} />
+      {previousRound && stage !== "over" && <RoundReview key={previousRound.round} {...previousRound} myPiece={PLAYER_PIECE} opponent={t.common.ai} />}
     </section>
   );
 }

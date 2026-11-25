@@ -7,11 +7,12 @@
  * or asks for one if this is the first time on this device.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { ensureSignedIn } from "@/lib/firebase/anonAuth";
 import { isRoomExpired } from "@/lib/rooms/expiry";
+import { forgetRoom, rememberRoom } from "@/lib/rooms/recentRoom";
 import { joinRoom, subscribeRoom, switchRoomGame } from "@/lib/rooms/roomsApi";
 import type { RoomDoc } from "@/lib/rooms/types";
 import { MAX_PLAYER_NAME_LENGTH, usePlayerName } from "@/lib/rooms/usePlayerName";
@@ -23,6 +24,11 @@ type ClientPhase = "connecting" | "not-found" | "error" | "ready";
 const multiplayerGames = GAMES.filter((game) => game.supportsMultiplayer);
 
 export function RoomClient({ code }: { code: string }) {
+  const [attempt, setAttempt] = useState(0);
+  return <RoomSession key={attempt} code={code} retry={() => setAttempt(n => n + 1)} />;
+}
+
+function RoomSession({ code, retry }: { code: string; retry: () => void }) {
   const { t } = useLocale();
   const [name, setName] = usePlayerName();
   const [nameDraft, setNameDraft] = useState("");
@@ -43,10 +49,13 @@ export function RoomClient({ code }: { code: string }) {
         unsubscribe = subscribeRoom<unknown>(
           code,
           (doc) => {
+            if (cancelled) return;
             setRoom(doc);
             setPhase(doc ? "ready" : "not-found");
+            if (!doc || !Object.hasOwn(doc.players, user.uid) || doc.status === "abandoned") forgetRoom(code);
           },
           () => setPhase("error"),
+          true,
         );
       })
       .catch(() => {
@@ -62,6 +71,17 @@ export function RoomClient({ code }: { code: string }) {
   const alreadySeated = Boolean(uid && room && Object.hasOwn(room.players, uid));
   const isHost = Boolean(uid && room?.hostUid === uid);
   const expired = Boolean(room && isRoomExpired(room));
+  const expiresAt = room?.expiresAt.toMillis();
+  const gameId = room?.gameId;
+  const abandoned = room?.status === "abandoned";
+  const [, refreshExpiry] = useState(0);
+  useEffect(() => {
+    if (!expiresAt) return;
+    if (expiresAt <= Date.now()) { forgetRoom(code); return; }
+    if (alreadySeated && gameId && !abandoned) rememberRoom({ code, gameId, expiresAt });
+    const timer = window.setTimeout(() => { forgetRoom(code); refreshExpiry(n => n + 1); }, expiresAt - Date.now());
+    return () => clearTimeout(timer);
+  }, [code, alreadySeated, gameId, expiresAt, abandoned]);
   const roomIsJoinable =
     Boolean(room) &&
     room?.status === "waiting" &&
@@ -97,6 +117,7 @@ export function RoomClient({ code }: { code: string }) {
       <section className="card screen">
         <p role="alert">{t.rooms.errorGeneric}</p>
         <div className="btn-row">
+          <button type="button" className="btn primary" onClick={retry}>{t.rooms.retryConnection}</button>
           <Link href="/rooms" className="btn">{t.rooms.backToRooms}</Link>
         </div>
       </section>
@@ -111,8 +132,11 @@ export function RoomClient({ code }: { code: string }) {
     );
   }
 
-  if (phase === "not-found" || !room || expired || (!alreadySeated && !roomIsJoinable)) {
-    const message = expired ? t.rooms.roomExpired : t.rooms.roomNotFound;
+  if (phase === "not-found" || !room || expired || abandoned || (!alreadySeated && !roomIsJoinable)) {
+    let message = t.rooms.roomNotFound;
+    if (expired) message = t.rooms.roomExpired;
+    else if (abandoned) message = t.rooms.roomGone;
+    else if (room && !alreadySeated) message = t.rooms.roomFull;
     return (
       <section className="card screen">
         <p>{message}</p>
@@ -184,7 +208,7 @@ export function RoomClient({ code }: { code: string }) {
             <strong aria-live="polite">{currentGameName}</strong>
           </div>
         </div>
-        {room.status === "waiting" && <InviteLink key={room.code} code={room.code} />}
+        {room.status === "waiting" && <InviteLink key={room.code} code={room.code} gameName={currentGameName} />}
         {isHost ? (
           <RoomSettings key={selectionKey} room={room} uid={uid} />
         ) : <p>{t.rooms.guestSettingsHint}</p>}
@@ -194,16 +218,29 @@ export function RoomClient({ code }: { code: string }) {
   );
 }
 
-function InviteLink({ code }: { code: string }) {
+const subscribeShare = () => () => {};
+function InviteLink({ code, gameName }: { code: string; gameName: string }) {
   const { t } = useLocale();
+  const canShare = useSyncExternalStore(subscribeShare, () => typeof navigator.share === "function", () => false);
   const [copied, setCopied] = useState(false);
   const [manual, setManual] = useState("");
+  function inviteUrl() { return new URL("/rooms/" + code, window.location.origin).href; }
   async function copy() {
-    const link = new URL("/rooms/" + code, window.location.origin).href;
+    const link = inviteUrl();
     try { await navigator.clipboard.writeText(link); setCopied(true); setManual(""); }
-    catch { setManual(link); }
+    catch { setCopied(false); setManual(link); }
+  }
+  async function share() {
+    try {
+      await navigator.share({ title: t.app.title, text: gameName, url: inviteUrl() });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      setCopied(false);
+      setManual(inviteUrl());
+    }
   }
   return <div className="btn-row room-form-actions">
+    {canShare && <button className="btn primary" type="button" onClick={share}>{t.rooms.shareInvite}</button>}
     <button className="btn" type="button" onClick={copy}>{t.rooms.inviteLink}</button>
     {copied && <span role="status">{t.rooms.linkCopied}</span>}
     {manual && <input className="text-input" aria-label={t.rooms.inviteLink} readOnly value={manual} onFocus={e => e.target.select()} />}
@@ -218,6 +255,10 @@ function RoomSettings({ room, uid }: { room: RoomDoc; uid: string }) {
   const [failed, setFailed] = useState(false);
   const selectedRoomGame = getRoomGame(selectedGameId);
   const selectedSettings = selectedRoomGame?.settings ?? [];
+  const changed = selectedGameId !== room.gameId || selectedSettings.some(setting => {
+    const fallback = selectedRoomGame?.defaultSettings?.[setting.key] ?? setting.options[0]?.value;
+    return (draftSettings[setting.key] ?? fallback) !== (room.gameSettings?.[setting.key] ?? fallback);
+  });
 
   function translatedSettingLabel(key: string, fallback: string) {
     return t.rooms.settingLabels[key] ?? fallback;
@@ -234,7 +275,7 @@ function RoomSettings({ room, uid }: { room: RoomDoc; uid: string }) {
   }
 
   async function applyRoomSelection() {
-    if (!selectedRoomGame || switching) return;
+    if (!selectedRoomGame || switching || !changed) return;
     setSwitching(true);
     setFailed(false);
     try {
@@ -285,7 +326,7 @@ function RoomSettings({ room, uid }: { room: RoomDoc; uid: string }) {
         </div>
       ))}
       <div className="btn-row room-form-actions">
-        <button type="button" className="btn primary" disabled={switching} onClick={applyRoomSelection}>
+        <button type="button" className="btn primary" disabled={switching || !changed} onClick={applyRoomSelection}>
           {switching ? t.rooms.changingGame : t.rooms.applyRoomSettings}
         </button>
       </div>

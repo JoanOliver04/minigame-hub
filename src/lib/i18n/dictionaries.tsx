@@ -290,6 +290,12 @@ export interface Dictionary {
     drawRound: string;
     boardLabel: string;
     columnLabel: (column: number) => string;
+    columnRange: (first: number, last: number) => string;
+    emptyColumn: string;
+    stack: (owners: string) => string;
+    winningLine: string;
+    lineDirection: Record<"horizontal" | "vertical" | "diagonal", string>;
+    reviewRound: (round: number) => string;
   };
   nim: {
     rules: ReactNode;
@@ -972,6 +978,10 @@ export interface Dictionary {
     invitedBy: (host: string, game: string) => string;
     haveCode: string;
     inviteLink: string;
+    shareInvite: string;
+    returnToRoom: (game: string) => string;
+    roomFull: string;
+    retryConnection: string;
     linkCopied: string;
     title: string;
     tagline: string;
@@ -1650,7 +1660,13 @@ const en: Dictionary = {
     loseRound: "AI connected four.",
     drawRound: "Draw — the board is full.",
     boardLabel: "Connect Four board",
-    columnLabel: (column) => `Drop a red piece in column ${column}`,
+    columnLabel: column => `Column ${column}`,
+    columnRange: (first, last) => `Columns ${first}–${last}`,
+    emptyColumn: "Empty column",
+    stack: owners => `From bottom to top · ${owners}`,
+    winningLine: "Part of the winning four",
+    lineDirection: { horizontal: "Horizontal four", vertical: "Vertical four", diagonal: "Diagonal four" },
+    reviewRound: round => `Review round ${round}`,
   },
   nim: {
     rules: (
@@ -2918,6 +2934,10 @@ const en: Dictionary = {
     invitedBy: (host, game) => `${host} invited you to play ${game}.`,
     haveCode: "I have a code",
     inviteLink: "Copy invitation link",
+    shareInvite: "Share invitation",
+    returnToRoom: game => `Return to your room · ${game}`,
+    roomFull: "Both seats in this room are taken.",
+    retryConnection: "Try connecting again",
     linkCopied: "Invitation link copied",
     title: "Play with Friends",
     tagline: "Invite a friend to a private room or join with the code or link they sent you.",
@@ -3630,7 +3650,13 @@ const es: Dictionary = {
     loseRound: "La IA ha conectado cuatro.",
     drawRound: "Empate — el tablero está lleno.",
     boardLabel: "Tablero de Cuatro en Raya",
-    columnLabel: (column) => `Dejar caer una ficha roja en la columna ${column}`,
+    columnLabel: column => `Columna ${column}`,
+    columnRange: (first, last) => `Columnas ${first}–${last}`,
+    emptyColumn: "Columna vacía",
+    stack: owners => `De abajo arriba · ${owners}`,
+    winningLine: "Parte del cuatro en raya",
+    lineDirection: { horizontal: "Cuatro en horizontal", vertical: "Cuatro en vertical", diagonal: "Cuatro en diagonal" },
+    reviewRound: round => `Ver tablero de la ronda ${round}`,
   },
   nim: {
     rules: (
@@ -4933,6 +4959,10 @@ const es: Dictionary = {
     invitedBy: (host, game) => `${host} te invita a jugar a ${game}.`,
     haveCode: "Tengo un código",
     inviteLink: "Copiar enlace de invitación",
+    shareInvite: "Compartir invitación",
+    returnToRoom: game => `Volver a tu sala · ${game}`,
+    roomFull: "Las dos plazas de esta sala ya están ocupadas.",
+    retryConnection: "Volver a conectar",
     linkCopied: "Enlace de invitación copiado",
     title: "Jugar con amigos",
     tagline: "Invita a un amigo a una sala privada o únete con el código o el enlace que te haya enviado.",

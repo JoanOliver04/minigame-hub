@@ -9,6 +9,7 @@
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/ui/BackLink";
+import { RecentRoomLink } from "@/components/hub/RecentRoomLink";
 import { SegPicker } from "@/components/ui/SegPicker";
 import { useLocale } from "@/context/LocaleContext";
 import { roomCodeFromInvite } from "@/lib/rooms/code";
@@ -98,6 +99,7 @@ function RoomsForm({ initialTab, requested }: { initialTab: "create" | "join"; r
 
       <h1>{t.rooms.title}</h1>
       <p>{t.rooms.tagline}</p>
+      <RecentRoomLink className="btn room-resume-link" />
 
       <form className="room-form" onSubmit={submit} aria-busy={busy}>
         <label className="field-label" htmlFor="room-player-name">{t.rooms.yourNameLabel}</label>

@@ -1833,6 +1833,7 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .friends-entry p { color: var(--text-dim); }
 .friends-entry-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .friends-entry-actions .btn { min-height: 44px; text-align: center; }
+.room-resume-link { margin-block: .5rem 1rem; }
 .hub-nav a span { font-size: .72rem; border-radius: 1em; padding: 2px 6px; background: var(--surface-2); }
 .daily-feature {
   display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: center;
@@ -2568,6 +2569,13 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }
 .connect-piece.red { background: #ff5964; }
 .connect-piece.yellow { background: #ffd166; }
+.connect-piece::after { content: ""; position: absolute; inset: 30%; border: 2px solid #421c29; border-radius: 50%; }
+.connect-piece.yellow::after { inset: 34%; border-radius: 1px; background: #654600; border: 0; transform: rotate(45deg); }
+.connect-review { margin: 1rem auto; width: 100%; max-width: 30rem; text-align: start; }
+.connect-review summary { cursor: pointer; padding: .65rem .25rem; font-weight: 650; }
+.connect-review .connect-board { margin-top: .4rem; }
+.connect-review .connect-column { cursor: default; }
+.connect-review .connect-slot.winning .connect-piece { animation: none; }
 .connect-piece.dropping { animation: connectDrop 0.42s cubic-bezier(0.25, 0.75, 0.35, 1); }
 @keyframes connectDrop {
   from { transform: translateY(-620%); }
